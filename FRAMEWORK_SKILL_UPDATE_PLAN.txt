@@ -1,0 +1,205 @@
+FRAMEWORK SKILL UPDATE PLAN
+============================
+Audit date: 2026-09-23
+Repository: https://github.com/greysquirr3l/claudedesignskills
+
+Scope
+-----
+The 21 remaining framework skills were audited against official documentation,
+GitHub releases, and npm package metadata. The PixiJS v8 skill was not included
+because it was already audited and updated separately.
+
+General update policy
+---------------------
+1. Add an explicit current-version/date note to each skill.
+2. Prefer official APIs and package names in primary examples.
+3. Move deprecated APIs into clearly labeled migration/legacy sections.
+4. Label experimental, browser-dependent, backend-specific, and community APIs.
+5. Pin or scope package versions where reproducibility matters.
+6. Test changed code examples against the stated version.
+7. Synchronize each individual skill with its bundle copy.
+
+Priority 1: major API migrations
+--------------------------------
+
+animejs
+- Current: Anime.js 4.5.0.
+- Replace v3 default import/anime({...}) with named animate(targets, params).
+- Replace anime.timeline() with createTimeline().
+- Update easing, callbacks, loop, direction, spring, SVG, and keyframe examples
+  to v4 APIs: ease, on-prefixed callbacks, reversed/alternate, repeat counts,
+  createSpring(), svg.createMotionPath(), svg.createDrawable(), and to.
+- Update React/Vue examples and bundle-size notes; label v3 APIs as migration-only.
+
+locomotive-scroll
+- Current: Locomotive Scroll 5.0.1, built on Lenis.
+- Rewrite the v4 examples: remove required data-scroll-container and
+  data-scroll-section markup, obsolete options, init(), update(), and internal
+  scroll.instance access.
+- Use v5 constructor/lenisOptions, resize(), native CustomEvents,
+  scrollCallback, progress CSS/events, and orientation.
+- Rework GSAP integration for v5/Lenis; document touch/parallax behavior.
+
+threejs-webgl
+- Current: Three.js 0.186.0/r186.
+- Add an explicit version baseline and maintenance note.
+- Prefer renderer.setAnimationLoop(); explain async WebGPURenderer init and
+  WebGL2 fallback.
+- Separate WebGL addon post-processing/GPGPU/GLSL from WebGPU/TSL APIs.
+- Use PCFShadowMap for WebGPU, document texture.colorSpace and
+  renderer.outputColorSpace, and remove obsolete encoding terminology.
+- Dispose textures and render targets as well as geometry/material/renderer.
+
+playcanvas-engine
+- Current: PlayCanvas 2.22.4.
+- Replace deprecated model component with render and entity.render.
+- Replace deprecated animation component with Anim/state graphs.
+- Make ESM Script subclasses the primary scripting pattern; retain pc.createScript
+  only as legacy guidance.
+- Update Ammo setup to WasmModule.setConfig/getInstance and current distributions.
+- Mark Model, Animation, and Classic scripts deprecated/legacy where retained.
+
+react-three-fiber
+- Current: @react-three/fiber 9.8.0; v9 pairs with React 19, v8 with React 18.
+- Add version/React compatibility notes.
+- Correct Canvas props: flat = tone mapping, legacy = color management,
+  linear = sRGB/gamma behavior.
+- Fix duplicate size declaration and use named Zustand import.
+- Clarify useLoader caching/disposal rules and mark WebGPU async support as
+  work-in-progress/experimental.
+
+Priority 2: current API corrections
+-----------------------------------
+
+aframe-webxr
+- Current: A-Frame 1.8.0; aframe-extras latest observed 7.7.0.
+- Update 1.7.1 CDN examples and label community add-ons.
+- Load event-set explicitly or rewrite interactions with registered components.
+- Add runtime capability checks for WebXR hit-test/dom-overlay and requiredFeatures.
+
+babylonjs-engine
+- Current: Babylon.js 9.27.1.
+- Replace 7.x version note and add a package pin.
+- Clarify ComputeShader as backend-specific, principally WebGPU.
+- Fix GUI import style consistency.
+- Document KTX2/Basis loader installation and side-effect registration.
+- Keep Havok setup aligned with current async initialization.
+
+barba-js
+- Current: @barba/core 2.10.3.
+- Correct router setup to barba.use(barbaRouter, { routes }); barba.init().
+- Correct prefetch setup to barba.use(barbaPrefetch, { root, timeout, limit });
+  remove the unsupported init({ prefetch }) pattern and hover-default claim.
+- Mark @barba/head as coming-soon/experimental; use beforeEnter guidance.
+- Clarify sync transition timing and concurrent leave/enter behavior.
+
+gsap-scrolltrigger
+- Current: GSAP 3.15.0.
+- Replace deprecated ScrollTrigger.matchMedia() with gsap.matchMedia().
+- Remove the incorrect "top center" default claim and qualify config values.
+- Add useGSAP registration and contextSafe() guidance for delayed handlers.
+- Mark Locomotive integration as third-party/version-sensitive; mention
+  ScrollSmoother as the supported GSAP alternative.
+
+motion-framer
+- Current: Motion 13.4.1; React 18.2+; AnimateView requires React/DOM 19.3+.
+- Make motion and motion/react the primary package/imports.
+- Retain framer-motion only as compatibility/migration guidance.
+- Correct spring/tween default descriptions and useAnimate examples.
+- Add migration guidance including AnimatePresence mode="wait".
+
+react-spring-physics
+- Current stable: 10.1.2; v11.0.0-beta.0 is prerelease.
+- Correct string interpolation guidance and explain SpringValue.set for immediate
+  jumps versus api.start for transitions.
+- Clarify function-form/dependency-array semantics.
+- Move Popmotion 11.0.5 to optional legacy guidance.
+- Recheck useScroll/useInView exports and label newer/beta variants.
+
+rive-interactive
+- Current web runtime: 2.43.0.
+- Replace generic rive-react guidance with renderer-specific packages such as
+  @rive-app/react-webgl2.
+- Replace plural animations/stateMachines with singular stateMachine.
+- Mark Rive Events subscription and plural options deprecated.
+- Correct autoBind guidance and document onRiveReady/manual binding timing.
+
+scroll-reveal-libraries
+- Current stable: AOS 2.3.4; aos@next is experimental.
+- Make stable 2.3.4 the default installation/CDN.
+- Replace data-aos="fade-in" with stable catalog names such as fade.
+- Change 50+ animation claim to 27 or omit the count.
+- Document duration/delay as 50-3000 ms in 50 ms increments.
+
+spline-interactive
+- Current: @splinetool/runtime 2.0.56; @splinetool/react-spline 4.1.0.
+- Add package pins and current runtime links.
+- Add scroll event and current variables/playback/sizing/background/object
+  enumeration/create/clone/remove APIs.
+- Document WebGPU preference with WebGL fallback and session-only runtime objects.
+
+lottie-animations
+- Current observed packages: lottie-web 5.13.0, dotlottie-web 0.80.0,
+  dotlottie-react 0.19.16, lottie-react 3.1.2.
+- Add package/version scope and separate lottie-web from dotLottie APIs.
+- Recheck lottie-react interactivity against v3 or label as legacy.
+- Treat worker/OffscreenCanvas as optional and version-sensitive.
+- Remove/qualify the 90% compression claim and verify manifest/theme APIs.
+
+animated-component-libraries
+- Current: Motion/framer-motion 13.4.1; Magic UI and React Bits are unversioned
+  copy-source registries.
+- Prefer motion/react terminology; label framer-motion compatibility.
+- Update React Bits count to current site wording (150+ observed).
+- Correct BlurText props to animateBy words/letters and current documented props.
+- Correct CountUp to/to/from/direction/startWhen/separator/onStart/onEnd API.
+- Make dependencies component-specific; do not globally require ogl/framer-motion.
+
+Priority 3: product/tooling and meta-skill updates
+---------------------------------------------------
+
+blender-web-pipeline
+- Current: Blender 5.2 LTS; Blender 5.3 is alpha.
+- Replace export_colors with export_vertex_color.
+- Add gltfpack/KTX2/BasisU and EXT_meshopt guidance alongside Draco.
+- Correct Actions/NLA export guidance and label animation-pointer/RAW lighting
+  features experimental/deprecated where applicable.
+- Convert Python // comments to # and validate snippets.
+
+lightweight-3d-effects
+- Current observed: Zdog 1.1.1, Vanta 0.5.24, Vanilla-Tilt 1.8.1,
+  Three.js 0.186.0; Vanta README uses legacy Three.js r134.
+- Fix React Vanta effect-specific import/call pattern.
+- Label r134 as legacy compatibility and test any Three.js upgrade.
+- Mark Zdog v1 beta/experimental and qualify performance guarantees.
+
+modern-web-design
+- Meta-skill; no single package version.
+- Replace FID with INP; retain LCP and CLS thresholds and 75th-percentile scope.
+- Clarify same-document versus cross-document View Transitions and feature detect.
+- Use Motion/motion/react terminology and scope GSAP v3.15 guidance.
+- Remove unconditional WCAG AAA claims; measure actual contrast and scope touch
+  target sizes to the applicable standard.
+
+web3d-integration-patterns
+- Meta-skill; add a dated dependency matrix for Three.js 0.186.0, R3F 9.8.0,
+  Motion 13.4.1, GSAP v3.15, and React peer requirements.
+- Quarantine deprecated framer-motion-3d guidance and provide maintained alternatives.
+- Use named Zustand import.
+- Replace unsupported 3D drag assumptions with verified pointer/spring/GSAP code.
+- Return and invoke a real Three.js cleanup function; cancel RAF/listeners and
+  dispose owned resources.
+
+Verification checklist
+----------------------
+- Run quick_validate.py on every individual skill.
+- Compare every individual SKILL.md with its bundle copy.
+- Run scripts/marketplace/validate_marketplace.py.
+- Run Python compilation checks for skill scripts.
+- Search for stale patterns: freshtechbro URLs, deprecated APIs, @next defaults,
+  FID, anime.timeline, ScrollTrigger.matchMedia, v4 Locomotive markup,
+  PlayCanvas model/animation components, and framer-motion-3d as current guidance.
+- Commit all updates only after validation passes.
+
+This file records the completed audit findings and the implementation plan. The
+21 skill documents were not modified in this reduced-credit pass.
