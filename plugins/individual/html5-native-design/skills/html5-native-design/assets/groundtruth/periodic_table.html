@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Periodic Table — greysquirr3l</title>
+<style>
+  :root {
+    --bg:        oklch(0.17 0.035 264);
+    --line:      oklch(0.45 0.05 264 / 0.35);
+    --line-soft: oklch(0.45 0.05 264 / 0.18);
+    --ink:       oklch(0.96 0.01 264);
+    --ink-dim:   oklch(0.74 0.02 264);
+    --ink-faint: oklch(0.56 0.02 264);
+    --cyan:   oklch(0.84 0.13 200);
+    --violet: oklch(0.72 0.16 295);
+    --c-alkali:     oklch(0.62 0.22 25);
+    --c-alkaline:   oklch(0.70 0.19 55);
+    --c-transition: oklch(0.58 0.16 230);
+    --c-post:       oklch(0.68 0.16 195);
+    --c-metalloid:  oklch(0.74 0.18 135);
+    --c-nonmetal:   oklch(0.72 0.19 160);
+    --c-halogen:    oklch(0.70 0.20 145);
+    --c-noble:      oklch(0.65 0.20 295);
+    --c-lanthanide: oklch(0.62 0.22 340);
+    --c-actinide:   oklch(0.56 0.20 355);
+    --c-unknown:    oklch(0.40 0.04 264);
+    --font-ui:   ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, monospace;
+    --hw: 56px;
+    --hh: calc(var(--hw) * 1.1547);
+    --hgap: 3px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background:
+      radial-gradient(80rem 50rem at 70% -5%,  oklch(0.4 0.16 295 / 0.18), transparent 55%),
+      radial-gradient(60rem 50rem at -10% 40%, oklch(0.55 0.13 200 / 0.12), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    min-height: 100vh;
+    padding: 0 0 6rem;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page-header {
+    max-width: 1320px; margin: 0 auto;
+    padding: clamp(2rem,5vw,3.5rem) clamp(1rem,4vw,2rem) 0;
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    justify-content: space-between; gap: 1rem;
+  }
+  .eyebrow {
+    display: block; font-family: var(--font-mono);
+    font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--cyan); border: 1px solid var(--line);
+    background: oklch(0.84 0.13 200 / 0.06);
+    padding: 0.3rem 0.65rem; border-radius: 999px; margin-bottom: 0.6rem;
+  }
+  h1 { font-size: clamp(2rem,6vw,3.8rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.95; }
+  h1 span { color: var(--cyan); }
+  .header-meta { font-size: 0.82rem; color: var(--ink-dim); font-family: var(--font-mono); line-height: 1.7; text-align: right; }
+  .filter-bar {
+    max-width: 1320px; margin: 2rem auto 0;
+    padding: 0 clamp(1rem,4vw,2rem);
+    display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center;
+  }
+  .filter-label { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); margin-right: 0.3rem; }
+  .filter-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.28rem 0.7rem; border-radius: 999px; border: 1px solid transparent;
+    font-size: 0.72rem; font-family: var(--font-mono); letter-spacing: 0.06em;
+    cursor: pointer; background: oklch(0.24 0.04 264 / 0.6);
+    color: var(--ink-dim); border-color: var(--line-soft);
+    transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--line); color: var(--ink); }
+  .filter-btn.active { color: #000; border-color: transparent; transform: scale(1.05); }
+  .filter-btn .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .table-wrap { max-width: 1320px; margin: 1.5rem auto 0; padding: 0 clamp(0.5rem,2vw,1.5rem); overflow-x: auto; }
+  .periodic-table {
+    display: grid;
+    grid-template-columns: repeat(18, var(--hw));
+    grid-auto-rows: calc(var(--hh) * 0.75 + var(--hgap));
+    gap: 0 var(--hgap);
+    width: max-content; margin: 0 auto; padding-bottom: 2rem;
+  }
+  .el {
+    position: relative; width: var(--hw); height: var(--hh);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    cursor: pointer;
+    transition: transform 0.22s cubic-bezier(.34,1.56,.64,1), filter 0.22s ease, opacity 0.25s ease;
+    z-index: 1;
+    animation: el-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+  @keyframes el-in { from { opacity:0; transform:scale(0.7); filter:blur(4px); } to { opacity:1; transform:scale(1); filter:blur(0); } }
+  .el.off { margin-top: calc(var(--hh) * 0.375); }
+  .el:hover { transform: scale(1.28) !important; filter: brightness(1.25) drop-shadow(0 0 14px currentColor); z-index: 20; }
+  .el.dimmed { opacity: 0.08; filter: saturate(0.1); transform: scale(0.94); pointer-events: none; }
+  .el-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 3px; user-select: none; pointer-events: none; }
+  .el-num  { font-size: 0.48rem; opacity: 0.75; font-family: var(--font-mono); margin-bottom: 1px; }
+  .el-sym  { font-size: 1.05rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+  .el-name { font-size: 0.38rem; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 88%; margin-top: 1px; }
+  .alkali     { background: var(--c-alkali);     color: #000; }
+  .alkaline   { background: var(--c-alkaline);   color: #000; }
+  .transition { background: var(--c-transition); color: #fff; }
+  .post       { background: var(--c-post);       color: #000; }
+  .metalloid  { background: var(--c-metalloid);  color: #000; }
+  .nonmetal   { background: var(--c-nonmetal);   color: #000; }
+  .halogen    { background: var(--c-halogen);    color: #000; }
+  .noble      { background: var(--c-noble);      color: #fff; }
+  .lanthanide { background: var(--c-lanthanide); color: #000; }
+  .actinide   { background: var(--c-actinide);   color: #fff; }
+  .unknown    { background: var(--c-unknown);    color: var(--ink-dim); }
+  .row-gap    { grid-column: 1 / span 18; height: 18px; pointer-events: none; }
+  .detail-panel {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: oklch(0.20 0.04 264 / 0.97);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border-top: 1px solid var(--line);
+    padding: 1.5rem clamp(1rem,5vw,3rem);
+    display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(.34,1.2,.64,1);
+  }
+  .detail-panel.open { transform: translateY(0); }
+  .detail-hex {
+    width: 88px; height: calc(88px * 1.1547);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: grid; place-items: center; flex-shrink: 0; transition: background 0.2s;
+  }
+  .detail-hex-inner { text-align: center; }
+  .detail-hex .el-num { font-size: 0.7rem; opacity: 0.8; font-family: var(--font-mono); }
+  .detail-hex .el-sym { font-size: 2rem; font-weight: 800; line-height: 1; }
+  .detail-hex .el-name { font-size: 0.55rem; opacity: 0.85; }
+  .detail-info { flex: 1; min-width: 180px; }
+  .detail-name { font-size: clamp(1.4rem,4vw,2rem); font-weight: 800; letter-spacing: -0.03em; }
+  .detail-cat { display: inline-block; margin-top: 0.3rem; font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 999px; border: 1px solid currentColor; opacity: 0.85; }
+  .detail-facts { display: flex; flex-wrap: wrap; gap: 1.2rem; margin-top: 0.9rem; }
+  .detail-fact { display: flex; flex-direction: column; gap: 0.1rem; }
+  .detail-fact-label { font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+  .detail-fact-value { font-size: 0.88rem; font-weight: 600; color: var(--ink); font-family: var(--font-mono); }
+  .detail-close { position: absolute; top: 0.9rem; right: 1rem; background: none; border: 1px solid var(--line); color: var(--ink-dim); width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 0.9rem; display: grid; place-items: center; transition: background 0.15s, color 0.15s; }
+  .detail-close:hover { background: var(--line); color: var(--ink); }
+  .legend { max-width: 420px; margin: 4rem auto 0; padding: 0 clamp(1rem,4vw,2rem); display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem 2rem; }
+  .legend-item { display: flex; align-items: center; gap: 0.55rem; font-size: 0.72rem; color: var(--ink-dim); font-family: var(--font-mono); }
+  .legend-dot { width: 16px; height: 16px; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); flex-shrink: 0; }
+  footer { max-width: 1320px; margin: 3rem auto 0; padding: 1.5rem clamp(1rem,4vw,2rem) 0; border-top: 1px solid var(--line-soft); color: var(--ink-faint); font-size: 0.8rem; font-family: var(--font-mono); }
+  footer a { color: var(--cyan); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  @media (prefers-reduced-motion: reduce) { .el { animation: none; } .detail-panel { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <span class="eyebrow">◇ Pattern Lab · Chemistry</span>
+    <h1>Periodic<br><span>Table</span></h1>
+  </div>
+  <div class="header-meta">118 elements · hex grid · pure CSS<br>click any element for details</div>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-label">Filter:</span>
+  <button class="filter-btn active" data-cat="all"><span class="dot" style="background:var(--cyan)"></span>All</button>
+  <button class="filter-btn" data-cat="alkali"><span class="dot" style="background:var(--c-alkali)"></span>Alkali metals</button>
+  <button class="filter-btn" data-cat="alkaline"><span class="dot" style="background:var(--c-alkaline)"></span>Alkaline earth</button>
+  <button class="filter-btn" data-cat="transition"><span class="dot" style="background:var(--c-transition)"></span>Transition metals</button>
+  <button class="filter-btn" data-cat="post"><span class="dot" style="background:var(--c-post)"></span>Post-transition</button>
+  <button class="filter-btn" data-cat="metalloid"><span class="dot" style="background:var(--c-metalloid)"></span>Metalloids</button>
+  <button class="filter-btn" data-cat="nonmetal"><span class="dot" style="background:var(--c-nonmetal)"></span>Reactive nonmetals</button>
+  <button class="filter-btn" data-cat="halogen"><span class="dot" style="background:var(--c-halogen)"></span>Halogens</button>
+  <button class="filter-btn" data-cat="noble"><span class="dot" style="background:var(--c-noble)"></span>Noble gases</button>
+  <button class="filter-btn" data-cat="lanthanide"><span class="dot" style="background:var(--c-lanthanide)"></span>Lanthanides</button>
+  <button class="filter-btn" data-cat="actinide"><span class="dot" style="background:var(--c-actinide)"></span>Actinides</button>
+</div>
+
+<div class="table-wrap">
+<div class="periodic-table" id="pt">
+
+<!-- ROW 1 -->
+<div class="el nonmetal" data-z="1" data-sym="H" data-name="Hydrogen" data-cat="nonmetal" data-mass="1.008" data-config="1s¹" data-phase="Gas" data-year="1766" style="grid-column:1;grid-row:1"><div class="el-inner"><div class="el-num">1</div><div class="el-sym">H</div><div class="el-name">Hydrogen</div></div></div>
+<div class="el noble off" data-z="2" data-sym="He" data-name="Helium" data-cat="noble" data-mass="4.003" data-config="1s²" data-phase="Gas" data-year="1895" style="grid-column:18;grid-row:1"><div class="el-inner"><div class="el-num">2</div><div class="el-sym">He</div><div class="el-name">Helium</div></div></div>
+
+<!-- ROW 2 -->
+<div class="el alkali" data-z="3" data-sym="Li" data-name="Lithium" data-cat="alkali" data-mass="6.941" data-config="[He] 2s¹" data-phase="Solid" data-year="1817" style="grid-column:1;grid-row:3"><div class="el-inner"><div class="el-num">3</div><div class="el-sym">Li</div><div class="el-name">Lithium</div></div></div>
+<div class="el alkaline off" data-z="4" data-sym="Be" data-name="Beryllium" data-cat="alkaline" data-mass="9.012" data-config="[He] 2s²" data-phase="Solid" data-year="1798" style="grid-column:2;grid-row:3"><div class="el-inner"><div class="el-num">4</div><div class="el-sym">Be</div><div class="el-name">Beryllium</div></div></div>
+<div class="el metalloid" data-z="5" data-sym="B" data-name="Boron" data-cat="metalloid" data-mass="10.811" data-config="[He] 2s² 2p¹" data-phase="Solid" data-year="1808" style="grid-column:13;grid-row:3"><div class="el-inner"><div class="el-num">5</div><div class="el-sym">B</div><div class="el-name">Boron</div></div></div>
+<div class="el nonmetal off" data-z="6" data-sym="C" data-name="Carbon" data-cat="nonmetal" data-mass="12.011" data-config="[He] 2s² 2p²" data-phase="Solid" data-year="ancient" style="grid-column:14;grid-row:3"><div class="el-inner"><div class="el-num">6</div><div class="el-sym">C</div><div class="el-name">Carbon</div></div></div>
+<div class="el nonmetal" data-z="7" data-sym="N" data-name="Nitrogen" data-cat="nonmetal" data-mass="14.007" data-config="[He] 2s² 2p³" data-phase="Gas" data-year="1772" style="grid-column:15;grid-row:3"><div class="el-inner"><div class="el-num">7</div><div class="el-sym">N</div><div class="el-name">Nitrogen</div></div></div>
+<div class="el nonmetal off" data-z="8" data-sym="O" data-name="Oxygen" data-cat="nonmetal" data-mass="15.999" data-config="[He] 2s² 2p⁴" data-phase="Gas" data-year="1774" style="grid-column:16;grid-row:3"><div class="el-inner"><div class="el-num">8</div><div class="el-sym">O</div><div class="el-name">Oxygen</div></div></div>
+<div class="el halogen" data-z="9" data-sym="F" data-name="Fluorine" data-cat="halogen" data-mass="18.998" data-config="[He] 2s² 2p⁵" data-phase="Gas" data-year="1886" style="grid-column:17;grid-row:3"><div class="el-inner"><div class="el-num">9</div><div class="el-sym">F</div><div class="el-name">Fluorine</div></div></div>
+<div class="el noble off" data-z="10" data-sym="Ne" data-name="Neon" data-cat="noble" data-mass="20.180" data-config="[He] 2s² 2p⁶" data-phase="Gas" data-year="1898" style="grid-column:18;grid-row:3"><div class="el-inner"><div class="el-num">10</div><div class="el-sym">Ne</div><div class="el-name">Neon</div></div></div>
+
+<!-- ROW 3 -->
+<div class="el alkali" data-z="11" data-sym="Na" data-name="Sodium" data-cat="alkali" data-mass="22.990" data-config="[Ne] 3s¹" data-phase="Solid" data-year="1807" style="grid-column:1;grid-row:5"><div class="el-inner"><div class="el-num">11</div><div class="el-sym">Na</div><div class="el-name">Sodium</div></div></div>
+<div class="el alkaline off" data-z="12" data-sym="Mg" data-name="Magnesium" data-cat="alkaline" data-mass="24.305" data-config="[Ne] 3s²" data-phase="Solid" data-year="1755" style="grid-column:2;grid-row:5"><div class="el-inner"><div class="el-num">12</div><div class="el-sym">Mg</div><div class="el-name">Magnesium</div></div></div>
+<div class="el post" data-z="13" data-sym="Al" data-name="Aluminium" data-cat="post" data-mass="26.982" data-config="[Ne] 3s² 3p¹" data-phase="Solid" data-year="1825" style="grid-column:13;grid-row:5"><div class="el-inner"><div class="el-num">13</div><div class="el-sym">Al</div><div class="el-name">Aluminium</div></div></div>
+<div class="el metalloid off" data-z="14" data-sym="Si" data-name="Silicon" data-cat="metalloid" data-mass="28.086" data-config="[Ne] 3s² 3p²" data-phase="Solid" data-year="1824" style="grid-column:14;grid-row:5"><div class="el-inner"><div class="el-num">14</div><div class="el-sym">Si</div><div class="el-name">Silicon</div></div></div>
+<div class="el nonmetal" data-z="15" data-sym="P" data-name="Phosphorus" data-cat="nonmetal" data-mass="30.974" data-config="[Ne] 3s² 3p³" data-phase="Solid" data-year="1669" style="grid-column:15;grid-row:5"><div class="el-inner"><div class="el-num">15</div><div class="el-sym">P</div><div class="el-name">Phosphorus</div></div></div>
+<div class="el nonmetal off" data-z="16" data-sym="S" data-name="Sulfur" data-cat="nonmetal" data-mass="32.065" data-config="[Ne] 3s² 3p⁴" data-phase="Solid" data-year="ancient" style="grid-column:16;grid-row:5"><div class="el-inner"><div class="el-num">16</div><div class="el-sym">S</div><div class="el-name">Sulfur</div></div></div>
+<div class="el halogen" data-z="17" data-sym="Cl" data-name="Chlorine" data-cat="halogen" data-mass="35.453" data-config="[Ne] 3s² 3p⁵" data-phase="Gas" data-year="1774" style="grid-column:17;grid-row:5"><div class="el-inner"><div class="el-num">17</div><div class="el-sym">Cl</div><div class="el-name">Chlorine</div></div></div>
+<div class="el noble off" data-z="18" data-sym="Ar" data-name="Argon" data-cat="noble" data-mass="39.948" data-config="[Ne] 3s² 3p⁶" data-phase="Gas" data-year="1894" style="grid-column:18;grid-row:5"><div class="el-inner"><div class="el-num">18</div><div class="el-sym">Ar</div><div class="el-name">Argon</div></div></div>
+
+<!-- ROW 4 -->
+<div class="el alkali" data-z="19" data-sym="K" data-name="Potassium" data-cat="alkali" data-mass="39.098" data-config="[Ar] 4s¹" data-phase="Solid" data-year="1807" style="grid-column:1;grid-row:7"><div class="el-inner"><div class="el-num">19</div><div class="el-sym">K</div><div class="el-name">Potassium</div></div></div>
+<div class="el alkaline off" data-z="20" data-sym="Ca" data-name="Calcium" data-cat="alkaline" data-mass="40.078" data-config="[Ar] 4s²" data-phase="Solid" data-year="1808" style="grid-column:2;grid-row:7"><div class="el-inner"><div class="el-num">20</div><div class="el-sym">Ca</div><div class="el-name">Calcium</div></div></div>
+<div class="el transition" data-z="21" data-sym="Sc" data-name="Scandium" data-cat="transition" data-mass="44.956" data-config="[Ar] 3d¹ 4s²" data-phase="Solid" data-year="1879" style="grid-column:3;grid-row:7"><div class="el-inner"><div class="el-num">21</div><div class="el-sym">Sc</div><div class="el-name">Scandium</div></div></div>
+<div class="el transition off" data-z="22" data-sym="Ti" data-name="Titanium" data-cat="transition" data-mass="47.867" data-config="[Ar] 3d² 4s²" data-phase="Solid" data-year="1791" style="grid-column:4;grid-row:7"><div class="el-inner"><div class="el-num">22</div><div class="el-sym">Ti</div><div class="el-name">Titanium</div></div></div>
+<div class="el transition" data-z="23" data-sym="V" data-name="Vanadium" data-cat="transition" data-mass="50.942" data-config="[Ar] 3d³ 4s²" data-phase="Solid" data-year="1801" style="grid-column:5;grid-row:7"><div class="el-inner"><div class="el-num">23</div><div class="el-sym">V</div><div class="el-name">Vanadium</div></div></div>
+<div class="el transition off" data-z="24" data-sym="Cr" data-name="Chromium" data-cat="transition" data-mass="51.996" data-config="[Ar] 3d⁵ 4s¹" data-phase="Solid" data-year="1798" style="grid-column:6;grid-row:7"><div class="el-inner"><div class="el-num">24</div><div class="el-sym">Cr</div><div class="el-name">Chromium</div></div></div>
+<div class="el transition" data-z="25" data-sym="Mn" data-name="Manganese" data-cat="transition" data-mass="54.938" data-config="[Ar] 3d⁵ 4s²" data-phase="Solid" data-year="1774" style="grid-column:7;grid-row:7"><div class="el-inner"><div class="el-num">25</div><div class="el-sym">Mn</div><div class="el-name">Manganese</div></div></div>
+<div class="el transition off" data-z="26" data-sym="Fe" data-name="Iron" data-cat="transition" data-mass="55.845" data-config="[Ar] 3d⁶ 4s²" data-phase="Solid" data-year="ancient" style="grid-column:8;grid-row:7"><div class="el-inner"><div class="el-num">26</div><div class="el-sym">Fe</div><div class="el-name">Iron</div></div></div>
+<div class="el transition" data-z="27" data-sym="Co" data-name="Cobalt" data-cat="transition" data-mass="58.933" data-config="[Ar] 3d⁷ 4s²" data-phase="Solid" data-year="1735" style="grid-column:9;grid-row:7"><div class="el-inner"><div class="el-num">27</div><div class="el-sym">Co</div><div class="el-name">Cobalt</div></div></div>
+<div class="el transition off" data-z="28" data-sym="Ni" data-name="Nickel" data-cat="transition" data-mass="58.693" data-config="[Ar] 3d⁸ 4s²" data-phase="Solid" data-year="1751" style="grid-column:10;grid-row:7"><div class="el-inner"><div class="el-num">28</div><div class="el-sym">Ni</div><div class="el-name">Nickel</div></div></div>
+<div class="el transition" data-z="29" data-sym="Cu" data-name="Copper" data-cat="transition" data-mass="63.546" data-config="[Ar] 3d¹⁰ 4s¹" data-phase="Solid" data-year="ancient" style="grid-column:11;grid-row:7"><div class="el-inner"><div class="el-num">29</div><div class="el-sym">Cu</div><div class="el-name">Copper</div></div></div>
+<div class="el transition off" data-z="30" data-sym="Zn" data-name="Zinc" data-cat="transition" data-mass="65.38" data-config="[Ar] 3d¹⁰ 4s²" data-phase="Solid" data-year="1746" style="grid-column:12;grid-row:7"><div class="el-inner"><div class="el-num">30</div><div class="el-sym">Zn</div><div class="el-name">Zinc</div></div></div>
+<div class="el post" data-z="31" data-sym="Ga" data-name="Gallium" data-cat="post" data-mass="69.723" data-config="[Ar] 3d¹⁰ 4s² 4p¹" data-phase="Solid" data-year="1875" style="grid-column:13;grid-row:7"><div class="el-inner"><div class="el-num">31</div><div class="el-sym">Ga</div><div class="el-name">Gallium</div></div></div>
+<div class="el metalloid off" data-z="32" data-sym="Ge" data-name="Germanium" data-cat="metalloid" data-mass="72.630" data-config="[Ar] 3d¹⁰ 4s² 4p²" data-phase="Solid" data-year="1886" style="grid-column:14;grid-row:7"><div class="el-inner"><div class="el-num">32</div><div class="el-sym">Ge</div><div class="el-name">Germanium</div></div></div>
+<div class="el metalloid" data-z="33" data-sym="As" data-name="Arsenic" data-cat="metalloid" data-mass="74.922" data-config="[Ar] 3d¹⁰ 4s² 4p³" data-phase="Solid" data-year="1250" style="grid-column:15;grid-row:7"><div class="el-inner"><div class="el-num">33</div><div class="el-sym">As</div><div class="el-name">Arsenic</div></div></div>
+<div class="el nonmetal off" data-z="34" data-sym="Se" data-name="Selenium" data-cat="nonmetal" data-mass="78.971" data-config="[Ar] 3d¹⁰ 4s² 4p⁴" data-phase="Solid" data-year="1817" style="grid-column:16;grid-row:7"><div class="el-inner"><div class="el-num">34</div><div class="el-sym">Se</div><div class="el-name">Selenium</div></div></div>
+<div class="el halogen" data-z="35" data-sym="Br" data-name="Bromine" data-cat="halogen" data-mass="79.904" data-config="[Ar] 3d¹⁰ 4s² 4p⁵" data-phase="Liquid" data-year="1826" style="grid-column:17;grid-row:7"><div class="el-inner"><div class="el-num">35</div><div class="el-sym">Br</div><div class="el-name">Bromine</div></div></div>
+<div class="el noble off" data-z="36" data-sym="Kr" data-name="Krypton" data-cat="noble" data-mass="83.798" data-config="[Ar] 3d¹⁰ 4s² 4p⁶" data-phase="Gas" data-year="1898" style="grid-column:18;grid-row:7"><div class="el-inner"><div class="el-num">36</div><div class="el-sym">Kr</div><div class="el-name">Krypton</div></div></div>
+
+<!-- ROW 5 -->
+<div class="el alkali" data-z="37" data-sym="Rb" data-name="Rubidium" data-cat="alkali" data-mass="85.468" data-config="[Kr] 5s¹" data-phase="Solid" data-year="1861" style="grid-column:1;grid-row:9"><div class="el-inner"><div class="el-num">37</div><div class="el-sym">Rb</div><div class="el-name">Rubidium</div></div></div>
+<div class="el alkaline off" data-z="38" data-sym="Sr" data-name="Strontium" data-cat="alkaline" data-mass="87.620" data-config="[Kr] 5s²" data-phase="Solid" data-year="1790" style="grid-column:2;grid-row:9"><div class="el-inner"><div class="el-num">38</div><div class="el-sym">Sr</div><div class="el-name">Strontium</div></div></div>
+<div class="el transition" data-z="39" data-sym="Y" data-name="Yttrium" data-cat="transition" data-mass="88.906" data-config="[Kr] 4d¹ 5s²" data-phase="Solid" data-year="1794" style="grid-column:3;grid-row:9"><div class="el-inner"><div class="el-num">39</div><div class="el-sym">Y</div><div class="el-name">Yttrium</div></div></div>
+<div class="el transition off" data-z="40" data-sym="Zr" data-name="Zirconium" data-cat="transition" data-mass="91.224" data-config="[Kr] 4d² 5s²" data-phase="Solid" data-year="1789" style="grid-column:4;grid-row:9"><div class="el-inner"><div class="el-num">40</div><div class="el-sym">Zr</div><div class="el-name">Zirconium</div></div></div>
+<div class="el transition" data-z="41" data-sym="Nb" data-name="Niobium" data-cat="transition" data-mass="92.906" data-config="[Kr] 4d⁴ 5s¹" data-phase="Solid" data-year="1801" style="grid-column:5;grid-row:9"><div class="el-inner"><div class="el-num">41</div><div class="el-sym">Nb</div><div class="el-name">Niobium</div></div></div>
+<div class="el transition off" data-z="42" data-sym="Mo" data-name="Molybdenum" data-cat="transition" data-mass="95.950" data-config="[Kr] 4d⁵ 5s¹" data-phase="Solid" data-year="1781" style="grid-column:6;grid-row:9"><div class="el-inner"><div class="el-num">42</div><div class="el-sym">Mo</div><div class="el-name">Molybdenum</div></div></div>
+<div class="el transition" data-z="43" data-sym="Tc" data-name="Technetium" data-cat="transition" data-mass="(97)" data-config="[Kr] 4d⁵ 5s²" data-phase="Solid" data-year="1937" style="grid-column:7;grid-row:9"><div class="el-inner"><div class="el-num">43</div><div class="el-sym">Tc</div><div class="el-name">Technetium</div></div></div>
+<div class="el transition off" data-z="44" data-sym="Ru" data-name="Ruthenium" data-cat="transition" data-mass="101.07" data-config="[Kr] 4d⁷ 5s¹" data-phase="Solid" data-year="1844" style="grid-column:8;grid-row:9"><div class="el-inner"><div class="el-num">44</div><div class="el-sym">Ru</div><div class="el-name">Ruthenium</div></div></div>
+<div class="el transition" data-z="45" data-sym="Rh" data-name="Rhodium" data-cat="transition" data-mass="102.91" data-config="[Kr] 4d⁸ 5s¹" data-phase="Solid" data-year="1803" style="grid-column:9;grid-row:9"><div class="el-inner"><div class="el-num">45</div><div class="el-sym">Rh</div><div class="el-name">Rhodium</div></div></div>
+<div class="el transition off" data-z="46" data-sym="Pd" data-name="Palladium" data-cat="transition" data-mass="106.42" data-config="[Kr] 4d¹⁰" data-phase="Solid" data-year="1803" style="grid-column:10;grid-row:9"><div class="el-inner"><div class="el-num">46</div><div class="el-sym">Pd</div><div class="el-name">Palladium</div></div></div>
+<div class="el transition" data-z="47" data-sym="Ag" data-name="Silver" data-cat="transition" data-mass="107.87" data-config="[Kr] 4d¹⁰ 5s¹" data-phase="Solid" data-year="ancient" style="grid-column:11;grid-row:9"><div class="el-inner"><div class="el-num">47</div><div class="el-sym">Ag</div><div class="el-name">Silver</div></div></div>
+<div class="el transition off" data-z="48" data-sym="Cd" data-name="Cadmium" data-cat="transition" data-mass="112.41" data-config="[Kr] 4d¹⁰ 5s²" data-phase="Solid" data-year="1817" style="grid-column:12;grid-row:9"><div class="el-inner"><div class="el-num">48</div><div class="el-sym">Cd</div><div class="el-name">Cadmium</div></div></div>
+<div class="el post" data-z="49" data-sym="In" data-name="Indium" data-cat="post" data-mass="114.82" data-config="[Kr] 4d¹⁰ 5s² 5p¹" data-phase="Solid" data-year="1863" style="grid-column:13;grid-row:9"><div class="el-inner"><div class="el-num">49</div><div class="el-sym">In</div><div class="el-name">Indium</div></div></div>
+<div class="el post off" data-z="50" data-sym="Sn" data-name="Tin" data-cat="post" data-mass="118.71" data-config="[Kr] 4d¹⁰ 5s² 5p²" data-phase="Solid" data-year="ancient" style="grid-column:14;grid-row:9"><div class="el-inner"><div class="el-num">50</div><div class="el-sym">Sn</div><div class="el-name">Tin</div></div></div>
+<div class="el metalloid" data-z="51" data-sym="Sb" data-name="Antimony" data-cat="metalloid" data-mass="121.76" data-config="[Kr] 4d¹⁰ 5s² 5p³" data-phase="Solid" data-year="ancient" style="grid-column:15;grid-row:9"><div class="el-inner"><div class="el-num">51</div><div class="el-sym">Sb</div><div class="el-name">Antimony</div></div></div>
+<div class="el metalloid off" data-z="52" data-sym="Te" data-name="Tellurium" data-cat="metalloid" data-mass="127.60" data-config="[Kr] 4d¹⁰ 5s² 5p⁴" data-phase="Solid" data-year="1782" style="grid-column:16;grid-row:9"><div class="el-inner"><div class="el-num">52</div><div class="el-sym">Te</div><div class="el-name">Tellurium</div></div></div>
+<div class="el halogen" data-z="53" data-sym="I" data-name="Iodine" data-cat="halogen" data-mass="126.90" data-config="[Kr] 4d¹⁰ 5s² 5p⁵" data-phase="Solid" data-year="1811" style="grid-column:17;grid-row:9"><div class="el-inner"><div class="el-num">53</div><div class="el-sym">I</div><div class="el-name">Iodine</div></div></div>
+<div class="el noble off" data-z="54" data-sym="Xe" data-name="Xenon" data-cat="noble" data-mass="131.29" data-config="[Kr] 4d¹⁰ 5s² 5p⁶" data-phase="Gas" data-year="1898" style="grid-column:18;grid-row:9"><div class="el-inner"><div class="el-num">54</div><div class="el-sym">Xe</div><div class="el-name">Xenon</div></div></div>
+
+<!-- ROW 6 -->
+<div class="el alkali" data-z="55" data-sym="Cs" data-name="Cesium" data-cat="alkali" data-mass="132.91" data-config="[Xe] 6s¹" data-phase="Solid" data-year="1860" style="grid-column:1;grid-row:11"><div class="el-inner"><div class="el-num">55</div><div class="el-sym">Cs</div><div class="el-name">Cesium</div></div></div>
+<div class="el alkaline off" data-z="56" data-sym="Ba" data-name="Barium" data-cat="alkaline" data-mass="137.33" data-config="[Xe] 6s²" data-phase="Solid" data-year="1808" style="grid-column:2;grid-row:11"><div class="el-inner"><div class="el-num">56</div><div class="el-sym">Ba</div><div class="el-name">Barium</div></div></div>
+<div class="el lanthanide" data-z="0" data-sym="*" data-name="Lanthanides" data-cat="lanthanide" data-mass="57–71" data-config="See below" data-phase="Solid" data-year="1839+" style="grid-column:3;grid-row:11"><div class="el-inner"><div class="el-num">57–71</div><div class="el-sym">*</div><div class="el-name">Lanthanides</div></div></div>
+<div class="el transition off" data-z="72" data-sym="Hf" data-name="Hafnium" data-cat="transition" data-mass="178.49" data-config="[Xe] 4f¹⁴ 5d² 6s²" data-phase="Solid" data-year="1923" style="grid-column:4;grid-row:11"><div class="el-inner"><div class="el-num">72</div><div class="el-sym">Hf</div><div class="el-name">Hafnium</div></div></div>
+<div class="el transition" data-z="73" data-sym="Ta" data-name="Tantalum" data-cat="transition" data-mass="180.95" data-config="[Xe] 4f¹⁴ 5d³ 6s²" data-phase="Solid" data-year="1802" style="grid-column:5;grid-row:11"><div class="el-inner"><div class="el-num">73</div><div class="el-sym">Ta</div><div class="el-name">Tantalum</div></div></div>
+<div class="el transition off" data-z="74" data-sym="W" data-name="Tungsten" data-cat="transition" data-mass="183.84" data-config="[Xe] 4f¹⁴ 5d⁴ 6s²" data-phase="Solid" data-year="1783" style="grid-column:6;grid-row:11"><div class="el-inner"><div class="el-num">74</div><div class="el-sym">W</div><div class="el-name">Tungsten</div></div></div>
+<div class="el transition" data-z="75" data-sym="Re" data-name="Rhenium" data-cat="transition" data-mass="186.21" data-config="[Xe] 4f¹⁴ 5d⁵ 6s²" data-phase="Solid" data-year="1925" style="grid-column:7;grid-row:11"><div class="el-inner"><div class="el-num">75</div><div class="el-sym">Re</div><div class="el-name">Rhenium</div></div></div>
+<div class="el transition off" data-z="76" data-sym="Os" data-name="Osmium" data-cat="transition" data-mass="190.23" data-config="[Xe] 4f¹⁴ 5d⁶ 6s²" data-phase="Solid" data-year="1803" style="grid-column:8;grid-row:11"><div class="el-inner"><div class="el-num">76</div><div class="el-sym">Os</div><div class="el-name">Osmium</div></div></div>
+<div class="el transition" data-z="77" data-sym="Ir" data-name="Iridium" data-cat="transition" data-mass="192.22" data-config="[Xe] 4f¹⁴ 5d⁷ 6s²" data-phase="Solid" data-year="1803" style="grid-column:9;grid-row:11"><div class="el-inner"><div class="el-num">77</div><div class="el-sym">Ir</div><div class="el-name">Iridium</div></div></div>
+<div class="el transition off" data-z="78" data-sym="Pt" data-name="Platinum" data-cat="transition" data-mass="195.08" data-config="[Xe] 4f¹⁴ 5d⁹ 6s¹" data-phase="Solid" data-year="1735" style="grid-column:10;grid-row:11"><div class="el-inner"><div class="el-num">78</div><div class="el-sym">Pt</div><div class="el-name">Platinum</div></div></div>
+<div class="el transition" data-z="79" data-sym="Au" data-name="Gold" data-cat="transition" data-mass="196.97" data-config="[Xe] 4f¹⁴ 5d¹⁰ 6s¹" data-phase="Solid" data-year="ancient" style="grid-column:11;grid-row:11"><div class="el-inner"><div class="el-num">79</div><div class="el-sym">Au</div><div class="el-name">Gold</div></div></div>
+<div class="el transition off" data-z="80" data-sym="Hg" data-name="Mercury" data-cat="transition" data-mass="200.59" data-config="[Xe] 4f¹⁴ 5d¹⁰ 6s²" data-phase="Liquid" data-year="ancient" style="grid-column:12;grid-row:11"><div class="el-inner"><div class="el-num">80</div><div class="el-sym">Hg</div><div class="el-name">Mercury</div></div></div>
+<div class="el post" data-z="81" data-sym="Tl" data-name="Thallium" data-cat="post" data-mass="204.38" data-config="[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p¹" data-phase="Solid" data-year="1861" style="grid-column:13;grid-row:11"><div class="el-inner"><div class="el-num">81</div><div class="el-sym">Tl</div><div class="el-name">Thallium</div></div></div>
+<div class="el post off" data-z="82" data-sym="Pb" data-name="Lead" data-cat="post" data-mass="207.20" data-config="[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p²" data-phase="Solid" data-year="ancient" style="grid-column:14;grid-row:11"><div class="el-inner"><div class="el-num">82</div><div class="el-sym">Pb</div><div class="el-name">Lead</div></div></div>
+<div class="el post" data-z="83" data-sym="Bi" data-name="Bismuth" data-cat="post" data-mass="208.98" data-config="[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p³" data-phase="Solid" data-year="1753" style="grid-column:15;grid-row:11"><div class="el-inner"><div class="el-num">83</div><div class="el-sym">Bi</div><div class="el-name">Bismuth</div></div></div>
+<div class="el post off" data-z="84" data-sym="Po" data-name="Polonium" data-cat="post" data-mass="(209)" data-config="[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁴" data-phase="Solid" data-year="1898" style="grid-column:16;grid-row:11"><div class="el-inner"><div class="el-num">84</div><div class="el-sym">Po</div><div class="el-name">Polonium</div></div></div>
+<div class="el halogen" data-z="85" data-sym="At" data-name="Astatine" data-cat="halogen" data-mass="(210)" data-config="[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁵" data-phase="Solid" data-year="1940" style="grid-column:17;grid-row:11"><div class="el-inner"><div class="el-num">85</div><div class="el-sym">At</div><div class="el-name">Astatine</div></div></div>
+<div class="el noble off" data-z="86" data-sym="Rn" data-name="Radon" data-cat="noble" data-mass="(222)" data-config="[Xe] 4f¹⁴ 5d¹⁰ 6s² 6p⁶" data-phase="Gas" data-year="1900" style="grid-column:18;grid-row:11"><div class="el-inner"><div class="el-num">86</div><div class="el-sym">Rn</div><div class="el-name">Radon</div></div></div>
+
+<!-- ROW 7 -->
+<div class="el alkali" data-z="87" data-sym="Fr" data-name="Francium" data-cat="alkali" data-mass="(223)" data-config="[Rn] 7s¹" data-phase="Solid" data-year="1939" style="grid-column:1;grid-row:13"><div class="el-inner"><div class="el-num">87</div><div class="el-sym">Fr</div><div class="el-name">Francium</div></div></div>
+<div class="el alkaline off" data-z="88" data-sym="Ra" data-name="Radium" data-cat="alkaline" data-mass="(226)" data-config="[Rn] 7s²" data-phase="Solid" data-year="1898" style="grid-column:2;grid-row:13"><div class="el-inner"><div class="el-num">88</div><div class="el-sym">Ra</div><div class="el-name">Radium</div></div></div>
+<div class="el actinide" data-z="0" data-sym="**" data-name="Actinides" data-cat="actinide" data-mass="89–103" data-config="See below" data-phase="Solid" data-year="1899+" style="grid-column:3;grid-row:13"><div class="el-inner"><div class="el-num">89–103</div><div class="el-sym">**</div><div class="el-name">Actinides</div></div></div>
+<div class="el transition off" data-z="104" data-sym="Rf" data-name="Rutherfordium" data-cat="transition" data-mass="(267)" data-config="[Rn] 5f¹⁴ 6d² 7s²" data-phase="Solid" data-year="1969" style="grid-column:4;grid-row:13"><div class="el-inner"><div class="el-num">104</div><div class="el-sym">Rf</div><div class="el-name">Rutherfordium</div></div></div>
+<div class="el transition" data-z="105" data-sym="Db" data-name="Dubnium" data-cat="transition" data-mass="(268)" data-config="[Rn] 5f¹⁴ 6d³ 7s²" data-phase="Solid" data-year="1970" style="grid-column:5;grid-row:13"><div class="el-inner"><div class="el-num">105</div><div class="el-sym">Db</div><div class="el-name">Dubnium</div></div></div>
+<div class="el transition off" data-z="106" data-sym="Sg" data-name="Seaborgium" data-cat="transition" data-mass="(269)" data-config="[Rn] 5f¹⁴ 6d⁴ 7s²" data-phase="Solid" data-year="1974" style="grid-column:6;grid-row:13"><div class="el-inner"><div class="el-num">106</div><div class="el-sym">Sg</div><div class="el-name">Seaborgium</div></div></div>
+<div class="el transition" data-z="107" data-sym="Bh" data-name="Bohrium" data-cat="transition" data-mass="(270)" data-config="[Rn] 5f¹⁴ 6d⁵ 7s²" data-phase="Solid" data-year="1981" style="grid-column:7;grid-row:13"><div class="el-inner"><div class="el-num">107</div><div class="el-sym">Bh</div><div class="el-name">Bohrium</div></div></div>
+<div class="el transition off" data-z="108" data-sym="Hs" data-name="Hassium" data-cat="transition" data-mass="(269)" data-config="[Rn] 5f¹⁴ 6d⁶ 7s²" data-phase="Solid" data-year="1984" style="grid-column:8;grid-row:13"><div class="el-inner"><div class="el-num">108</div><div class="el-sym">Hs</div><div class="el-name">Hassium</div></div></div>
+<div class="el unknown" data-z="109" data-sym="Mt" data-name="Meitnerium" data-cat="unknown" data-mass="(278)" data-config="[Rn] 5f¹⁴ 6d⁷ 7s²" data-phase="Solid" data-year="1982" style="grid-column:9;grid-row:13"><div class="el-inner"><div class="el-num">109</div><div class="el-sym">Mt</div><div class="el-name">Meitnerium</div></div></div>
+<div class="el unknown off" data-z="110" data-sym="Ds" data-name="Darmstadtium" data-cat="unknown" data-mass="(281)" data-config="[Rn] 5f¹⁴ 6d⁸ 7s²" data-phase="Solid" data-year="1994" style="grid-column:10;grid-row:13"><div class="el-inner"><div class="el-num">110</div><div class="el-sym">Ds</div><div class="el-name">Darmstadtium</div></div></div>
+<div class="el unknown" data-z="111" data-sym="Rg" data-name="Roentgenium" data-cat="unknown" data-mass="(282)" data-config="[Rn] 5f¹⁴ 6d⁹ 7s²" data-phase="Solid" data-year="1994" style="grid-column:11;grid-row:13"><div class="el-inner"><div class="el-num">111</div><div class="el-sym">Rg</div><div class="el-name">Roentgenium</div></div></div>
+<div class="el unknown off" data-z="112" data-sym="Cn" data-name="Copernicium" data-cat="unknown" data-mass="(285)" data-config="[Rn] 5f¹⁴ 6d¹⁰ 7s²" data-phase="Gas" data-year="1996" style="grid-column:12;grid-row:13"><div class="el-inner"><div class="el-num">112</div><div class="el-sym">Cn</div><div class="el-name">Copernicium</div></div></div>
+<div class="el post" data-z="113" data-sym="Nh" data-name="Nihonium" data-cat="post" data-mass="(286)" data-config="[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p¹" data-phase="Solid" data-year="2004" style="grid-column:13;grid-row:13"><div class="el-inner"><div class="el-num">113</div><div class="el-sym">Nh</div><div class="el-name">Nihonium</div></div></div>
+<div class="el post off" data-z="114" data-sym="Fl" data-name="Flerovium" data-cat="post" data-mass="(289)" data-config="[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p²" data-phase="Gas" data-year="1999" style="grid-column:14;grid-row:13"><div class="el-inner"><div class="el-num">114</div><div class="el-sym">Fl</div><div class="el-name">Flerovium</div></div></div>
+<div class="el unknown" data-z="115" data-sym="Mc" data-name="Moscovium" data-cat="unknown" data-mass="(290)" data-config="[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p³" data-phase="Solid" data-year="2003" style="grid-column:15;grid-row:13"><div class="el-inner"><div class="el-num">115</div><div class="el-sym">Mc</div><div class="el-name">Moscovium</div></div></div>
+<div class="el unknown off" data-z="116" data-sym="Lv" data-name="Livermorium" data-cat="unknown" data-mass="(293)" data-config="[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁴" data-phase="Solid" data-year="2000" style="grid-column:16;grid-row:13"><div class="el-inner"><div class="el-num">116</div><div class="el-sym">Lv</div><div class="el-name">Livermorium</div></div></div>
+<div class="el unknown" data-z="117" data-sym="Ts" data-name="Tennessine" data-cat="unknown" data-mass="(294)" data-config="[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁵" data-phase="Solid" data-year="2010" style="grid-column:17;grid-row:13"><div class="el-inner"><div class="el-num">117</div><div class="el-sym">Ts</div><div class="el-name">Tennessine</div></div></div>
+<div class="el noble off" data-z="118" data-sym="Og" data-name="Oganesson" data-cat="noble" data-mass="(294)" data-config="[Rn] 5f¹⁴ 6d¹⁰ 7s² 7p⁶" data-phase="Solid" data-year="2002" style="grid-column:18;grid-row:13"><div class="el-inner"><div class="el-num">118</div><div class="el-sym">Og</div><div class="el-name">Oganesson</div></div></div>
+
+<div class="row-gap" style="grid-row:15"></div>
+
+<!-- LANTHANIDES row 16 -->
+<div class="el lanthanide" data-z="57" data-sym="La" data-name="Lanthanum" data-cat="lanthanide" data-mass="138.91" data-config="[Xe] 5d¹ 6s²" data-phase="Solid" data-year="1839" style="grid-column:3;grid-row:16"><div class="el-inner"><div class="el-num">57</div><div class="el-sym">La</div><div class="el-name">Lanthanum</div></div></div>
+<div class="el lanthanide off" data-z="58" data-sym="Ce" data-name="Cerium" data-cat="lanthanide" data-mass="140.12" data-config="[Xe] 4f¹ 5d¹ 6s²" data-phase="Solid" data-year="1803" style="grid-column:4;grid-row:16"><div class="el-inner"><div class="el-num">58</div><div class="el-sym">Ce</div><div class="el-name">Cerium</div></div></div>
+<div class="el lanthanide" data-z="59" data-sym="Pr" data-name="Praseodymium" data-cat="lanthanide" data-mass="140.91" data-config="[Xe] 4f³ 6s²" data-phase="Solid" data-year="1885" style="grid-column:5;grid-row:16"><div class="el-inner"><div class="el-num">59</div><div class="el-sym">Pr</div><div class="el-name">Praseodymium</div></div></div>
+<div class="el lanthanide off" data-z="60" data-sym="Nd" data-name="Neodymium" data-cat="lanthanide" data-mass="144.24" data-config="[Xe] 4f⁴ 6s²" data-phase="Solid" data-year="1885" style="grid-column:6;grid-row:16"><div class="el-inner"><div class="el-num">60</div><div class="el-sym">Nd</div><div class="el-name">Neodymium</div></div></div>
+<div class="el lanthanide" data-z="61" data-sym="Pm" data-name="Promethium" data-cat="lanthanide" data-mass="(145)" data-config="[Xe] 4f⁵ 6s²" data-phase="Solid" data-year="1945" style="grid-column:7;grid-row:16"><div class="el-inner"><div class="el-num">61</div><div class="el-sym">Pm</div><div class="el-name">Promethium</div></div></div>
+<div class="el lanthanide off" data-z="62" data-sym="Sm" data-name="Samarium" data-cat="lanthanide" data-mass="150.36" data-config="[Xe] 4f⁶ 6s²" data-phase="Solid" data-year="1879" style="grid-column:8;grid-row:16"><div class="el-inner"><div class="el-num">62</div><div class="el-sym">Sm</div><div class="el-name">Samarium</div></div></div>
+<div class="el lanthanide" data-z="63" data-sym="Eu" data-name="Europium" data-cat="lanthanide" data-mass="151.96" data-config="[Xe] 4f⁷ 6s²" data-phase="Solid" data-year="1901" style="grid-column:9;grid-row:16"><div class="el-inner"><div class="el-num">63</div><div class="el-sym">Eu</div><div class="el-name">Europium</div></div></div>
+<div class="el lanthanide off" data-z="64" data-sym="Gd" data-name="Gadolinium" data-cat="lanthanide" data-mass="157.25" data-config="[Xe] 4f⁷ 5d¹ 6s²" data-phase="Solid" data-year="1880" style="grid-column:10;grid-row:16"><div class="el-inner"><div class="el-num">64</div><div class="el-sym">Gd</div><div class="el-name">Gadolinium</div></div></div>
+<div class="el lanthanide" data-z="65" data-sym="Tb" data-name="Terbium" data-cat="lanthanide" data-mass="158.93" data-config="[Xe] 4f⁹ 6s²" data-phase="Solid" data-year="1843" style="grid-column:11;grid-row:16"><div class="el-inner"><div class="el-num">65</div><div class="el-sym">Tb</div><div class="el-name">Terbium</div></div></div>
+<div class="el lanthanide off" data-z="66" data-sym="Dy" data-name="Dysprosium" data-cat="lanthanide" data-mass="162.50" data-config="[Xe] 4f¹⁰ 6s²" data-phase="Solid" data-year="1886" style="grid-column:12;grid-row:16"><div class="el-inner"><div class="el-num">66</div><div class="el-sym">Dy</div><div class="el-name">Dysprosium</div></div></div>
+<div class="el lanthanide" data-z="67" data-sym="Ho" data-name="Holmium" data-cat="lanthanide" data-mass="164.93" data-config="[Xe] 4f¹¹ 6s²" data-phase="Solid" data-year="1878" style="grid-column:13;grid-row:16"><div class="el-inner"><div class="el-num">67</div><div class="el-sym">Ho</div><div class="el-name">Holmium</div></div></div>
+<div class="el lanthanide off" data-z="68" data-sym="Er" data-name="Erbium" data-cat="lanthanide" data-mass="167.26" data-config="[Xe] 4f¹² 6s²" data-phase="Solid" data-year="1843" style="grid-column:14;grid-row:16"><div class="el-inner"><div class="el-num">68</div><div class="el-sym">Er</div><div class="el-name">Erbium</div></div></div>
+<div class="el lanthanide" data-z="69" data-sym="Tm" data-name="Thulium" data-cat="lanthanide" data-mass="168.93" data-config="[Xe] 4f¹³ 6s²" data-phase="Solid" data-year="1879" style="grid-column:15;grid-row:16"><div class="el-inner"><div class="el-num">69</div><div class="el-sym">Tm</div><div class="el-name">Thulium</div></div></div>
+<div class="el lanthanide off" data-z="70" data-sym="Yb" data-name="Ytterbium" data-cat="lanthanide" data-mass="173.05" data-config="[Xe] 4f¹⁴ 6s²" data-phase="Solid" data-year="1878" style="grid-column:16;grid-row:16"><div class="el-inner"><div class="el-num">70</div><div class="el-sym">Yb</div><div class="el-name">Ytterbium</div></div></div>
+<div class="el lanthanide" data-z="71" data-sym="Lu" data-name="Lutetium" data-cat="lanthanide" data-mass="174.97" data-config="[Xe] 4f¹⁴ 5d¹ 6s²" data-phase="Solid" data-year="1907" style="grid-column:17;grid-row:16"><div class="el-inner"><div class="el-num">71</div><div class="el-sym">Lu</div><div class="el-name">Lutetium</div></div></div>
+
+<!-- ACTINIDES row 18 -->
+<div class="row-gap" style="grid-row:17"></div>
+<div class="el actinide off" data-z="89" data-sym="Ac" data-name="Actinium" data-cat="actinide" data-mass="(227)" data-config="[Rn] 6d¹ 7s²" data-phase="Solid" data-year="1899" style="grid-column:3;grid-row:18"><div class="el-inner"><div class="el-num">89</div><div class="el-sym">Ac</div><div class="el-name">Actinium</div></div></div>
+<div class="el actinide" data-z="90" data-sym="Th" data-name="Thorium" data-cat="actinide" data-mass="232.04" data-config="[Rn] 6d² 7s²" data-phase="Solid" data-year="1828" style="grid-column:4;grid-row:18"><div class="el-inner"><div class="el-num">90</div><div class="el-sym">Th</div><div class="el-name">Thorium</div></div></div>
+<div class="el actinide off" data-z="91" data-sym="Pa" data-name="Protactinium" data-cat="actinide" data-mass="231.04" data-config="[Rn] 5f² 6d¹ 7s²" data-phase="Solid" data-year="1913" style="grid-column:5;grid-row:18"><div class="el-inner"><div class="el-num">91</div><div class="el-sym">Pa</div><div class="el-name">Protactinium</div></div></div>
+<div class="el actinide" data-z="92" data-sym="U" data-name="Uranium" data-cat="actinide" data-mass="238.03" data-config="[Rn] 5f³ 6d¹ 7s²" data-phase="Solid" data-year="1789" style="grid-column:6;grid-row:18"><div class="el-inner"><div class="el-num">92</div><div class="el-sym">U</div><div class="el-name">Uranium</div></div></div>
+<div class="el actinide off" data-z="93" data-sym="Np" data-name="Neptunium" data-cat="actinide" data-mass="(237)" data-config="[Rn] 5f⁴ 6d¹ 7s²" data-phase="Solid" data-year="1940" style="grid-column:7;grid-row:18"><div class="el-inner"><div class="el-num">93</div><div class="el-sym">Np</div><div class="el-name">Neptunium</div></div></div>
+<div class="el actinide" data-z="94" data-sym="Pu" data-name="Plutonium" data-cat="actinide" data-mass="(244)" data-config="[Rn] 5f⁶ 7s²" data-phase="Solid" data-year="1940" style="grid-column:8;grid-row:18"><div class="el-inner"><div class="el-num">94</div><div class="el-sym">Pu</div><div class="el-name">Plutonium</div></div></div>
+<div class="el actinide off" data-z="95" data-sym="Am" data-name="Americium" data-cat="actinide" data-mass="(243)" data-config="[Rn] 5f⁷ 7s²" data-phase="Solid" data-year="1944" style="grid-column:9;grid-row:18"><div class="el-inner"><div class="el-num">95</div><div class="el-sym">Am</div><div class="el-name">Americium</div></div></div>
+<div class="el actinide" data-z="96" data-sym="Cm" data-name="Curium" data-cat="actinide" data-mass="(247)" data-config="[Rn] 5f⁷ 6d¹ 7s²" data-phase="Solid" data-year="1944" style="grid-column:10;grid-row:18"><div class="el-inner"><div class="el-num">96</div><div class="el-sym">Cm</div><div class="el-name">Curium</div></div></div>
+<div class="el actinide off" data-z="97" data-sym="Bk" data-name="Berkelium" data-cat="actinide" data-mass="(247)" data-config="[Rn] 5f⁹ 7s²" data-phase="Solid" data-year="1949" style="grid-column:11;grid-row:18"><div class="el-inner"><div class="el-num">97</div><div class="el-sym">Bk</div><div class="el-name">Berkelium</div></div></div>
+<div class="el actinide" data-z="98" data-sym="Cf" data-name="Californium" data-cat="actinide" data-mass="(251)" data-config="[Rn] 5f¹⁰ 7s²" data-phase="Solid" data-year="1950" style="grid-column:12;grid-row:18"><div class="el-inner"><div class="el-num">98</div><div class="el-sym">Cf</div><div class="el-name">Californium</div></div></div>
+<div class="el actinide off" data-z="99" data-sym="Es" data-name="Einsteinium" data-cat="actinide" data-mass="(252)" data-config="[Rn] 5f¹¹ 7s²" data-phase="Solid" data-year="1952" style="grid-column:13;grid-row:18"><div class="el-inner"><div class="el-num">99</div><div class="el-sym">Es</div><div class="el-name">Einsteinium</div></div></div>
+<div class="el actinide" data-z="100" data-sym="Fm" data-name="Fermium" data-cat="actinide" data-mass="(257)" data-config="[Rn] 5f¹² 7s²" data-phase="Solid" data-year="1952" style="grid-column:14;grid-row:18"><div class="el-inner"><div class="el-num">100</div><div class="el-sym">Fm</div><div class="el-name">Fermium</div></div></div>
+<div class="el actinide off" data-z="101" data-sym="Md" data-name="Mendelevium" data-cat="actinide" data-mass="(258)" data-config="[Rn] 5f¹³ 7s²" data-phase="Solid" data-year="1955" style="grid-column:15;grid-row:18"><div class="el-inner"><div class="el-num">101</div><div class="el-sym">Md</div><div class="el-name">Mendelevium</div></div></div>
+<div class="el actinide" data-z="102" data-sym="No" data-name="Nobelium" data-cat="actinide" data-mass="(259)" data-config="[Rn] 5f¹⁴ 7s²" data-phase="Solid" data-year="1958" style="grid-column:16;grid-row:18"><div class="el-inner"><div class="el-num">102</div><div class="el-sym">No</div><div class="el-name">Nobelium</div></div></div>
+<div class="el actinide off" data-z="103" data-sym="Lr" data-name="Lawrencium" data-cat="actinide" data-mass="(266)" data-config="[Rn] 5f¹⁴ 7s² 7p¹" data-phase="Solid" data-year="1961" style="grid-column:17;grid-row:18"><div class="el-inner"><div class="el-num">103</div><div class="el-sym">Lr</div><div class="el-name">Lawrencium</div></div></div>
+
+</div></div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-alkali)"></div>Alkali metals</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-alkaline)"></div>Alkaline earth</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-transition)"></div>Transition metals</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-post)"></div>Post-transition</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-metalloid)"></div>Metalloids</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-nonmetal)"></div>Reactive nonmetals</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-halogen)"></div>Halogens</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-noble)"></div>Noble gases</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-lanthanide)"></div>Lanthanides</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-actinide)"></div>Actinides</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--c-unknown)"></div>Unknown props.</div>
+</div>
+
+<div class="detail-panel" id="detail">
+  <button class="detail-close" id="detail-close" aria-label="Close">&#x2715;</button>
+  <div class="detail-hex" id="d-hex">
+    <div class="detail-hex-inner">
+      <div class="el-num" id="d-num"></div>
+      <div class="el-sym" id="d-sym"></div>
+      <div class="el-name" id="d-name-hex"></div>
+    </div>
+  </div>
+  <div class="detail-info">
+    <div class="detail-name" id="d-name"></div>
+    <div class="detail-cat" id="d-cat"></div>
+    <div class="detail-facts">
+      <div class="detail-fact"><div class="detail-fact-label">Atomic mass</div><div class="detail-fact-value" id="d-mass"></div></div>
+      <div class="detail-fact"><div class="detail-fact-label">Phase (STP)</div><div class="detail-fact-value" id="d-phase"></div></div>
+      <div class="detail-fact"><div class="detail-fact-label">Config.</div><div class="detail-fact-value" id="d-config" style="font-size:0.75rem"></div></div>
+      <div class="detail-fact"><div class="detail-fact-label">Discovered</div><div class="detail-fact-value" id="d-year"></div></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Periodic Table &#183; pure HTML + CSS &#183; no dependencies &#183;
+  <a href="https://github.com/greysquirr3l/pattern_lab">greysquirr3l/pattern_lab</a>
+</footer>
+
+<script>
+const catLabels={alkali:'Alkali metal',alkaline:'Alkaline earth metal',transition:'Transition metal',post:'Post-transition metal',metalloid:'Metalloid',nonmetal:'Reactive nonmetal',halogen:'Halogen',noble:'Noble gas',lanthanide:'Lanthanide',actinide:'Actinide',unknown:'Unknown properties'};
+const catColors={alkali:'var(--c-alkali)',alkaline:'var(--c-alkaline)',transition:'var(--c-transition)',post:'var(--c-post)',metalloid:'var(--c-metalloid)',nonmetal:'var(--c-nonmetal)',halogen:'var(--c-halogen)',noble:'var(--c-noble)',lanthanide:'var(--c-lanthanide)',actinide:'var(--c-actinide)',unknown:'var(--c-unknown)'};
+const darkCat=new Set(['transition','noble','actinide','unknown']);
+const panel=document.getElementById('detail');
+document.querySelectorAll('.el').forEach(el=>{
+  el.addEventListener('click',()=>{
+    const d=el.dataset,cat=d.cat,color=catColors[cat]||'var(--c-unknown)';
+    const hex=document.getElementById('d-hex');
+    hex.style.background=color;
+    hex.style.color=darkCat.has(cat)?'#fff':'#000';
+    document.getElementById('d-num').textContent=d.z;
+    document.getElementById('d-sym').textContent=d.sym;
+    document.getElementById('d-name-hex').textContent=d.name;
+    document.getElementById('d-name').textContent=d.name;
+    const catEl=document.getElementById('d-cat');
+    catEl.textContent=catLabels[cat]||cat;
+    catEl.style.color=color; catEl.style.borderColor=color;
+    document.getElementById('d-mass').textContent=d.mass;
+    document.getElementById('d-phase').textContent=d.phase;
+    document.getElementById('d-config').textContent=d.config;
+    document.getElementById('d-year').textContent=d.year;
+    panel.classList.add('open');
+  });
+});
+document.getElementById('detail-close').addEventListener('click',()=>panel.classList.remove('open'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')panel.classList.remove('open');});
+document.querySelectorAll('.filter-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const cat=btn.dataset.cat;
+    document.querySelectorAll('.filter-btn').forEach(b=>{b.classList.remove('active');b.style.background='';b.style.color='';});
+    btn.classList.add('active');
+    if(cat!=='all'){btn.style.background=catColors[cat]||'';btn.style.color=darkCat.has(cat)?'#fff':'#000';}
+    else{btn.style.background='oklch(0.28 0.04 264)';btn.style.color='var(--ink)';}
+    document.querySelectorAll('.el').forEach(el=>{
+      el.classList.toggle('dimmed',cat!=='all'&&el.dataset.cat!==cat);
+    });
+  });
+});
+</script>
+</body>
+</html>

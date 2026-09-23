@@ -5,8 +5,8 @@
 Claude Code plugin marketplace providing comprehensive coverage of modern web technologies including Three.js, GSAP, React Three Fiber, Motion, Babylon.js, and more.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Plugins: 27](https://img.shields.io/badge/Plugins-27-blue.svg)](#available-plugins)
-[![Skills: 22](https://img.shields.io/badge/Skills-22-green.svg)](#available-skills)
+[![Plugins: 31](https://img.shields.io/badge/Plugins-31-blue.svg)](#available-plugins)
+[![Skills: 25](https://img.shields.io/badge/Skills-25-green.svg)](#available-skills)
 [![Status: Production](https://img.shields.io/badge/Status-Production-brightgreen.svg)](#status)
 
 ## 🚀 Quick Start (Plugin Marketplace)
@@ -40,12 +40,12 @@ Claude Code plugin marketplace providing comprehensive coverage of modern web te
 
 ## Overview
 
-**27 plugins (22 individual + 5 bundles)** extending Claude Code with specialized knowledge for cutting-edge web technologies.
+**31 plugins (25 individual + 6 bundles)** extending Claude Code with specialized knowledge for cutting-edge web technologies.
 
 **Key Features**:
-- 🏪 Plugin marketplace with 27 ready-to-install plugins
-- ✅ 22 individual skills + 5 category bundles
-- 🔧 50+ slash commands for instant boilerplate generation
+- 🏪 Plugin marketplace with 31 ready-to-install plugins
+- ✅ 25 individual skills + 6 category bundles
+- 🔧 60+ slash commands for instant boilerplate generation
 - 🤖 27+ specialized agents for domain expertise
 - 📚 Comprehensive patterns, examples, and integration guides
 - 🚀 Auto-activates when Claude detects relevant tasks
@@ -62,17 +62,18 @@ Progressive disclosure: Claude loads only what's needed per task.
 
 ## Available Plugins
 
-### Individual Plugins (22)
+### Individual Plugins (25)
 
 All plugins include slash commands and specialized agents. [Full details →](MARKETPLACE.md)
 
-### Category Bundles (5)
+### Category Bundles (6)
 
 - **core-3d-animation** - Three.js, GSAP, R3F, Motion, Babylon.js (5 skills, 9 commands, 6 agents)
 - **extended-3d-scroll** - A-Frame, Vanta, PlayCanvas, PixiJS, Locomotive, Barba (6 skills, 12 commands, 7 agents)
 - **animation-components** - React Spring, Magic UI, AOS, Anime.js, Lottie (5 skills, 10 commands, 6 agents)
 - **authoring-motion** - Blender, Spline, Rive, Substance 3D (4 skills, 10 commands, 5 agents)
 - **meta-skills** - Integration patterns, Modern design (2 skills, 4 commands, 3 agents)
+- **native-html5-stack** - HTMX, Web Animations API, HTML5 Native Design (3 skills, 4 commands, 3 agents)
 
 ## Available Skills
 
@@ -90,6 +91,9 @@ All plugins include slash commands and specialized agents. [Full details →](MA
 
 ### Meta-Skills (2)
 **web3d-integration-patterns** • **modern-web-design**
+
+### Native HTML5 & Motion (3)
+**htmx** • **web-animations-api** • **html5-native-design** — The no-framework stack for beautiful sites. HTMX 2.x for server-driven interactivity, the Web Animations API (WAAPI + CSS scroll-driven animations + View Transitions) for native motion, and modern HTML5 elements (Popover, `<dialog>`, container queries, `:has()`, Web Components) for the UI primitives.
 
 ## Documented Library Versions
 
@@ -117,10 +121,13 @@ they exist; the **current** API is what the main examples use.
 | `blender-web-pipeline` | Blender | 5.2 LTS |
 | `spline-interactive` | @splinetool/runtime / react-spline | 2.0.56 / 4.1.0 |
 | `rive-interactive` | @rive-app/webgl2 | 2.43.0 |
+| `htmx` | htmx.org | 2.0.x |
+| `web-animations-api` | browser-native (WAAPI / CSS scroll-driven / View Transitions) | — |
+| `html5-native-design` | browser-native (Popover / `<dialog>` / container queries / Web Components) | — |
 | `web3d-integration-patterns` | meta-skill (matrix of all the above) | — |
 | `modern-web-design` | meta-skill | — |
 
-The full audit plan lives in [`FRAMEWORK_SKILL_UPDATE_PLAN.txt`](FRAMEWORK_SKILL_UPDATE_PLAN.txt).
+The full audit plan lives in [`FRAMEWORK_SKILL_UPDATE_PLAN.txt`](FRAMEWORK_SKILL_UPDATE_PLAN.txt). The new native-HTML5 stack ships with copies of the user's [`greysquirr3l/pattern_lab`](https://github.com/greysquirr3l/pattern_lab) reference examples in each skill's `assets/groundtruth/`.
 
 ## Installation
 
@@ -280,15 +287,32 @@ MIT License - see [LICENSE](LICENSE) file
 
 ## Status
 
-✅ **Production Ready** - All 22 skills complete, validated, and packaged
-🏪 **Plugin Marketplace** - 27 plugins (22 individual + 5 bundles) ready to install
-📦 **22 Skills** - 3D graphics, animation, scroll effects, interactive web
-🔧 **50+ Commands** - Slash commands for instant boilerplate
-🤖 **27+ Agents** - Specialized domain experts
+✅ **Production Ready** - All 25 skills complete, validated, and packaged
+🏪 **Plugin Marketplace** - 31 plugins (25 individual + 6 bundles) ready to install
+📦 **25 Skills** - 3D graphics, animation, scroll effects, interactive web, native HTML5
+🔧 **60+ Commands** - Slash commands for instant boilerplate
+🤖 **30+ Agents** - Specialized domain experts
 📚 **Fully Documented** - Guides, patterns, examples
 🚀 **Upload Ready** - All skills meet claude.ai packaging requirements
 
 ### Recent Updates
+
+**2026-09-23**: Native HTML5 Stack & Pattern Lab Integration
+- ✅ Added 3 new skills: **htmx** (HTMX 2.x hypermedia), **web-animations-api**
+  (WAAPI + CSS scroll-driven + View Transitions), **html5-native-design**
+  (Popover, `<dialog>`, container queries, `:has()`, Web Components).
+- ✅ Added new bundle `native-html5-stack` (3 skills, 4 commands, 3 agents).
+- ✅ Marketplace count: 25 individual plugins + 6 bundles (31 total).
+- ✅ Integrated ground-truth examples from the user's
+  `greysquirr3l/pattern_lab`: scroll-timeline lab, HTML5 APIs lab,
+  2026 pattern lab, periodic table, nth-letter lab. Each new skill
+  ships with the relevant subset under `assets/groundtruth/` and a
+  `references/groundtruth.md` index with re-pull instructions.
+- ✅ The **nth-letter lab** is highlighted in `modern-web-design` —
+  12 pure-CSS typography effects (spectral hue via `oklch()`,
+  kinetic wave, Solari flip, chromatic glitch, dust accumulation,
+  …) that fake the still-unshipped `::nth-letter` pseudo-element
+  with per-glyph wrappers + custom properties. Zero JS.
 
 **2026-09-23**: Framework Skill Refresh (Priority 1–3)
 - ✅ Audited all 21 framework skills against current package versions and

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>&lt;theme-tabs&gt; — Radio-driven tab component</title>
+  <style>
+    body { font: 16px/1.5 system-ui; padding: 2rem; max-width: 720px; margin: 0 auto; }
+    theme-tabs {
+      container-type: inline-size;
+      display: block;
+      border: 1px solid light-dark(#eee, #1f2630);
+      border-radius: .5rem;
+      overflow: hidden;
+    }
+    theme-tabs > div {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 280ms cubic-bezier(.2,.8,.2,1);
+    }
+    theme-tabs[data-open] > div { grid-template-rows: 1fr; }
+    theme-tabs > div > div { min-height: 0; }
+    theme-tabs > nav {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1px;
+      background: light-dark(#eee, #1f2630);
+    }
+    theme-tabs button {
+      padding: .75rem 1rem;
+      background: light-dark(#fff, #131a20);
+      color: inherit;
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      transition: background 220ms;
+    }
+    theme-tabs button:hover {
+      background: light-dark(#fafafa, #181f26);
+    }
+  </style>
+</head>
+<body>
+  <h1>&lt;theme-tabs&gt;</h1>
+  <p>A CSS-only tabs component built on radio buttons. Closes itself
+     when a tab is deselected.</p>
+
+  <theme-tabs>
+    <nav>
+      <input id="t-1" type="radio" name="theme-tabs" checked hidden>
+      <label for="t-1">Plain</label>
+      <input id="t-2" type="radio" name="theme-tabs" hidden>
+      <label for="t-2">Animations</label>
+      <input id="t-3" type="radio" name="theme-tabs" hidden>
+      <label for="t-3">Layouts</label>
+    </nav>
+    <div>
+      <div>
+        <p>Plain content — vanilla CSS, no animation library needed.</p>
+      </div>
+      <div>
+        <p>Animation content — modern CSS uses `transition-behavior:
+           allow-discrete` for popovers and dialogs.</p>
+      </div>
+      <div>
+        <p>Layout content — container queries let components adapt to
+           their own size, not the viewport.</p>
+      </div>
+    </div>
+  </theme-tabs>
+
+  <script>
+    customElements.define('theme-tabs', class extends HTMLElement {
+      connectedCallback() {
+        const inputs = this.querySelectorAll('input[type=radio]')
+        inputs.forEach((input) => {
+          input.addEventListener('change', () => {
+            const idx = Number(input.id.slice(2))
+            this.toggleAttribute('data-open', !!input.checked)
+            const slides = this.querySelectorAll(':scope > div > div')
+            slides.forEach((s, i) => s.hidden = (i !== idx - 1))
+          })
+        })
+        // Initial state
+        const checked = [...inputs].findIndex((i) => i.checked)
+        const slides = this.querySelectorAll(':scope > div > div')
+        slides.forEach((s, i) => s.hidden = (i !== checked))
+      }
+    })
+  </script>
+</body>
+</html>

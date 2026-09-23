@@ -1051,3 +1051,36 @@ AAA) and **24×24** in WCAG 2.2 (Level AA, with spacing
 requirements). Apple HIG asks for **44pt**, Material for **48dp**.
 Match the target standard to the platform your users actually
 use.
+
+## Ground-Truth Examples
+
+This skill ships with copies of the user's `pattern_lab` reference
+examples for typography, colour, depth, focus states, and modern
+CSS layout. See `references/groundtruth.md` for an index, and:
+
+- `assets/groundtruth/pattern_lab_2026.html` — `2026_pattern_lab.html`
+  from `greysquirr3l/pattern_lab` (~89 KB): twelve sections covering
+  tracking & kinetics, button architecture, corner math, depth
+  without shadows, cyber gradients, line-length rules, focus
+  states, OKLCH colour, glassmorphism, bento grids, container
+  queries, `:has()`. Treat as a finished-design reference.
+- `assets/groundtruth/nth_letter_lab.html` — `2026_nth_letter_lab.html`
+  from `greysquirr3l/pattern_lab` (~46 KB). The **12 demos here
+  are particularly worth studying** — the `::nth-letter` CSS
+  pseudo-element isn't shipped yet, so the user fakes it with
+  per-glyph wrappers + custom properties. Effects include:
+  alternating skew, spectral hue (`oklch()`), kinetic wave
+  (`animation-delay × index`), every-third glyph tinting,
+  reactive bloom, travelling shimmer, neon flicker, Solari
+  flip-board (`perspective + rotateX`), chromatic glitch,
+  typewriter dissolve, bulge sweep, and dust accumulation.
+  All 12 are pure CSS — **zero JavaScript**.
+
+Re-pull with:
+
+```bash
+gh api 'repos/greysquirr3l/pattern_lab/contents/2026_pattern_lab.html' \
+   -q .content | base64 -d > assets/groundtruth/pattern_lab_2026.html
+gh api 'repos/greysquirr3l/pattern_lab/contents/2026_nth_letter_lab.html' \
+   -q .content | base64 -d > assets/groundtruth/nth_letter_lab.html
+```

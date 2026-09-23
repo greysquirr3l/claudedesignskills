@@ -1,0 +1,30 @@
+{
+  "name": "html5-native-design",
+  "version": "1.0.0",
+  "description": "Modern HTML5 elements and CSS features \u2014 Popover, <dialog>, container queries, :has(), subgrid, color-mix(), Web Components \u2014 for beautiful sites without a UI framework.",
+  "author": {
+    "name": "Claude Design Skillstack",
+    "email": "oladotun.olatunji@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/greysquirr3l/claudedesignskills",
+  "repository": "https://github.com/greysquirr3l/claudedesignskills.git",
+  "keywords": [
+    "no-framework",
+    "html5",
+    "popover",
+    "dialog",
+    "container-queries",
+    "css",
+    "web-components",
+    "no-framework"
+  ],
+  "skills": "./skills/",
+  "commands": [
+    "./commands/html5-native-design-form_generator",
+    "./commands/html5-native-design-popover_pairs"
+  ],
+  "agents": [
+    "./agents/html5-native-design-specialist"
+  ]
+}

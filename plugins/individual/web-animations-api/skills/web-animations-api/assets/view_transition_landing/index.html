@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Same-Document View Transitions</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #fafafa; --fg: #1a1a1a; --line: #eee;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0b0f12; --fg: #f1f1f1; --line: #1f2630; }
+    }
+    body {
+      margin: 0; padding: 0;
+      background: var(--bg); color: var(--fg);
+      font: 16px/1.55 system-ui, sans-serif;
+    }
+    nav {
+      display: flex; gap: 1rem; padding: 1rem 2rem;
+      border-bottom: 1px solid var(--line);
+      align-items: center;
+    }
+    nav h1 {
+      flex: 1; margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      view-transition-name: brand;
+    }
+    nav button {
+      padding: .5rem 1rem;
+      border: 1px solid #ddd;
+      background: transparent;
+      color: inherit;
+      border-radius: .375rem;
+      cursor: pointer;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 4rem auto;
+      padding: 0 2rem;
+    }
+    main > * { view-transition-name: main; }
+
+    h2 { font-size: 4rem; letter-spacing: -.04em; font-weight: 800;
+         view-transition-name: page-title; margin-top: 0; }
+    p { font-size: 1.125rem; opacity: .8; }
+
+    /* Tune the default page transitions */
+    ::view-transition-group(*) {
+      animation-duration: 320ms;
+      animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      ::view-transition-group(*) { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <h1>Brand</h1>
+    <button data-target="index">Index</button>
+    <button data-target="detail">Detail</button>
+    <button data-target="contact">Contact</button>
+  </nav>
+  <main>
+    <h2>Index</h2>
+    <p>Click any nav button — the heading morphs through the same-doc
+       View Transitions API. Pair with the htmx skill for actual
+       navigation; this demo is pure DOM updates.</p>
+    <p>Try <code>document.startViewTransition</code> from the
+       console: <button id="do-vt">Run startViewTransition</button></p>
+  </main>
+
+  <script>
+    const pages = {
+      index:   '<h2>Index</h2><p>Home page body.</p>',
+      detail:  '<h2>Detail</h2><p>Detail page body — the title morphs from the prior heading.</p>',
+      contact: '<h2>Contact</h2><p>Contact page body — same.</p>',
+    }
+
+    function swap(target) {
+      const update = () => {
+        document.querySelector('main').innerHTML = pages[target]
+      }
+      if (document.startViewTransition) {
+        document.startViewTransition(update)
+      } else {
+        update()
+      }
+    }
+
+    document.querySelectorAll('nav button').forEach((b) => {
+      b.addEventListener('click', () => swap(b.dataset.target))
+    })
+
+    document.getElementById('do-vt').addEventListener('click', () => {
+      if (!document.startViewTransition) {
+        alert('View Transitions not supported in this browser.')
+        return
+      }
+      document.startViewTransition(() => {
+        document.querySelector('main').firstElementChild.classList.toggle('highlight')
+      })
+    })
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "name": "native-html5-stack",
+  "version": "1.0.0",
+  "description": "Build beautiful, framework-free sites with HTMX 2.x, the Web Animations API, and the HTML5 Native Design primitives. Together these three skills provide: server-rendered interactivity, native motion (WAAPI, scroll-driven CSS, View Transitions), and a modern UI primitive vocabulary (Popover, `<dialog>`, container queries, `:has()`, Web Components). The no-framework stack for sites that should feel indistinguishable from a SPA without shipping 200+ KB of JS.",
+  "author": {
+    "name": "Claude Design Skillstack",
+    "email": "oladotun.olatunji@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/greysquirr3l/claudedesignskills",
+  "repository": "https://github.com/greysquirr3l/claudedesignskills.git",
+  "keywords": [
+    "native-html5",
+    "no-framework",
+    "htmx",
+    "web-animations-api",
+    "html5",
+    "popover",
+    "dialog",
+    "container-queries",
+    "view-transitions",
+    "scroll-driven",
+    "web-components"
+  ],
+  "skills": "./skills/",
+  "commands": [
+    "./commands/htmx-htmx_examples.md",
+    "./commands/web-animations-api-waapi_examples.md",
+    "./commands/html5-native-design-form_generator.md",
+    "./commands/html5-native-design-popover_pairs.md"
+  ],
+  "agents": [
+    "./agents/htmx-agent.md",
+    "./agents/web-animations-api-agent.md",
+    "./agents/html5-native-design-agent.md"
+  ]
+}

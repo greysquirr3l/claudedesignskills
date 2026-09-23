@@ -1,0 +1,28 @@
+{
+  "name": "web-animations-api",
+  "version": "1.0.0",
+  "description": "Native browser APIs for 'amazing' sites: WAAPI, CSS scroll-driven animations, and the View Transitions API. Built for sites that want to be visually rich without shipping 200+ KB of animation libraries.",
+  "author": {
+    "name": "Claude Design Skillstack",
+    "email": "oladotun.olatunji@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/greysquirr3l/claudedesignskills",
+  "repository": "https://github.com/greysquirr3l/claudedesignskills.git",
+  "keywords": [
+    "no-framework",
+    "waapi",
+    "animation",
+    "scroll-driven",
+    "view-transitions",
+    "css",
+    "no-framework"
+  ],
+  "skills": "./skills/",
+  "commands": [
+    "./commands/web-animations-api-waapi_examples"
+  ],
+  "agents": [
+    "./agents/web-animations-api-specialist"
+  ]
+}

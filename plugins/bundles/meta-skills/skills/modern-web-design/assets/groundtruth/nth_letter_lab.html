@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>::nth-letter Lab — greysquirr3l</title>
+<style>
+  /* ============================================================
+     ::nth-letter Lab — faking a selector that doesn't exist,
+     in pure HTML5 + CSS. Zero dependencies. Opens from disk.
+     The trick: author one <span> per glyph, then let
+     :nth-child / odd / even / sibling-index() do the work
+     ::nth-letter would have done natively.
+     ============================================================ */
+
+  :root {
+    /* Tinted-black surfaces — never pure #000 */
+    --bg:        oklch(0.17 0.035 264);
+    --bg-2:      oklch(0.21 0.04 264);
+    --surface:   oklch(0.24 0.04 264 / 0.55);
+    --line:      oklch(0.45 0.05 264 / 0.35);
+    --line-soft: oklch(0.45 0.05 264 / 0.18);
+
+    --ink:       oklch(0.96 0.01 264);
+    --ink-dim:   oklch(0.74 0.02 264);
+    --ink-faint: oklch(0.56 0.02 264);
+
+    /* Cyber accents */
+    --cyan:      oklch(0.84 0.13 200);
+    --violet:    oklch(0.72 0.16 295);
+    --lime:      oklch(0.88 0.18 135);
+    --coral:     oklch(0.74 0.13 25);
+
+    /* Coyier's original ::nth-letter palette */
+    --skew-a:    #8B3F3F;
+    --skew-b:    #C97A7A;
+
+    --font-ui:   ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+
+    --radius:    18px;
+    --gap:       clamp(1rem, 3vw, 2rem);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(60rem 40rem at 75% -10%, oklch(0.4 0.16 295 / 0.22), transparent 60%),
+      radial-gradient(50rem 40rem at -10% 30%, oklch(0.55 0.13 200 / 0.16), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 5rem) clamp(1.1rem, 4vw, 2.5rem) 6rem;
+  }
+
+  /* ---------- Header ---------- */
+  header { margin-bottom: 4.5rem; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    border: 1px solid var(--line);
+    background: oklch(0.84 0.13 200 / 0.06);
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+  }
+
+  h1 {
+    font-size: clamp(2.6rem, 8vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    font-weight: 800;
+    margin: 1.4rem 0 0.6rem;
+    text-wrap: balance;
+  }
+  h1 code {
+    font-family: var(--font-mono);
+    font-size: 0.7em;
+    color: var(--cyan);
+    letter-spacing: -0.02em;
+  }
+
+  .lede {
+    max-width: 65ch;
+    font-size: clamp(1.02rem, 2.5vw, 1.2rem);
+    color: var(--ink-dim);
+    text-wrap: pretty;
+  }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Premise / caveat callouts ---------- */
+  .callout {
+    margin-top: 2rem;
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--violet);
+    background: linear-gradient(120deg, oklch(0.4 0.16 295 / 0.10), transparent 70%);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    font-size: 0.95rem;
+    color: var(--ink-dim);
+    max-width: 72ch;
+  }
+  .callout.warn { border-left-color: var(--coral); background: linear-gradient(120deg, oklch(0.74 0.13 25 / 0.10), transparent 70%); }
+  .callout code { font-family: var(--font-mono); color: var(--cyan); font-size: 0.86em; }
+
+  /* ---------- Section scaffold ---------- */
+  section { margin-top: 3.2rem; }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.4rem;
+  }
+  h2 {
+    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    letter-spacing: -0.025em;
+    font-weight: 750;
+    margin: 0 0 0.4rem;
+  }
+  h2 .n { color: var(--cyan); font-family: var(--font-mono); font-size: 0.7em; }
+  .note { color: var(--ink-dim); max-width: 68ch; margin: 0 0 1.4rem; }
+  .note code { font-family: var(--font-mono); color: var(--cyan); font-size: 0.86em; }
+
+  .card {
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    background: var(--surface);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    overflow: hidden;
+  }
+
+  /* The live demo stage */
+  .stage {
+    display: grid;
+    place-items: center;
+    min-height: 200px;
+    padding: 2.4rem 1.5rem;
+    background:
+      radial-gradient(40rem 20rem at 50% 120%, oklch(0.4 0.1 264 / 0.4), transparent 70%);
+    border-bottom: 1px solid var(--line-soft);
+  }
+
+  /* The word: one <span> per glyph. role="text" + aria-label
+     keep screen readers reading the WORD, not the letters. */
+  .word {
+    margin: 0;
+    font-weight: 800;
+    line-height: 1.1;
+    font-size: clamp(2.4rem, 11vw, 5rem);
+    letter-spacing: -0.01em;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .word span { display: inline-block; }
+
+  /* ---------- Code block ---------- */
+  .code {
+    margin: 0;
+    padding: 1.1rem 1.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--ink-dim);
+    overflow-x: auto;
+    background: oklch(0.13 0.03 264 / 0.6);
+  }
+  .code .c { color: var(--ink-faint); font-style: italic; }   /* comment   */
+  .code .s { color: var(--cyan); }                            /* selector  */
+  .code .p { color: var(--violet); }                          /* property  */
+  .code .v { color: var(--lime); }                            /* value     */
+  .code .t { color: var(--coral); }                           /* tag/html  */
+  .code .imaginary { color: oklch(0.6 0.02 264); }            /* the fake  */
+
+  .split { display: grid; grid-template-columns: 1fr; }
+  @media (min-width: 760px) {
+    .split { grid-template-columns: 1fr 1fr; }
+    .split .code:first-child { border-right: 1px solid var(--line-soft); }
+  }
+  .codehead {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.3rem;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--line-soft);
+    background: oklch(0.13 0.03 264 / 0.5);
+  }
+  .codehead.fake { color: var(--violet); }
+  .codehead.real { color: var(--lime); }
+
+  /* =========================================================
+     DEMO 1 — Alternating skew  (Chris Coyier's 2011 example)
+     ::nth-letter(odd) / ::nth-letter(even)  ->  :nth-child
+     ========================================================= */
+  .d-skew span {
+    padding: 0.12em 0.16em;
+    margin: 0.06em 0.02em;
+    color: #fff;
+    border-radius: 6px;
+  }
+  .d-skew span:nth-child(odd)  { transform: skewY(-15deg); background: var(--skew-a); }
+  .d-skew span:nth-child(even) { transform: skewY( 15deg); background: var(--skew-b); }
+
+  /* =========================================================
+     DEMO 2 — Spectral hue per glyph (paint-only)
+     hardcoded :nth-child here so it renders everywhere;
+     sibling-index() one-liner shown in the code panel.
+     ========================================================= */
+  .d-hue span { transition: transform 0.2s ease; }
+  .d-hue span:nth-child(1) { color: oklch(0.82 0.2   0); }
+  .d-hue span:nth-child(2) { color: oklch(0.82 0.2  40); }
+  .d-hue span:nth-child(3) { color: oklch(0.82 0.2  80); }
+  .d-hue span:nth-child(4) { color: oklch(0.82 0.2 130); }
+  .d-hue span:nth-child(5) { color: oklch(0.82 0.2 175); }
+  .d-hue span:nth-child(6) { color: oklch(0.82 0.2 230); }
+  .d-hue span:nth-child(7) { color: oklch(0.82 0.2 285); }
+  .d-hue span:nth-child(8) { color: oklch(0.82 0.2 330); }
+  .d-hue:hover span { transform: translateY(-0.08em); }
+
+  /* =========================================================
+     DEMO 3 — Staggered wave  (animation-delay per glyph)
+     mirrors the Pattern Lab sibling-index() stagger demo
+     ========================================================= */
+  @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -0.32em; } }
+  .d-wave span {
+    color: var(--cyan);
+    animation: bob 1.3s ease-in-out infinite;
+  }
+  .d-wave span:nth-child(1) { animation-delay: 0.00s; }
+  .d-wave span:nth-child(2) { animation-delay: 0.09s; }
+  .d-wave span:nth-child(3) { animation-delay: 0.18s; }
+  .d-wave span:nth-child(4) { animation-delay: 0.27s; }
+  .d-wave span:nth-child(5) { animation-delay: 0.36s; }
+  .d-wave span:nth-child(6) { animation-delay: 0.45s; }
+  .d-wave span:nth-child(7) { animation-delay: 0.54s; }
+  @media (prefers-reduced-motion: reduce) { .d-wave span { animation: none; } }
+
+  /* =========================================================
+     DEMO 4 — Every nth glyph as accent  (:nth-child(3n))
+     the literal arithmetic case ::nth-letter(3n) implied
+     ========================================================= */
+  .d-nth span { color: var(--ink-faint); transition: color 0.3s; }
+  .d-nth span:nth-child(3n) {
+    color: var(--lime);
+    text-shadow: 0 0 22px oklch(0.88 0.18 135 / 0.55);
+  }
+
+  /* =========================================================
+     DEMO 5 — Reactive hover bloom  (per-glyph :hover + :has)
+     pure-CSS focus effect: hovered letter blooms, the rest dim,
+     immediate neighbours get nudged via + and :has()
+     ========================================================= */
+  .d-bloom span {
+    color: var(--ink-dim);
+    transition: transform 0.28s cubic-bezier(.34,1.56,.64,1), color 0.28s;
+  }
+  .d-bloom:hover span { color: var(--ink-faint); }
+  .d-bloom span:hover {
+    color: var(--coral);
+    transform: translateY(-0.22em) scale(1.45);
+  }
+  /* next-door neighbour leans in */
+  .d-bloom span:hover + span { transform: translateY(-0.08em) scale(1.15); }
+  /* previous neighbour leans in, via :has() */
+  .d-bloom span:has(+ span:hover) { transform: translateY(-0.08em) scale(1.15); }
+
+  /* =========================================================
+     DEMO 6 — Travelling shimmer  (looping staggered glow sweep)
+     ========================================================= */
+  @keyframes sweep {
+    0%, 70%, 100% { color: var(--ink-faint); text-shadow: none; }
+    18%           { color: #fff; text-shadow: 0 0 20px var(--cyan), 0 0 40px var(--violet); }
+  }
+  .d-sweep span { animation: sweep 2.6s ease-in-out infinite; }
+  .d-sweep span:nth-child(1) { animation-delay: 0.00s; }
+  .d-sweep span:nth-child(2) { animation-delay: 0.12s; }
+  .d-sweep span:nth-child(3) { animation-delay: 0.24s; }
+  .d-sweep span:nth-child(4) { animation-delay: 0.36s; }
+  .d-sweep span:nth-child(5) { animation-delay: 0.48s; }
+  .d-sweep span:nth-child(6) { animation-delay: 0.60s; }
+  .d-sweep span:nth-child(7) { animation-delay: 0.72s; }
+  .d-sweep span:nth-child(8) { animation-delay: 0.84s; }
+  @media (prefers-reduced-motion: reduce) { .d-sweep span { animation: none; color: var(--ink); } }
+
+  /* =========================================================
+     DEMO 7 — Independent neon flicker  (per-glyph DURATION)
+     Key distinction from demos 3 & 6: each glyph gets its OWN
+     animation-duration, not just a delay offset. Pick
+     irrational-looking values and the letters drift out of
+     phase, producing the chaotic feel of actual neon ageing.
+     ========================================================= */
+  @keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+      opacity: 1;
+      text-shadow:
+        0 0  7px #fff,
+        0 0 21px #fff,
+        0 0 42px oklch(0.72 0.24 330),
+        0 0 82px oklch(0.72 0.24 330),
+        0 0 95px oklch(0.55 0.22 330);
+    }
+    20%, 24%, 55% { opacity: 0.12; text-shadow: none; }
+  }
+  .d-flicker span {
+    color: #fff;
+    animation: neon-flicker linear infinite;
+  }
+  .d-flicker span:nth-child(1) { animation-duration: 3.1s; animation-delay: 0.0s; }
+  .d-flicker span:nth-child(2) { animation-duration: 4.7s; animation-delay: 0.5s; }
+  .d-flicker span:nth-child(3) { animation-duration: 2.3s; animation-delay: 1.1s; }
+  .d-flicker span:nth-child(4) { animation-duration: 5.2s; animation-delay: 0.3s; }
+  .d-flicker span:nth-child(5) { animation-duration: 3.6s; animation-delay: 0.9s; }
+  .d-flicker span:nth-child(6) { animation-duration: 4.1s; animation-delay: 1.6s; }
+  @media (prefers-reduced-motion: reduce) {
+    .d-flicker span { animation: none; text-shadow: 0 0 15px oklch(0.72 0.24 330); }
+  }
+
+  /* =========================================================
+     DEMO 8 — Solari flip board  (3D rotateX cascade)
+     perspective on the parent + rotateX per glyph + stagger
+     = a mechanical departure-board flip in pure CSS.
+     ========================================================= */
+  @keyframes flip-tile {
+    0%       { transform: rotateX(  0deg); opacity: 1; }
+    40%, 60% { transform: rotateX( 90deg); opacity: 0; }
+    100%     { transform: rotateX(  0deg); opacity: 1; }
+  }
+  .d-flip { perspective: 800px; }
+  .d-flip span {
+    display: inline-block;
+    padding: 0.05em 0.1em;
+    font-family: var(--font-mono);
+    color: oklch(0.82 0.18 65);
+    background: oklch(0.11 0.02 264);
+    border: 1px solid oklch(0.26 0.04 264);
+    border-radius: 4px;
+    transform-origin: center;
+    animation: flip-tile 5s ease-in-out infinite;
+  }
+  .d-flip span:nth-child(1) { animation-delay: 0.00s; }
+  .d-flip span:nth-child(2) { animation-delay: 0.30s; }
+  .d-flip span:nth-child(3) { animation-delay: 0.60s; }
+  .d-flip span:nth-child(4) { animation-delay: 0.90s; }
+  .d-flip span:nth-child(5) { animation-delay: 1.20s; }
+  .d-flip span:nth-child(6) { animation-delay: 1.50s; }
+  .d-flip span:nth-child(7) { animation-delay: 1.80s; }
+  @media (prefers-reduced-motion: reduce) { .d-flip span { animation: none; } }
+
+  /* =========================================================
+     DEMO 9 — Chromatic glitch  (text-shadow + jitter)
+     Two text-shadow ghosts simulate chromatic aberration —
+     always-on, no animation needed. Odd and even children
+     run DIFFERENT keyframes so no two neighbours corrupt
+     at the same moment. The desync is the whole effect.
+     ========================================================= */
+  @keyframes glitch-a {
+    0%, 88%, 100% { transform: translateX(0); }
+    89% { transform: translateX(-5px); }
+    91% { transform: translateX( 4px); }
+    93% { transform: translateX(-3px); }
+    95% { transform: translateX( 2px); }
+    99% { transform: translateX( 0px); }
+  }
+  @keyframes glitch-b {
+    0%, 80%, 100% { transform: translateX(0); }
+    81% { transform: translateX( 4px); }
+    83% { transform: translateX(-5px); }
+    85% { transform: translateX( 3px); }
+    87% { transform: translateX(-2px); }
+    89% { transform: translateX( 0px); }
+  }
+  .d-glitch span {
+    display: inline-block;
+    color: #fff;
+    text-shadow:
+      -2px 0 oklch(0.72 0.22  25),
+       2px 0 oklch(0.72 0.22 200);
+  }
+  .d-glitch span:nth-child(odd)  { animation: glitch-a 4.2s step-end infinite; }
+  .d-glitch span:nth-child(even) { animation: glitch-b 3.5s step-end infinite; }
+  @media (prefers-reduced-motion: reduce) { .d-glitch span { animation: none; } }
+
+  /* =========================================================
+     DEMO 10 — Typewriter reveal + dissolve
+     Hover reveals letters left→right (ascending delay).
+     Unhover dissolves them right→left (descending delay).
+     Same CSS transition in both directions — only the
+     transition-delay ORDER reverses. No keyframes, no JS.
+     ========================================================= */
+  .d-type { cursor: pointer; user-select: none; }
+  .d-type span {
+    opacity: 0;
+    transform: translateY(0.35em) scale(0.8);
+    transition: opacity 0.18s ease, transform 0.25s cubic-bezier(.34,1.56,.64,1);
+    color: var(--cyan);
+  }
+  /* dissolve right→left (delay descends) */
+  .d-type span:nth-child(1) { transition-delay: 0.42s; }
+  .d-type span:nth-child(2) { transition-delay: 0.35s; }
+  .d-type span:nth-child(3) { transition-delay: 0.28s; }
+  .d-type span:nth-child(4) { transition-delay: 0.21s; }
+  .d-type span:nth-child(5) { transition-delay: 0.14s; }
+  .d-type span:nth-child(6) { transition-delay: 0.07s; }
+  .d-type span:nth-child(7) { transition-delay: 0.00s; }
+  /* reveal left→right (delay ascends) */
+  .d-type:hover span        { opacity: 1; transform: translateY(0) scale(1); }
+  .d-type:hover span:nth-child(1) { transition-delay: 0.00s; }
+  .d-type:hover span:nth-child(2) { transition-delay: 0.07s; }
+  .d-type:hover span:nth-child(3) { transition-delay: 0.14s; }
+  .d-type:hover span:nth-child(4) { transition-delay: 0.21s; }
+  .d-type:hover span:nth-child(5) { transition-delay: 0.28s; }
+  .d-type:hover span:nth-child(6) { transition-delay: 0.35s; }
+  .d-type:hover span:nth-child(7) { transition-delay: 0.42s; }
+  @media (hover: none) {
+    .d-type span { opacity: 1; transform: none; transition: none; }
+  }
+
+  /* =========================================================
+     DEMO 11 — Elastic bulge sweep  (scaleX + squash)
+     One bulge point travels left→right. Every glyph runs the
+     same scaleX keyframe, offset by index so the peak moves.
+     Vertical squash (scaleY 0.65) conserves visual mass —
+     like a physical elastic being squeezed and released.
+     ========================================================= */
+  @keyframes bulge {
+    0%, 100% { transform: scaleX(1)    scaleY(1);    color: var(--ink-dim); }
+    50%       { transform: scaleX(2.4)  scaleY(0.65); color: var(--lime);    }
+  }
+  .d-bulge span {
+    display: inline-block;
+    transform-origin: center bottom;
+    animation: bulge 2.2s cubic-bezier(.445,.05,.55,.95) infinite;
+  }
+  .d-bulge span:nth-child(1) { animation-delay: 0.00s; }
+  .d-bulge span:nth-child(2) { animation-delay: 0.11s; }
+  .d-bulge span:nth-child(3) { animation-delay: 0.22s; }
+  .d-bulge span:nth-child(4) { animation-delay: 0.33s; }
+  .d-bulge span:nth-child(5) { animation-delay: 0.44s; }
+  .d-bulge span:nth-child(6) { animation-delay: 0.55s; }
+  .d-bulge span:nth-child(7) { animation-delay: 0.66s; }
+  @media (prefers-reduced-motion: reduce) { .d-bulge span { animation: none; color: var(--lime); } }
+
+  /* =========================================================
+     DEMO 12 — Black-dust accumulation  (dark dust / white bg)
+     Letters begin as blurred black clouds settled below the
+     stage floor. overflow:hidden clips everything below the
+     fold; as each letter rises into frame it's still heavily
+     blurred + surrounded by text-shadow particle halos that
+     shrink as it sharpens into a crisp black glyph.
+     Three phases: rise→coalesce  |  hold  |  dissolve→sink.
+     ========================================================= */
+  @keyframes dust-cohere {
+    /* dust settled below the visible fold */
+    0%, 4% {
+      transform: translateY(3.2em);
+      filter: blur(18px);
+      opacity: 0;
+      color: rgba(0, 0, 0, 0.3);
+      text-shadow:
+        0  0.2em 14px rgba(0,0,0,0.55),
+        0  0.6em 26px rgba(0,0,0,0.30),
+        0  1.2em 40px rgba(0,0,0,0.12);
+    }
+    /* rising — particles still loose */
+    18% {
+      transform: translateY(1.2em);
+      filter: blur(10px);
+      opacity: 0.55;
+      color: rgba(0, 0, 0, 0.55);
+      text-shadow:
+        0  0.1em 10px rgba(0,0,0,0.45),
+        0  0.4em 20px rgba(0,0,0,0.22);
+    }
+    /* compacting — almost there */
+    30% {
+      transform: translateY(0.12em);
+      filter: blur(3px);
+      opacity: 0.88;
+      color: rgba(0, 0, 0, 0.82);
+      text-shadow: 0 0.05em 5px rgba(0,0,0,0.30);
+    }
+    /* fully formed — sharp black glyph */
+    40%, 62% {
+      transform: translateY(0);
+      filter: blur(0);
+      opacity: 1;
+      color: #0d0d0d;
+      text-shadow: none;
+    }
+    /* dispersing back — glyph softens */
+    74% {
+      transform: translateY(0.12em);
+      filter: blur(3px);
+      opacity: 0.88;
+      color: rgba(0, 0, 0, 0.82);
+      text-shadow: 0 0.05em 5px rgba(0,0,0,0.30);
+    }
+    /* sinking — dust drifts down and out */
+    90%, 100% {
+      transform: translateY(3.2em);
+      filter: blur(18px);
+      opacity: 0;
+      color: rgba(0, 0, 0, 0.3);
+      text-shadow:
+        0  0.2em 14px rgba(0,0,0,0.55),
+        0  0.6em 26px rgba(0,0,0,0.30),
+        0  1.2em 40px rgba(0,0,0,0.12);
+    }
+  }
+  .d-dust span {
+    display: inline-block;
+    animation: dust-cohere 9s ease-in-out infinite;
+    color: #0d0d0d;
+  }
+  .d-dust span:nth-child(1) { animation-delay: 0.00s; }
+  .d-dust span:nth-child(2) { animation-delay: 0.14s; }
+  .d-dust span:nth-child(3) { animation-delay: 0.28s; }
+  .d-dust span:nth-child(4) { animation-delay: 0.42s; }
+  .d-dust span:nth-child(5) { animation-delay: 0.56s; }
+  .d-dust span:nth-child(6) { animation-delay: 0.70s; }
+  .d-dust span:nth-child(7) { animation-delay: 0.84s; }
+  .d-dust span:nth-child(8) { animation-delay: 0.98s; }
+  @media (prefers-reduced-motion: reduce) {
+    .d-dust span { animation: none; color: #0d0d0d; }
+  }
+
+  footer {
+    margin-top: 4.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line-soft);
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+  }
+  footer a { color: var(--cyan); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="eyebrow">◇ Pattern Lab · Typography</span>
+    <h1>Faking <code>::nth-letter</code> with zero JavaScript</h1>
+    <p class="lede">
+      The <code>::nth-letter</code> pseudo-element has been requested since 2003 and
+      <strong>still doesn't exist</strong>. But every effect people want from it can be built
+      today in pure HTML5 + CSS — you just pay for it in markup. Author one
+      <code>&lt;span&gt;</code> per glyph, then let <strong>:nth-child</strong>,
+      <strong>odd / even</strong>, and <strong>sibling-index()</strong> do the work the
+      selector would have done natively.
+    </p>
+    <div class="callout">
+      <strong>The contract:</strong> a screen reader must still read the word, not
+      <em>F · R · A · C · T · U · R · E</em>. Every demo word below carries
+      <code>role="text"</code> + <code>aria-label</code> on the wrapper, so the split is
+      purely visual. This is the one accessibility detail the splitting approach lives or dies on.
+    </div>
+  </header>
+
+  <!-- ============== DEMO 1 ============== -->
+  <section>
+    <p class="label">Demo 01 — odd / even</p>
+    <h2>Alternating skew <span class="n">::nth-letter(odd|even)</span></h2>
+    <p class="note">
+      Chris Coyier's hypothetical 2011 example, verbatim — odd letters skew one way, even the
+      other, each on its own colour block. <code>::nth-letter(odd)</code> becomes
+      <code>span:nth-child(odd)</code>. No fancy features required; this works in every browser shipping today.
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-skew" role="text" aria-label="FRACTURE"><span>F</span><span>R</span><span>A</span><span>C</span><span>T</span><span>U</span><span>R</span><span>E</span></p>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead fake">✦ Imaginary native syntax</div>
+<pre class="code"><span class="imaginary">h1<span class="s">::nth-letter(odd)</span> {
+  <span class="p">transform</span>: <span class="v">skewY(-15deg)</span>;
+  <span class="p">background</span>: <span class="v">#8B3F3F</span>;
+}
+h1<span class="s">::nth-letter(even)</span> {
+  <span class="p">transform</span>: <span class="v">skewY(15deg)</span>;
+  <span class="p">background</span>: <span class="v">#C97A7A</span>;
+}</span></pre>
+        </div>
+        <div>
+          <div class="codehead real">✓ Real, pure CSS today</div>
+<pre class="code"><span class="c">&lt;!-- one span per glyph --&gt;</span>
+<span class="t">&lt;p</span> <span class="p">role</span>=<span class="v">"text"</span> <span class="p">aria-label</span>=<span class="v">"FRACTURE"</span><span class="t">&gt;</span>
+  <span class="t">&lt;span&gt;</span>F<span class="t">&lt;/span&gt;</span><span class="t">&lt;span&gt;</span>R<span class="t">&lt;/span&gt;</span> …
+<span class="t">&lt;/p&gt;</span>
+
+<span class="s">.word span:nth-child(odd)</span>  { <span class="p">transform</span>:<span class="v">skewY(-15deg)</span> }
+<span class="s">.word span:nth-child(even)</span> { <span class="p">transform</span>:<span class="v">skewY(15deg)</span> }</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 2 ============== -->
+  <section>
+    <p class="label">Demo 02 — paint per index</p>
+    <h2>Spectral hue <span class="n">oklch() + index</span></h2>
+    <p class="note">
+      The pure-paint case (just <code>color</code>) — the easiest family of effects. Here each
+      letter steps 40° around the OKLCH hue wheel. The live demo hardcodes
+      <code>:nth-child</code> so it renders everywhere; the scalable version derives the hue
+      from <code>sibling-index()</code> in a single declaration, length-independent.
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-hue" role="text" aria-label="SPECTRUM"><span>S</span><span>P</span><span>E</span><span>C</span><span>T</span><span>R</span><span>U</span><span>M</span></p>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead real">✓ Works everywhere (hardcoded)</div>
+<pre class="code"><span class="s">span:nth-child(1)</span> { <span class="p">color</span>:<span class="v">oklch(.82 .2 0)</span> }
+<span class="s">span:nth-child(2)</span> { <span class="p">color</span>:<span class="v">oklch(.82 .2 40)</span> }
+<span class="s">span:nth-child(3)</span> { <span class="p">color</span>:<span class="v">oklch(.82 .2 80)</span> }
+<span class="c">/* …one rule per glyph… */</span></pre>
+        </div>
+        <div>
+          <div class="codehead fake">✦ Length-independent (Chrome 138+)</div>
+<pre class="code"><span class="c">/* one rule, any word length */</span>
+<span class="s">.word span</span> {
+  <span class="p">color</span>: <span class="v">oklch(
+    0.82 0.2
+    calc(sibling-index() * 40deg)
+  )</span>;
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 3 ============== -->
+  <section>
+    <p class="label">Demo 03 — staggered delay</p>
+    <h2>Kinetic wave <span class="n">animation-delay × index</span></h2>
+    <p class="note">
+      Each glyph runs the same bob keyframe, offset by its position — the classic ocean-wave
+      headline. This is the per-letter twin of your Pattern Lab
+      <code>sibling-index()</code> list-stagger demo. Honours
+      <code>prefers-reduced-motion</code>.
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-wave" role="text" aria-label="CASCADE"><span>C</span><span>A</span><span>S</span><span>C</span><span>A</span><span>D</span><span>E</span></p>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead real">✓ Works everywhere (hardcoded)</div>
+<pre class="code"><span class="p">@keyframes</span> bob {
+  <span class="v">0%,100%</span> { <span class="p">translate</span>:<span class="v">0 0</span> }
+  <span class="v">50%</span>     { <span class="p">translate</span>:<span class="v">0 -.32em</span> }
+}
+<span class="s">span</span> { <span class="p">animation</span>:<span class="v">bob 1.3s infinite</span> }
+<span class="s">span:nth-child(2)</span>{<span class="p">animation-delay</span>:<span class="v">.09s</span>}
+<span class="s">span:nth-child(3)</span>{<span class="p">animation-delay</span>:<span class="v">.18s</span>}</pre>
+        </div>
+        <div>
+          <div class="codehead fake">✦ Length-independent (Chrome 138+)</div>
+<pre class="code"><span class="c">/* delay scales itself */</span>
+<span class="s">.word span</span> {
+  <span class="p">animation</span>: <span class="v">bob 1.3s infinite</span>;
+  <span class="p">animation-delay</span>: <span class="v">calc(
+    0.09s * (sibling-index() - 1)
+  )</span>;
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 4 ============== -->
+  <section>
+    <p class="label">Demo 04 — arithmetic selectors</p>
+    <h2>Every third glyph <span class="n">::nth-letter(3n)</span></h2>
+    <p class="note">
+      The literal arithmetic case. <code>:nth-child(3n)</code> lights up every third letter —
+      swap in <code>3n+1</code>, <code>2n</code>, or any An+B formula. This is exactly the
+      flexibility the imaginary <code>::nth-letter(3n)</code> promised.
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-nth" role="text" aria-label="INTERVAL"><span>I</span><span>N</span><span>T</span><span>E</span><span>R</span><span>V</span><span>A</span><span>L</span></p>
+      </div>
+<pre class="code"><span class="s">.word span</span>            { <span class="p">color</span>: <span class="v">var(--dim)</span> }
+<span class="s">.word span:nth-child(3n)</span> { <span class="p">color</span>: <span class="v">var(--lime)</span>; <span class="p">text-shadow</span>: <span class="v">0 0 22px …</span> }
+<span class="c">/* nth-child takes the full An+B microsyntax: 3n, 2n+1, -n+3, even, odd … */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 5 ============== -->
+  <section>
+    <p class="label">Demo 05 — interactive · :has()</p>
+    <h2>Reactive bloom <span class="n">:hover + :has()</span></h2>
+    <p class="note">
+      Hover any letter: it blooms, the rest dim, and both neighbours lean in. The previous
+      neighbour is reached with the <code>:has()</code> parent selector
+      (<code>span:has(+ span:hover)</code>), the next one with the
+      <code>+</code> combinator. Genuinely impossible without JS until recently — now pure CSS.
+      <em>(Hover the word →)</em>
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-bloom" role="text" aria-label="REACTIVE"><span>R</span><span>E</span><span>A</span><span>C</span><span>T</span><span>I</span><span>V</span><span>E</span></p>
+      </div>
+<pre class="code"><span class="s">.word:hover span</span>            { <span class="p">color</span>:<span class="v">var(--faint)</span> }            <span class="c">/* dim the field   */</span>
+<span class="s">.word span:hover</span>            { <span class="p">transform</span>:<span class="v">translateY(-.22em) scale(1.45)</span> } <span class="c">/* bloom */</span>
+<span class="s">.word span:hover + span</span>     { <span class="p">transform</span>:<span class="v">scale(1.15)</span> }       <span class="c">/* next leans in */</span>
+<span class="s">.word span:has(+ span:hover)</span>{ <span class="p">transform</span>:<span class="v">scale(1.15)</span> }       <span class="c">/* prev leans in */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 6 ============== -->
+  <section>
+    <p class="label">Demo 06 — looping sweep</p>
+    <h2>Travelling shimmer <span class="n">staggered glow</span></h2>
+    <p class="note">
+      A light source that walks left-to-right across the word forever — same staggered-delay
+      mechanism as the wave, but glowing a single glyph at a time. Pairs an OKLCH cyan/violet
+      <code>text-shadow</code> with the index offset.
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-sweep" role="text" aria-label="EMERGENT"><span>E</span><span>M</span><span>E</span><span>R</span><span>G</span><span>E</span><span>N</span><span>T</span></p>
+      </div>
+<pre class="code"><span class="p">@keyframes</span> sweep {
+  <span class="v">0%,70%,100%</span> { <span class="p">color</span>:<span class="v">var(--faint)</span>; <span class="p">text-shadow</span>:<span class="v">none</span> }
+  <span class="v">18%</span>        { <span class="p">color</span>:<span class="v">#fff</span>; <span class="p">text-shadow</span>:<span class="v">0 0 20px cyan, 0 0 40px violet</span> }
+}
+<span class="s">.word span</span>            { <span class="p">animation</span>:<span class="v">sweep 2.6s infinite</span> }
+<span class="s">.word span:nth-child(n)</span> { <span class="p">animation-delay</span>:<span class="v">calc(.12s * n)</span> } <span class="c">/* the sweep */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 7 ============== -->
+  <section>
+    <p class="label">Demo 07 — irregular timing</p>
+    <h2>Neon flicker <span class="n">per-glyph duration</span></h2>
+    <p class="note">
+      The key distinction from the stagger demos: each letter gets its own
+      <code>animation-duration</code>, not just an <code>animation-delay</code> offset.
+      Pick irrational-looking values (3.1 s, 4.7 s, 2.3 s …) and the letters naturally
+      drift out of phase, producing the chaotic feel of actual neon-tube ageing —
+      no randomness in the CSS required.
+    </p>
+    <div class="card">
+      <div class="stage" style="background: oklch(0.06 0.02 264);">
+        <p class="word d-flicker" role="text" aria-label="SIGNAL"><span>S</span><span>I</span><span>G</span><span>N</span><span>A</span><span>L</span></p>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead real">✓ Works everywhere (hardcoded)</div>
+<pre class="code"><span class="c">/* vary DURATION, not just delay */</span>
+<span class="s">span</span> { <span class="p">animation</span>:<span class="v">neon-flicker linear infinite</span> }
+<span class="s">span:nth-child(1)</span>{<span class="p">animation-duration</span>:<span class="v">3.1s</span>}
+<span class="s">span:nth-child(2)</span>{<span class="p">animation-duration</span>:<span class="v">4.7s</span>}
+<span class="s">span:nth-child(3)</span>{<span class="p">animation-duration</span>:<span class="v">2.3s</span>}
+<span class="c">/* irregular primes → natural desync */</span></pre>
+        </div>
+        <div>
+          <div class="codehead fake">✦ Formula (Chrome 138+)</div>
+<pre class="code"><span class="c">/* irrational multiplier = chaos */</span>
+<span class="s">.word span</span> {
+  <span class="p">animation-duration</span>: <span class="v">calc(
+    2s + sibling-index() * 0.79s
+  )</span>;
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 8 ============== -->
+  <section>
+    <p class="label">Demo 08 — 3D transform</p>
+    <h2>Solari flip board <span class="n">perspective + rotateX</span></h2>
+    <p class="note">
+      <code>perspective</code> on the parent + <code>rotateX</code> animation per glyph +
+      staggered delay = a mechanical departure-board flip, zero JS. Each tile blanks out
+      at 90° (when it's edge-on to the viewer) then reappears from the back. Letters flip
+      on independent schedules — no choreographed block tick.
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-flip" role="text" aria-label="DEPARTS"><span>D</span><span>E</span><span>P</span><span>A</span><span>R</span><span>T</span><span>S</span></p>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead real">✓ Works everywhere (hardcoded)</div>
+<pre class="code"><span class="p">@keyframes</span> flip-tile {
+  <span class="v">0%</span>      { <span class="p">transform</span>:<span class="v">rotateX(0)</span>;      <span class="p">opacity</span>:<span class="v">1</span> }
+  <span class="v">40%,60%</span> { <span class="p">transform</span>:<span class="v">rotateX(90deg)</span>; <span class="p">opacity</span>:<span class="v">0</span> }
+  <span class="v">100%</span>    { <span class="p">transform</span>:<span class="v">rotateX(0)</span>;      <span class="p">opacity</span>:<span class="v">1</span> }
+}
+<span class="s">.word</span>      { <span class="p">perspective</span>:<span class="v">800px</span> }
+<span class="s">.word span</span> { <span class="p">animation</span>:<span class="v">flip-tile 5s infinite</span> }</pre>
+        </div>
+        <div>
+          <div class="codehead fake">✦ Length-independent (Chrome 138+)</div>
+<pre class="code"><span class="c">/* delay cascades automatically */</span>
+<span class="s">.word span</span> {
+  <span class="p">animation</span>: <span class="v">flip-tile 5s infinite</span>;
+  <span class="p">animation-delay</span>: <span class="v">calc(
+    0.3s * (sibling-index() - 1)
+  )</span>;
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 9 ============== -->
+  <section>
+    <p class="label">Demo 09 — odd vs even keyframes</p>
+    <h2>Chromatic glitch <span class="n">text-shadow + jitter</span></h2>
+    <p class="note">
+      A red shadow shifted left and a cyan shadow shifted right are permanently on, simulating
+      chromatic aberration. Odd and even children then run <em>different</em> shake keyframes
+      so no two neighbours jitter at the same moment. Synchronised shaking just looks like the
+      word is trembling — the desync is what makes it feel genuinely broken.
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-glitch" role="text" aria-label="CORRUPT"><span>C</span><span>O</span><span>R</span><span>R</span><span>U</span><span>P</span><span>T</span></p>
+      </div>
+<pre class="code"><span class="s">.word span</span> {
+  <span class="p">text-shadow</span>: <span class="v">-2px 0 oklch(.72 .22 25), 2px 0 oklch(.72 .22 200)</span>; <span class="c">/* always on */</span>
+}
+<span class="s">span:nth-child(odd)</span>  { <span class="p">animation</span>: <span class="v">glitch-a 4.2s step-end infinite</span> }
+<span class="s">span:nth-child(even)</span> { <span class="p">animation</span>: <span class="v">glitch-b 3.5s step-end infinite</span> }
+<span class="c">/* glitch-a fires at 88–99%, glitch-b at 80–89% → never overlap */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 10 ============== -->
+  <section>
+    <p class="label">Demo 10 — bidirectional transition</p>
+    <h2>Typewriter dissolve <span class="n">transition-delay reversal</span></h2>
+    <p class="note">
+      Hover the word: letters materialise <em>left→right</em>.
+      Move away: they dissolve <em>right→left</em>.
+      Both directions use the same CSS <code>transition</code> — the only difference is the
+      <code>transition-delay</code> order flips between base state and <code>:hover</code>.
+      No <code>@keyframes</code>, no JS. <em>(Hover →)</em>
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-type" role="text" aria-label="PHANTOM"><span>P</span><span>H</span><span>A</span><span>N</span><span>T</span><span>O</span><span>M</span></p>
+      </div>
+<pre class="code"><span class="c">/* base: dissolve right→left (delay descends) */</span>
+<span class="s">span</span>              { <span class="p">opacity</span>:<span class="v">0</span>; <span class="p">transition</span>:<span class="v">opacity .18s, transform .25s</span> }
+<span class="s">span:nth-child(1)</span> { <span class="p">transition-delay</span>:<span class="v">0.42s</span> }  <span class="c">/* last to vanish  */</span>
+<span class="s">span:nth-child(7)</span> { <span class="p">transition-delay</span>:<span class="v">0.00s</span> }  <span class="c">/* first to vanish */</span>
+<span class="c">/* hover: reveal left→right (delay ascends) */</span>
+<span class="s">:hover span</span>              { <span class="p">opacity</span>:<span class="v">1</span> }
+<span class="s">:hover span:nth-child(1)</span> { <span class="p">transition-delay</span>:<span class="v">0.00s</span> }  <span class="c">/* first to appear */</span>
+<span class="s">:hover span:nth-child(7)</span> { <span class="p">transition-delay</span>:<span class="v">0.42s</span> }  <span class="c">/* last to appear  */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 11 ============== -->
+  <section>
+    <p class="label">Demo 11 — elastic deformation</p>
+    <h2>Bulge sweep <span class="n">scaleX wave + squash</span></h2>
+    <p class="note">
+      A single fat bulge point travels left→right across the word. Every glyph runs the same
+      <code>scaleX</code> keyframe, offset by index so the peak moves. At peak, the letter
+      squashes vertically (<code>scaleY 0.65</code>) to conserve visual mass — exactly like a
+      physical elastic being squeezed. The wave re-enters before the last letter finishes,
+      so the loop is seamless.
+    </p>
+    <div class="card">
+      <div class="stage">
+        <p class="word d-bulge" role="text" aria-label="ELASTIC"><span>E</span><span>L</span><span>A</span><span>S</span><span>T</span><span>I</span><span>C</span></p>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead real">✓ Works everywhere (hardcoded)</div>
+<pre class="code"><span class="p">@keyframes</span> bulge {
+  <span class="v">0%,100%</span> { <span class="p">transform</span>:<span class="v">scaleX(1) scaleY(1)</span> }
+  <span class="v">50%</span>     { <span class="p">transform</span>:<span class="v">scaleX(2.4) scaleY(.65)</span> }
+}
+<span class="s">span:nth-child(1)</span>{<span class="p">animation-delay</span>:<span class="v">0.00s</span>}
+<span class="s">span:nth-child(2)</span>{<span class="p">animation-delay</span>:<span class="v">0.11s</span>}
+<span class="s">span:nth-child(3)</span>{<span class="p">animation-delay</span>:<span class="v">0.22s</span>}</pre>
+        </div>
+        <div>
+          <div class="codehead fake">✦ Length-independent (Chrome 138+)</div>
+<pre class="code"><span class="c">/* one-liner stagger */</span>
+<span class="s">.word span</span> {
+  <span class="p">animation</span>: <span class="v">bulge 2.2s infinite</span>;
+  <span class="p">animation-delay</span>: <span class="v">calc(
+    0.11s * (sibling-index() - 1)
+  )</span>;
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 12 ============== -->
+  <section>
+    <p class="label">Demo 12 — emergence from below</p>
+    <h2>Dust accumulation <span class="n">blur + translateY + text-shadow halos</span></h2>
+    <p class="note">
+      Black letters form out of drifting black dust rising from the floor of the stage.
+      Three CSS properties do all the work together: <code>translateY</code> lifts each glyph
+      from below the clipped edge; <code>filter: blur()</code> keeps it dispersed while it
+      rises; layered <code>text-shadow</code> rings with large radii act as the particle
+      halos that shrink as the letter condenses. <code>overflow: hidden</code> on the stage
+      is the trick that makes the dust invisible until it crosses the bottom edge.
+      After holding solid the letters dissolve and sink back out of frame.
+    </p>
+    <div class="card">
+      <div class="stage" style="background: #f0ede6; overflow: hidden;">
+        <p class="word d-dust" role="text" aria-label="CONDENSE"
+           style="color: #0d0d0d;"><span>C</span><span>O</span><span>N</span><span>D</span><span>E</span><span>N</span><span>S</span><span>E</span></p>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead real">✓ Works everywhere (hardcoded)</div>
+<pre class="code"><span class="c">/* overflow:hidden on stage clips below-fold dust */</span>
+<span class="s">.stage</span>    { <span class="p">overflow</span>: <span class="v">hidden</span> }
+<span class="p">@keyframes</span> dust-cohere {
+  <span class="v">0%</span>      { <span class="p">transform</span>:<span class="v">translateY(3.2em)</span>;
+            <span class="p">filter</span>:<span class="v">blur(18px)</span>; <span class="p">opacity</span>:<span class="v">0</span>;
+            <span class="p">text-shadow</span>:<span class="v">0 .2em 14px rgba(0,0,0,.55),
+              0 .6em 26px rgba(0,0,0,.3)</span> }
+  <span class="v">40%,62%</span> { <span class="p">transform</span>:<span class="v">translateY(0)</span>;
+            <span class="p">filter</span>:<span class="v">blur(0)</span>; <span class="p">opacity</span>:<span class="v">1</span>;
+            <span class="p">text-shadow</span>:<span class="v">none</span> }
+  <span class="v">100%</span>    { <span class="p">transform</span>:<span class="v">translateY(3.2em)</span> }
+}</pre>
+        </div>
+        <div>
+          <div class="codehead fake">✦ Length-independent (Chrome 138+)</div>
+<pre class="code"><span class="c">/* stagger scales with word length */</span>
+<span class="s">.word span</span> {
+  <span class="p">animation</span>: <span class="v">dust-cohere 9s
+    ease-in-out infinite</span>;
+  <span class="p">animation-delay</span>: <span class="v">calc(
+    0.14s * (sibling-index() - 1)
+  )</span>;
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="callout warn">
+    <strong>The honest cost.</strong> All twelve lean on one trade-off: the markup is no longer a
+    word, it's a pile of <code>&lt;span&gt;</code>s. That's the exact "gross markup" CSS-Tricks
+    flagged. Three rules keep it sane → (1) <code>role="text"</code> + <code>aria-label</code> so
+    assistive tech still reads the word; (2) reserve splitting for layout/transform effects —
+    pure-paint cases (color, decoration) are better served by the JS-driven Custom Highlight API
+    with <em>no</em> DOM splitting at all; (3) the day browsers ship <code>::nth-letter</code>
+    natively, delete the spans and keep the CSS almost as-is.
+  </div>
+
+  <footer>
+    ::nth-letter Lab · pure HTML5 + CSS · no dependencies ·
+    <a href="https://github.com/greysquirr3l/pattern_lab">greysquirr3l/pattern_lab</a>
+  </footer>
+
+</div>
+</body>
+</html>

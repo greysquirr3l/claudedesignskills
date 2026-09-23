@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Scroll Showcase — Native Motion</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #fafafa;
+      --fg: #1a1a1a;
+      --accent: #06b6d4;
+      --accent-2: #8b5cf6;
+      --line: #eee;
+      --soft: #fff;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #0b0f12; --fg: #f1f1f1; --line: #1f2630; --soft: #131a20; }
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      border: 0;
+      background: transparent;
+      transform-origin: 0 0;
+      animation: fill linear both;
+      animation-timeline: scroll(root);
+      z-index: 100;
+    }
+    @keyframes fill {
+      from { transform: scaleX(0); }
+      to   { transform: scaleX(1); }
+    }
+
+    .hero {
+      min-height: 80vh;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+      color: white;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 9vw, 6rem);
+      letter-spacing: -.04em;
+      font-weight: 800;
+      margin: 0;
+      animation: shrink linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 50vh;
+    }
+    @keyframes shrink {
+      to { font-size: clamp(1.5rem, 3vw, 2.5rem); }
+    }
+
+    section {
+      padding: 8rem 2rem;
+      max-width: 720px;
+      margin: 0 auto;
+      font-size: 1.5rem;
+    }
+    section h2 { font-size: 2.25rem; letter-spacing: -.03em; }
+
+    .reveal {
+      animation: rise linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 30%;
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(80px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    .card {
+      padding: 2rem;
+      border-radius: .75rem;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      margin: 2rem 0;
+    }
+
+    .parallax {
+      position: relative;
+      overflow: hidden;
+      border-radius: .75rem;
+      height: 320px;
+    }
+    .parallax::before {
+      content: '';
+      position: absolute;
+      inset: -10%;
+      background: radial-gradient(circle at 30% 50%, #06b6d4, transparent 60%),
+                  radial-gradient(circle at 70% 50%, #8b5cf6, transparent 60%);
+      animation: shift linear both;
+      animation-timeline: scroll(root);
+      z-index: -1;
+    }
+    .parallax { color: white; display: grid; place-items: center; }
+    .parallax h3 { font-size: 2rem; letter-spacing: -.02em; margin: 0; }
+    @keyframes shift {
+      from { transform: translateY(-10%); }
+      to   { transform: translateY(10%); }
+    }
+
+    @supports not (animation-timeline: scroll()) {
+      .progress { display: none; }
+    }
+    @supports not (animation-timeline: view()) {
+      .reveal { animation: none; opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero h1,
+      .reveal,
+      .parallax::before,
+      .progress {
+        animation: none !important;
+      }
+      .reveal { opacity: 1; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <progress class="progress"></progress>
+
+  <section class="hero">
+    <h1>Scroll · Reveal · Morph</h1>
+  </section>
+
+  <section class="reveal">
+    <div class="card">
+      <h2>Reveal on scroll</h2>
+      <p>Plain CSS using <code>animation-timeline: view()</code>. No
+         JavaScript, no IntersectionObserver — the browser does it
+         natively and runs on the compositor.</p>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="parallax">
+      <h3>CSS-only parallax</h3>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="card">
+      <h2>Reading progress</h2>
+      <p>The bar at the very top of the page fills 0% → 100% as the
+         user scrolls. <code>animation-timeline: scroll(root)</code>
+         tied to a transform.</p>
+    </div>
+  </section>
+
+  <section class="reveal">
+    <div class="card">
+      <h2>More to explore</h2>
+      <p>Pair with <strong>htmx</strong> for navigation that morphs
+         between views, or with <strong>html5-native-design</strong>
+         for modals and popovers that open with a native-feeling
+         View Transition.</p>
+    </div>
+  </section>
+</body>
+</html>

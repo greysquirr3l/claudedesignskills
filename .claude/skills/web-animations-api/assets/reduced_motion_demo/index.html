@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Reduced-Motion Demo</title>
+  <style>
+    body {
+      margin: 0; padding: 0;
+      background: #fafafa; color: #1a1a1a;
+      font: 16px/1.55 system-ui;
+    }
+    main { max-width: 720px; margin: 0 auto; padding: 4rem 2rem; }
+    .panel {
+      border: 1px solid #eee;
+      border-radius: .75rem;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      background: #fff;
+    }
+    .box {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, #06b6d4, #8b5cf6);
+      border-radius: .5rem;
+      margin: 1rem 0;
+    }
+    button { padding: .5rem 1rem; cursor: pointer; border: 1px solid #ddd; border-radius: .375rem; background: #f5f5f5; }
+
+    /* Reduced motion: swap motion for crossfades + shorter distances. */
+    .box {
+      transition: transform 100ms ease-out, opacity 100ms ease-out;
+    }
+    .panel:hover .box { transform: translateY(-2px); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .box { transition: opacity 80ms; }
+      .panel:hover .box { transform: none; opacity: .8; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Reduced-Motion Demo</h1>
+    <p class="lead">Hover each panel. Motion is gated on
+       <code>prefers-reduced-motion</code>.</p>
+
+    <div class="panel">
+      <h2>Motion-on</h2>
+      <div class="box"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Reduced motion</h2>
+      <p>Emulate "prefers-reduced-motion: reduce" in Chrome DevTools
+         (Rendering panel) to see the crossfade version.</p>
+      <div class="box"></div>
+    </div>
+  </main>
+</body>
+</html>

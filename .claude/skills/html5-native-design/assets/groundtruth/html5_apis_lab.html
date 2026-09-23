@@ -1,0 +1,2326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2026 HTML5 API Pattern Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* =========================================
+         * CORE THEME VARIABLES
+         * ========================================= */
+      :root {
+        --bg-base: #0a0e27;
+        --bg-surface: #131836;
+        --bg-surface-highlight: #1c2345;
+
+        --text-primary: #fafbfc;
+        --text-secondary: #94a3b8;
+
+        --neon-cyan: #00f5ff;
+        --neon-coral: #ff006e;
+        --electric-purple: #764ba2;
+
+        --space-1: 8px;
+        --space-2: 16px;
+        --space-3: 24px;
+        --space-4: 32px;
+        --space-6: 48px;
+
+        --border-light: rgba(255, 255, 255, 0.08);
+      }
+
+      /* =========================================
+         * GLOBAL RESET & UTILS
+         * ========================================= */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-base);
+        color: var(--text-primary);
+        font-family: "Inter", sans-serif;
+        padding-bottom: 100px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 var(--space-3);
+      }
+
+      section {
+        margin: var(--space-6) 0;
+        padding: var(--space-4);
+        border: 1px solid var(--border-light);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.01);
+      }
+
+      .section-tag {
+        color: var(--neon-cyan);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        margin-bottom: var(--space-2);
+        display: block;
+      }
+
+      h2 {
+        font-size: 2rem;
+        margin-bottom: var(--space-4);
+        border-bottom: 1px solid var(--border-light);
+        padding-bottom: var(--space-2);
+      }
+
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+      }
+
+      @media (max-width: 768px) {
+        .comparison-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .demo-box {
+        background: var(--bg-surface);
+        padding: var(--space-3);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+      }
+
+      .label {
+        display: block;
+        margin-bottom: var(--space-2);
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      /* =========================================
+         * CODE BLOCK
+         * ========================================= */
+      .code-block {
+        background: rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 10px;
+        padding: var(--space-2) var(--space-3);
+        font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+        font-size: 0.82rem;
+        line-height: 1.7;
+        color: #e2e8f0;
+        overflow-x: auto;
+        white-space: pre;
+      }
+
+      .code-block .kw { color: var(--neon-coral); }
+      .code-block .fn { color: #7dd3fc; }
+      .code-block .str { color: #86efac; }
+      .code-block .cm { color: #475569; font-style: italic; }
+      .code-block .num { color: #fbbf24; }
+
+      /* =========================================
+         * API RESULT / OUTPUT DISPLAY
+         * ========================================= */
+      .api-output {
+        background: rgba(0, 245, 255, 0.04);
+        border: 1px solid rgba(0, 245, 255, 0.15);
+        border-radius: 8px;
+        padding: var(--space-2);
+        font-family: "SF Mono", "Fira Code", monospace;
+        font-size: 0.85rem;
+        color: var(--neon-cyan);
+        min-height: 40px;
+        margin-top: var(--space-2);
+        word-break: break-all;
+      }
+
+      .api-output.muted {
+        color: var(--text-secondary);
+        border-color: var(--border-light);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      /* =========================================
+         * TRIGGER BUTTONS (shared across demos)
+         * ========================================= */
+      .demo-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        background: transparent;
+        border: 1px solid rgba(0, 245, 255, 0.4);
+        color: var(--neon-cyan);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-family: inherit;
+        font-weight: 500;
+        transition: background 0.15s;
+      }
+      .demo-btn:hover {
+        background: rgba(0, 245, 255, 0.06);
+      }
+      .demo-btn:active {
+        background: rgba(0, 245, 255, 0.12);
+      }
+
+      .demo-btn-coral {
+        border-color: rgba(255, 0, 110, 0.4);
+        color: var(--neon-coral);
+      }
+      .demo-btn-coral:hover {
+        background: rgba(255, 0, 110, 0.06);
+      }
+
+      .demo-btn-purple {
+        border-color: rgba(118, 75, 162, 0.5);
+        color: #a78bfa;
+      }
+      .demo-btn-purple:hover {
+        background: rgba(118, 75, 162, 0.08);
+      }
+
+      .btn-row {
+        display: flex;
+        gap: var(--space-1);
+        flex-wrap: wrap;
+        margin-top: var(--space-2);
+      }
+
+      /* =========================================
+         * STATUS BADGE
+         * ========================================= */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .badge-ok {
+        background: rgba(0, 245, 255, 0.1);
+        color: var(--neon-cyan);
+        border: 1px solid rgba(0, 245, 255, 0.25);
+      }
+      .badge-warn {
+        background: rgba(255, 180, 0, 0.1);
+        color: #ffb400;
+        border: 1px solid rgba(255, 180, 0, 0.3);
+      }
+      .badge-err {
+        background: rgba(255, 0, 110, 0.1);
+        color: var(--neon-coral);
+        border: 1px solid rgba(255, 0, 110, 0.25);
+      }
+
+      /* =========================================
+         * 1. LOCAL STORAGE — DRAFT AUTO-SAVE
+         * ========================================= */
+      .draft-textarea {
+        width: 100%;
+        min-height: 120px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: var(--text-primary);
+        border-radius: 10px;
+        padding: var(--space-2);
+        font-family: inherit;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        resize: vertical;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .draft-textarea:focus-visible {
+        border-color: var(--neon-cyan);
+        outline: 2px solid var(--neon-cyan);
+        outline-offset: 2px;
+      }
+      .draft-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: var(--space-1);
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .draft-saved-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.78rem;
+        font-weight: 500;
+      }
+      .draft-saved-indicator::before {
+        content: "";
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--text-secondary);
+        transition: background 0.3s;
+      }
+      .draft-saved-indicator.saved::before {
+        background: var(--neon-cyan);
+      }
+
+      /* =========================================
+         * 2. GEOLOCATION
+         * ========================================= */
+      .geo-coords {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-2);
+        margin-top: var(--space-2);
+      }
+      .geo-cell {
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        padding: 12px var(--space-2);
+      }
+      .geo-cell-label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .geo-cell-value {
+        font-family: "SF Mono", monospace;
+        font-size: 0.95rem;
+        color: var(--neon-cyan);
+        font-weight: 600;
+      }
+
+      /* =========================================
+         * 3. DRAG AND DROP
+         * ========================================= */
+      .drop-zone {
+        border: 2px dashed rgba(0, 245, 255, 0.3);
+        border-radius: 16px;
+        padding: var(--space-6);
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+        transition:
+          border-color 0.2s,
+          background 0.2s,
+          color 0.2s;
+        cursor: default;
+        position: relative;
+      }
+      .drop-zone.drag-over {
+        border-color: var(--neon-cyan);
+        background: rgba(0, 245, 255, 0.04);
+        color: var(--neon-cyan);
+      }
+      .drop-zone-icon {
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        display: block;
+        pointer-events: none;
+      }
+      .drop-file-list {
+        list-style: none;
+        margin-top: var(--space-2);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .drop-file-item {
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 10px var(--space-2);
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-1);
+      }
+      .drop-file-name {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .drop-file-size {
+        font-family: monospace;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+      }
+
+      /* =========================================
+         * 4. WEB WORKERS
+         * ========================================= */
+      .worker-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-3);
+      }
+      .worker-panel {
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-3);
+      }
+      .worker-panel h4 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: var(--space-2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .worker-ui-block {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        height: 40px;
+      }
+      .worker-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--neon-cyan);
+        animation: pulse-dot 1s ease-in-out infinite;
+      }
+      @keyframes pulse-dot {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.4; transform: scale(0.8); }
+      }
+      .worker-frozen {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--neon-coral);
+      }
+      .worker-result {
+        margin-top: var(--space-2);
+        font-family: monospace;
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        min-height: 24px;
+      }
+      .worker-result.done {
+        color: var(--neon-cyan);
+      }
+      .worker-progress {
+        height: 4px;
+        background: var(--bg-surface);
+        border-radius: 999px;
+        margin-top: 10px;
+        overflow: hidden;
+      }
+      .worker-progress-bar {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, var(--neon-cyan), var(--electric-purple));
+        border-radius: 999px;
+        transition: width 0.1s linear;
+      }
+
+      /* =========================================
+         * 5. INTERSECTION OBSERVER
+         * ========================================= */
+      .io-scroller {
+        height: 340px;
+        overflow-y: auto;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-3);
+        scroll-behavior: smooth;
+      }
+      .io-card {
+        padding: var(--space-2) var(--space-3);
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.45s ease,
+          transform 0.45s ease;
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+      }
+      .io-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .io-card-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--border-light);
+        flex-shrink: 0;
+        transition: background 0.3s;
+      }
+      .io-card.visible .io-card-dot {
+        background: var(--neon-cyan);
+      }
+
+      /* =========================================
+         * 6. CLIPBOARD API
+         * ========================================= */
+      .clipboard-row {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+      }
+      .clipboard-target {
+        flex: 1;
+        min-width: 160px;
+        padding: 12px var(--space-2);
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        font-family: monospace;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+      }
+      .copy-success {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.82rem;
+        color: var(--neon-cyan);
+        opacity: 0;
+        transition:
+          opacity 0.2s,
+          transform 0.2s;
+        transform: translateY(4px);
+      }
+      .copy-success.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .paste-display {
+        padding: 12px var(--space-2);
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: var(--space-2);
+        font-family: monospace;
+        min-height: 44px;
+      }
+
+      /* =========================================
+         * 7. FULLSCREEN API
+         * ========================================= */
+      .fullscreen-target {
+        background: linear-gradient(135deg, #131836 0%, #1c2345 100%);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: var(--space-4);
+        text-align: center;
+        position: relative;
+      }
+      .fullscreen-target:-webkit-full-screen {
+        background: var(--bg-base);
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100dvh;
+        padding: var(--space-6);
+      }
+      .fullscreen-target:fullscreen {
+        background: var(--bg-base);
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100dvh;
+        padding: var(--space-6);
+      }
+      .fullscreen-hint {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        margin-top: var(--space-2);
+      }
+
+      /* =========================================
+         * 8. HISTORY API
+         * ========================================= */
+      .spa-nav {
+        display: flex;
+        gap: 0;
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        overflow: hidden;
+        width: fit-content;
+        margin-bottom: var(--space-3);
+      }
+      .spa-nav-btn {
+        padding: 9px 18px;
+        background: transparent;
+        border: none;
+        color: var(--text-secondary);
+        font-family: inherit;
+        font-size: 0.88rem;
+        font-weight: 500;
+        cursor: pointer;
+        border-right: 1px solid var(--border-light);
+        transition: background 0.15s, color 0.15s;
+      }
+      .spa-nav-btn:last-child {
+        border-right: none;
+      }
+      .spa-nav-btn.active {
+        background: rgba(0, 245, 255, 0.08);
+        color: var(--neon-cyan);
+        font-weight: 600;
+      }
+      .spa-nav-btn:hover:not(.active) {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-primary);
+      }
+      .spa-url-bar {
+        display: flex;
+        align-items: center;
+        gap: var(--space-1);
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 8px var(--space-2);
+        margin-bottom: var(--space-2);
+        font-family: monospace;
+        font-size: 0.85rem;
+      }
+      .spa-url-scheme { color: var(--text-secondary); }
+      .spa-url-path { color: var(--neon-cyan); font-weight: 600; }
+      .spa-view {
+        padding: var(--space-3);
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        min-height: 80px;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        transition: opacity 0.2s;
+      }
+      .spa-view strong {
+        display: block;
+        color: var(--text-primary);
+        font-size: 1rem;
+        margin-bottom: 4px;
+      }
+
+      /* =========================================
+         * 9. WEB SPEECH API
+         * ========================================= */
+      .speech-stage {
+        text-align: center;
+        padding: var(--space-4);
+      }
+      .mic-btn {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: var(--bg-surface-highlight);
+        border: 2px solid rgba(0, 245, 255, 0.3);
+        color: var(--neon-cyan);
+        font-size: 1.6rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.2s,
+          border-color 0.2s,
+          box-shadow 0.2s;
+        font-family: inherit;
+      }
+      .mic-btn.listening {
+        background: rgba(255, 0, 110, 0.1);
+        border-color: var(--neon-coral);
+        color: var(--neon-coral);
+        box-shadow: 0 0 0 8px rgba(255, 0, 110, 0.08);
+        animation: mic-pulse 1.2s ease-in-out infinite;
+      }
+      @keyframes mic-pulse {
+        0%, 100% { box-shadow: 0 0 0 8px rgba(255, 0, 110, 0.08); }
+        50% { box-shadow: 0 0 0 18px rgba(255, 0, 110, 0.0); }
+      }
+      .speech-transcript {
+        margin-top: var(--space-3);
+        padding: var(--space-2) var(--space-3);
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        font-size: 1rem;
+        min-height: 52px;
+        text-align: left;
+        color: var(--text-secondary);
+      }
+      .speech-transcript.has-content {
+        color: var(--text-primary);
+      }
+      .speech-status {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        margin-top: var(--space-1);
+      }
+
+      /* =========================================
+         * 10. NOTIFICATION API
+         * ========================================= */
+      .notif-permission-states {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-2);
+        margin-bottom: var(--space-3);
+      }
+      .notif-state {
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        padding: var(--space-2);
+        text-align: center;
+      }
+      .notif-state-icon {
+        font-size: 1.5rem;
+        margin-bottom: 6px;
+        display: block;
+      }
+      .notif-state-name {
+        font-size: 0.78rem;
+        font-weight: 700;
+        font-family: monospace;
+        color: var(--text-secondary);
+        margin-bottom: 4px;
+        display: block;
+      }
+      .notif-state-desc {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+      .notif-state.current {
+        border-color: rgba(0, 245, 255, 0.35);
+        background: rgba(0, 245, 255, 0.04);
+      }
+      .notif-state.current .notif-state-name {
+        color: var(--neon-cyan);
+      }
+      /* Mock notification toast for denied/default previews */
+      .mock-toast {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--space-2);
+        padding: var(--space-2) var(--space-3);
+        background: #1e2133;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        max-width: 340px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      }
+      .mock-toast-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+      }
+      .mock-toast-title {
+        font-size: 0.88rem;
+        font-weight: 600;
+        margin-bottom: 2px;
+        color: var(--text-primary);
+      }
+      .mock-toast-body {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+      .mock-toast-time {
+        margin-left: auto;
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+        padding-top: 2px;
+      }
+
+      /* =========================================
+         * API CAPABILITY TABLE
+         * ========================================= */
+      .api-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+      }
+      .api-table th {
+        text-align: left;
+        padding: 10px var(--space-2);
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        border-bottom: 1px solid var(--border-light);
+      }
+      .api-table td {
+        padding: 12px var(--space-2);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        vertical-align: top;
+        line-height: 1.5;
+      }
+      .api-table tr:last-child td {
+        border-bottom: none;
+      }
+      .api-table tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .api-name {
+        font-family: monospace;
+        font-weight: 600;
+        color: var(--neon-cyan);
+        white-space: nowrap;
+      }
+      .api-use {
+        color: var(--text-secondary);
+      }
+      .api-sync {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .sync-yes {
+        background: rgba(0, 245, 255, 0.09);
+        color: var(--neon-cyan);
+        border: 1px solid rgba(0, 245, 255, 0.2);
+      }
+      .sync-no {
+        background: rgba(255, 180, 0, 0.09);
+        color: #ffb400;
+        border: 1px solid rgba(255, 180, 0, 0.2);
+      }
+      .sync-worker {
+        background: rgba(118, 75, 162, 0.15);
+        color: #a78bfa;
+        border: 1px solid rgba(118, 75, 162, 0.3);
+      }
+
+      /* ── 11. PAGE VISIBILITY ── */
+      .vis-status-box {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        padding: var(--space-3) var(--space-4);
+        background: rgba(0, 245, 255, 0.04);
+        border: 1px solid rgba(0, 245, 255, 0.15);
+        border-radius: var(--radius-md);
+      }
+      .vis-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--neon-cyan);
+        box-shadow: 0 0 8px var(--neon-cyan);
+        flex-shrink: 0;
+        transition: background 0.3s, box-shadow 0.3s;
+      }
+      .vis-dot.hidden {
+        background: #475569;
+        box-shadow: none;
+      }
+      .vis-counter {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--neon-cyan);
+        letter-spacing: -1px;
+        font-variant-numeric: tabular-nums;
+        flex: 1;
+        text-align: right;
+      }
+
+      /* ── 12. BROADCAST CHANNEL ── */
+      .bc-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-3);
+      }
+      @media (max-width: 600px) { .bc-grid { grid-template-columns: 1fr; } }
+      .bc-panel {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: var(--radius-md);
+        padding: var(--space-3);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+      }
+      .bc-panel-title {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+      }
+      .bc-messages {
+        min-height: 80px;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .bc-msg {
+        background: rgba(0, 245, 255, 0.07);
+        border-left: 2px solid var(--neon-cyan);
+        padding: 4px 8px;
+        border-radius: 0 4px 4px 0;
+        animation: bc-in 0.2s ease;
+      }
+      @keyframes bc-in { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+      .bc-input-row {
+        display: flex;
+        gap: var(--space-2);
+      }
+      .bc-input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-sm);
+        padding: 6px 10px;
+        color: #e2e8f0;
+        font-family: inherit;
+        font-size: 0.85rem;
+      }
+      .bc-input:focus { outline: none; border-color: rgba(0, 245, 255, 0.4); }
+
+      /* ── 13. POPOVER API ── */
+      .popover-demo-grid {
+        display: flex;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      [popover] {
+        background: #1e2540;
+        border: 1px solid rgba(0, 245, 255, 0.25);
+        border-radius: var(--radius-md);
+        color: #e2e8f0;
+        padding: var(--space-4);
+        max-width: 260px;
+        font-size: 0.9rem;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        margin: 0;
+      }
+      [popover]:popover-open {
+        /* Already visible by spec but can add extra open-state styles */
+        border-color: var(--neon-cyan);
+      }
+      .popover-menu {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+      .popover-menu li {
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .popover-menu li:hover { background: rgba(0, 245, 255, 0.1); }
+      .toggle-log {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        min-height: 1.5em;
+        margin-top: var(--space-2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header style="padding: 60px 0; text-align: center">
+        <h1 style="font-size: 3rem; margin-bottom: 16px; letter-spacing: -0.02em">
+          HTML5 API Lab
+        </h1>
+        <p style="color: var(--text-secondary); max-width: 48ch; margin: 0 auto">
+          Live demos of the ten browser-native APIs that eliminate most third-party dependencies.
+        </p>
+      </header>
+
+      <!-- ============================================================
+           1. LOCAL STORAGE
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 01 — Persistence</span>
+        <h2>Local Storage</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          No server. No latency. Up to 5 MB per origin. Synchronous and instant — ideal for
+          user preferences, drafts, and small app state. Data persists across browser sessions.
+        </p>
+
+        <div class="demo-box">
+          <span class="label">✅ Auto-saving draft — type and refresh to see persistence</span>
+          <textarea
+            id="draft-area"
+            class="draft-textarea"
+            placeholder="Start typing a draft…"
+            maxlength="2000"
+          ></textarea>
+          <div class="draft-meta">
+            <span id="draft-saved" class="draft-saved-indicator">Unsaved</span>
+            <div style="display: flex; gap: var(--space-1)">
+              <button class="demo-btn" id="draft-restore-btn">Restore Draft</button>
+              <button class="demo-btn demo-btn-coral" id="draft-clear-btn">Clear Storage</button>
+            </div>
+          </div>
+          <div class="api-output muted" id="draft-output">localStorage key → value will appear here</div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">// Write</span>
+<span class="fn">localStorage</span>.setItem(<span class="str">"draft"</span>, <span class="fn">JSON</span>.stringify({ text: <span class="str">"Hello world"</span> }));
+
+<span class="cm">// Read (parse defensively)</span>
+<span class="kw">const</span> raw = <span class="fn">localStorage</span>.getItem(<span class="str">"draft"</span>);
+<span class="kw">const</span> draft = raw ? <span class="fn">JSON</span>.parse(raw) : <span class="kw">null</span>;
+
+<span class="cm">// Remove</span>
+<span class="fn">localStorage</span>.removeItem(<span class="str">"draft"</span>);</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           2. GEOLOCATION
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 02 — Context</span>
+        <h2>Geolocation</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          Browser-native location — no API key, no SDK. Returns WGS-84 coordinates with an
+          accuracy radius. Requires a secure context (HTTPS or localhost) and a user permission prompt.
+        </p>
+
+        <div class="demo-box">
+          <span class="label">✅ Request current position</span>
+          <div class="btn-row">
+            <button class="demo-btn" id="geo-btn">Get My Location</button>
+            <span id="geo-badge"></span>
+          </div>
+          <div class="geo-coords" id="geo-coords" style="display: none">
+            <div class="geo-cell">
+              <div class="geo-cell-label">Latitude</div>
+              <div class="geo-cell-value" id="geo-lat">—</div>
+            </div>
+            <div class="geo-cell">
+              <div class="geo-cell-label">Longitude</div>
+              <div class="geo-cell-value" id="geo-lng">—</div>
+            </div>
+            <div class="geo-cell">
+              <div class="geo-cell-label">Accuracy</div>
+              <div class="geo-cell-value" id="geo-acc">—</div>
+            </div>
+            <div class="geo-cell">
+              <div class="geo-cell-label">Timestamp</div>
+              <div class="geo-cell-value" id="geo-ts">—</div>
+            </div>
+          </div>
+          <div class="api-output muted" id="geo-output">Coordinates will appear after permission granted</div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="fn">navigator</span>.geolocation.<span class="fn">getCurrentPosition</span>(
+  (pos) => {
+    <span class="kw">const</span> { latitude, longitude, accuracy } = pos.coords;
+    <span class="cm">// Use coordinates — no API key required</span>
+  },
+  (err) => {
+    <span class="cm">// err.code: 1 = PERMISSION_DENIED, 2 = UNAVAILABLE, 3 = TIMEOUT</span>
+    <span class="fn">console</span>.warn(err.message);
+  },
+  { enableHighAccuracy: <span class="kw">true</span>, timeout: <span class="num">8000</span> }
+);</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           3. DRAG AND DROP
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 03 — Interaction</span>
+        <h2>Drag and Drop</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          No library required for file-drop UX. The <code>DataTransfer</code> object exposes dropped
+          <code>FileList</code> items directly — ready to pass to <code>FileReader</code> or
+          <code>FormData</code> for upload.
+        </p>
+
+        <div class="demo-box">
+          <span class="label">✅ Drop files onto the zone below</span>
+          <div class="drop-zone" id="drop-zone">
+            <span class="drop-zone-icon">📂</span>
+            Drop files here — or click to choose
+          </div>
+          <input type="file" id="drop-input" multiple style="display: none" />
+          <ul class="drop-file-list" id="drop-file-list"></ul>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="kw">const</span> zone = document.<span class="fn">getElementById</span>(<span class="str">"drop-zone"</span>);
+
+zone.<span class="fn">addEventListener</span>(<span class="str">"dragover"</span>, (e) => e.<span class="fn">preventDefault</span>());
+
+zone.<span class="fn">addEventListener</span>(<span class="str">"drop"</span>, (e) => {
+  e.<span class="fn">preventDefault</span>();
+  <span class="kw">const</span> files = e.dataTransfer.files; <span class="cm">// FileList</span>
+  <span class="fn">Array</span>.from(files).<span class="fn">forEach</span>((file) => {
+    <span class="fn">console</span>.log(file.name, file.size, file.type);
+  });
+});
+
+<span class="cm">// Prevent accidental full-page drop</span>
+document.<span class="fn">addEventListener</span>(<span class="str">"dragover"</span>, (e) => e.<span class="fn">preventDefault</span>());
+document.<span class="fn">addEventListener</span>(<span class="str">"drop"</span>,     (e) => e.<span class="fn">preventDefault</span>());</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           4. WEB WORKERS
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 04 — Threading</span>
+        <h2>Web Workers</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          Offload heavy computation to a background thread. The main thread — and the UI — remain responsive.
+          Communication is message-based via <code>postMessage</code>. No shared memory by default; pass
+          <code>ArrayBuffer</code> via transfer for zero-copy performance.
+        </p>
+
+        <div class="demo-box">
+          <span class="label">✅ Run 50 million iterations off-thread — UI stays alive</span>
+          <div class="worker-grid">
+            <div class="worker-panel">
+              <h4>
+                <div class="worker-dot"></div>
+                Main Thread UI
+              </h4>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: var(--space-1)">
+                This counter keeps ticking even while the worker runs
+              </p>
+              <div style="font-family: monospace; font-size: 1.6rem; font-weight: 700; color: var(--neon-cyan)" id="main-counter">0</div>
+            </div>
+            <div class="worker-panel">
+              <h4>⚙️ Worker Thread</h4>
+              <button class="demo-btn" id="worker-start-btn">Run Heavy Task</button>
+              <div class="worker-progress">
+                <div class="worker-progress-bar" id="worker-progress-bar"></div>
+              </div>
+              <div class="worker-result" id="worker-result">Idle — press Run to start</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">// main.js</span>
+<span class="kw">const</span> worker = <span class="kw">new</span> <span class="fn">Worker</span>(<span class="str">"worker.js"</span>);
+worker.<span class="fn">postMessage</span>({ iterations: <span class="num">50_000_000</span> });
+worker.onmessage = (e) => <span class="fn">console</span>.log(<span class="str">"Done:"</span>, e.data.result);
+
+<span class="cm">// worker.js — separate file, separate thread</span>
+self.onmessage = ({ data }) => {
+  <span class="kw">let</span> sum = <span class="num">0</span>;
+  <span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < data.iterations; i++) sum += i;
+  self.<span class="fn">postMessage</span>({ result: sum });
+};</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           5. INTERSECTION OBSERVER
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 05 — Visibility</span>
+        <h2>Intersection Observer</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          Replaces scroll event listeners — which fire on every pixel of movement — with an async,
+          browser-optimized callback that fires only when an element enters or leaves the viewport
+          (or a custom root). Zero janks, zero layout thrash.
+        </p>
+
+        <div class="demo-box">
+          <span class="label">✅ Scroll down — cards animate in as they enter the viewport</span>
+          <div class="io-scroller" id="io-scroller">
+            <div style="height: 20px"></div>
+            <!-- Cards injected by JS -->
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="kw">const</span> observer = <span class="kw">new</span> <span class="fn">IntersectionObserver</span>(
+  (entries) => {
+    entries.<span class="fn">forEach</span>((entry) => {
+      <span class="kw">if</span> (entry.isIntersecting) {
+        entry.target.classList.<span class="fn">add</span>(<span class="str">"visible"</span>);
+        observer.<span class="fn">unobserve</span>(entry.target); <span class="cm">// fire once</span>
+      }
+    });
+  },
+  { threshold: <span class="num">0.15</span> } <span class="cm">// 15% visible triggers callback</span>
+);
+
+document.<span class="fn">querySelectorAll</span>(<span class="str">".io-card"</span>).<span class="fn">forEach</span>((el) =>
+  observer.<span class="fn">observe</span>(el)
+);</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           6. CLIPBOARD API
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 06 — UX Shortcut</span>
+        <h2>Clipboard API</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          A single line replaces the old <code>execCommand('copy')</code> hack. Promise-based and
+          permissions-aware. Writing to the clipboard is allowed in response to a user gesture;
+          reading requires an explicit permission grant.
+        </p>
+
+        <div class="demo-box">
+          <span class="label">✅ Copy preprogrammed text — then read it back</span>
+          <div class="clipboard-row">
+            <div class="clipboard-target" id="clipboard-source">navigator.clipboard.writeText()</div>
+            <button class="demo-btn" id="copy-btn">Copy</button>
+            <span class="copy-success" id="copy-success">✓ Copied</span>
+          </div>
+          <div class="btn-row" style="margin-top: var(--space-2)">
+            <button class="demo-btn demo-btn-purple" id="paste-btn">Read Clipboard</button>
+          </div>
+          <div class="paste-display" id="paste-display">Clipboard contents will appear here…</div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">// Write — allowed on user gesture (button click, keydown)</span>
+<span class="kw">await</span> navigator.clipboard.<span class="fn">writeText</span>(<span class="str">"Copied text"</span>);
+
+<span class="cm">// Read — prompts for clipboard-read permission</span>
+<span class="kw">const</span> text = <span class="kw">await</span> navigator.clipboard.<span class="fn">readText</span>();
+<span class="fn">console</span>.log(text);
+
+<span class="cm">// Rich content (HTML, images) via write()</span>
+<span class="kw">await</span> navigator.clipboard.<span class="fn">write</span>([
+  <span class="kw">new</span> <span class="fn">ClipboardItem</span>({ <span class="str">"text/html"</span>: <span class="kw">new</span> <span class="fn">Blob</span>([<span class="str">"&lt;b&gt;Bold&lt;/b&gt;"</span>], { type: <span class="str">"text/html"</span> }) })
+]);</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           7. FULLSCREEN API
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 07 — Immersion</span>
+        <h2>Fullscreen API</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          Any DOM element can go fullscreen — not just the document. Style the fullscreen state
+          with the <code>:fullscreen</code> pseudo-class. Essential for media players, data dashboards,
+          and presentation modes.
+        </p>
+
+        <div class="demo-box">
+          <div class="fullscreen-target" id="fullscreen-target">
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-3); font-size: 0.9rem">
+              This card becomes the entire screen
+            </p>
+            <div class="btn-row" style="justify-content: center">
+              <button class="demo-btn" id="fs-enter-btn">Enter Fullscreen</button>
+              <button class="demo-btn demo-btn-coral" id="fs-exit-btn" style="display:none">Exit Fullscreen</button>
+            </div>
+            <p class="fullscreen-hint" id="fs-hint">Esc or the button above exits fullscreen mode</p>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="kw">const</span> el = document.<span class="fn">getElementById</span>(<span class="str">"my-player"</span>);
+
+<span class="cm">// Enter</span>
+<span class="kw">await</span> el.<span class="fn">requestFullscreen</span>();
+
+<span class="cm">// Exit</span>
+<span class="kw">await</span> document.<span class="fn">exitFullscreen</span>();
+
+<span class="cm">// Detect state change (Esc key also fires this)</span>
+document.<span class="fn">addEventListener</span>(<span class="str">"fullscreenchange"</span>, () => {
+  <span class="kw">const</span> isFullscreen = Boolean(document.fullscreenElement);
+  <span class="fn">console</span>.log(isFullscreen);
+});
+
+<span class="cm">/* CSS — style the fullscreen state */</span>
+<span class="fn">#my-player</span>:fullscreen { background: black; }</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           8. HISTORY API
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 08 — Navigation</span>
+        <h2>History API</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          Client-side URL changes without a page reload. The foundation of every SPA router.
+          <code>pushState</code> adds an entry; <code>replaceState</code> mutates the current one.
+          The <code>popstate</code> event fires when the user navigates with the browser's back/forward buttons.
+        </p>
+
+        <div class="demo-box">
+          <span class="label">✅ Click the nav tabs — watch the fake URL bar update without a reload</span>
+          <nav class="spa-nav" id="spa-nav" aria-label="SPA demo navigation">
+            <button class="spa-nav-btn active" data-path="/home" data-view="home">Home</button>
+            <button class="spa-nav-btn" data-path="/about" data-view="about">About</button>
+            <button class="spa-nav-btn" data-path="/settings" data-view="settings">Settings</button>
+          </nav>
+          <div class="spa-url-bar">
+            <span class="spa-url-scheme">localhost:3000</span>
+            <span class="spa-url-path" id="spa-url-path">/home</span>
+          </div>
+          <div class="spa-view" id="spa-view">
+            <strong>Home</strong>
+            Welcome! You are on the home view.
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">// Push a new URL without navigating (works on http:// and file://)</span>
+history.<span class="fn">pushState</span>({ view: <span class="str">"about"</span> }, <span class="str">""</span>, <span class="str">"?page=about"</span>); <span class="cm">// relative = safe</span>
+
+<span class="cm">// Or use hash routing — zero restrictions, works everywhere</span>
+location.hash = <span class="str">"about"</span>; <span class="cm">// → #about</span>
+
+<span class="cm">// Handle both back/forward and hash changes</span>
+window.<span class="fn">addEventListener</span>(<span class="str">"hashchange"</span>, () => {
+  <span class="kw">const</span> view = location.hash.<span class="fn">slice</span>(<span class="num">1</span>) || <span class="str">"home"</span>;
+  <span class="fn">renderView</span>(view);
+});
+
+<span class="cm">// pushState with relative URL also works on file://</span>
+history.<span class="fn">pushState</span>(null, <span class="str">""</span>, <span class="str">"./home"</span>); <span class="cm">// relative path ✅</span></div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           9. WEB SPEECH API
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 09 — Voice</span>
+        <h2>Web Speech API</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          Native speech-to-text and text-to-speech. No third-party service, no API key.
+          <code>SpeechRecognition</code> transcribes microphone input; <code>SpeechSynthesis</code>
+          reads text aloud. Requires a user gesture to start and microphone permission.
+        </p>
+
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label">✅ Speech-to-Text — SpeechRecognition</span>
+            <div class="speech-stage">
+              <button class="mic-btn" id="speech-btn" title="Click to start / stop listening">🎤</button>
+              <div class="speech-status" id="speech-status">Click the mic to start</div>
+            </div>
+            <div class="speech-transcript" id="speech-transcript">
+              Your words will appear here…
+            </div>
+          </div>
+
+          <div class="demo-box">
+            <span class="label">✅ Text-to-Speech — SpeechSynthesis</span>
+            <textarea
+              id="tts-input"
+              class="draft-textarea"
+              placeholder="Type text to speak aloud…"
+              style="min-height: 80px; margin-bottom: var(--space-2)"
+            >Hello from the browser! No API key required.</textarea>
+            <div class="btn-row">
+              <button class="demo-btn" id="tts-play-btn">▶ Speak</button>
+              <button class="demo-btn demo-btn-coral" id="tts-stop-btn">■ Stop</button>
+            </div>
+            <div class="api-output muted" id="tts-status">Idle</div>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">// Speech Recognition (STT)</span>
+<span class="kw">const</span> SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+<span class="kw">const</span> recognition = <span class="kw">new</span> <span class="fn">SR</span>();
+recognition.continuous = <span class="kw">false</span>;
+recognition.lang = <span class="str">"en-US"</span>;
+recognition.onresult = (e) =>
+  <span class="fn">console</span>.log(e.results[<span class="num">0</span>][<span class="num">0</span>].transcript);
+recognition.<span class="fn">start</span>();
+
+<span class="cm">// Speech Synthesis (TTS)</span>
+<span class="kw">const</span> utt = <span class="kw">new</span> <span class="fn">SpeechSynthesisUtterance</span>(<span class="str">"Hello world"</span>);
+utt.lang = <span class="str">"en-US"</span>;
+speechSynthesis.<span class="fn">speak</span>(utt);</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           10. NOTIFICATION API
+           ============================================================ -->
+      <section>
+        <span class="section-tag">API 10 — Engagement</span>
+        <h2>Notification API</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3); max-width: 65ch">
+          OS-level push notifications from the browser. Always request permission in response to an
+          explicit user action — never on page load. Users who grant notification access are 2–3× more
+          likely to return to an app.
+        </p>
+
+        <div class="demo-box">
+          <span class="label">Permission lifecycle</span>
+          <div class="notif-permission-states" id="notif-states">
+            <div class="notif-state" id="notif-state-default">
+              <span class="notif-state-icon">❓</span>
+              <span class="notif-state-name">"default"</span>
+              <span class="notif-state-desc">Not yet asked. Call requestPermission() on a user gesture.</span>
+            </div>
+            <div class="notif-state" id="notif-state-granted">
+              <span class="notif-state-icon">✅</span>
+              <span class="notif-state-name">"granted"</span>
+              <span class="notif-state-desc">User said yes. You may fire notifications.</span>
+            </div>
+            <div class="notif-state" id="notif-state-denied">
+              <span class="notif-state-icon">🚫</span>
+              <span class="notif-state-name">"denied"</span>
+              <span class="notif-state-desc">User said no. Cannot ask again — respect this.</span>
+            </div>
+          </div>
+
+          <div class="btn-row">
+            <button class="demo-btn" id="notif-request-btn">Request Permission</button>
+            <button class="demo-btn demo-btn-purple" id="notif-fire-btn" disabled>Send Notification</button>
+          </div>
+          <div class="api-output muted" id="notif-output">Current permission: checking…</div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">What it looks like (mock preview)</span>
+          <div class="mock-toast">
+            <div class="mock-toast-icon">🛠</div>
+            <div>
+              <div class="mock-toast-title">2026 HTML5 Lab</div>
+              <div class="mock-toast-body">Your task completed successfully! No library required.</div>
+            </div>
+            <div class="mock-toast-time">now</div>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">// Always request on user gesture, never on page load</span>
+<span class="kw">const</span> permission = <span class="kw">await</span> Notification.<span class="fn">requestPermission</span>();
+
+<span class="kw">if</span> (permission === <span class="str">"granted"</span>) {
+  <span class="kw">new</span> <span class="fn">Notification</span>(<span class="str">"Task complete"</span>, {
+    body:  <span class="str">"Your export is ready."</span>,
+    icon:  <span class="str">"/icons/app-192.png"</span>,
+    badge: <span class="str">"/icons/badge-96.png"</span>,
+    tag:   <span class="str">"export-done"</span>, <span class="cm">// deduplicate identical notifications</span>
+  });
+}</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           11. PAGE VISIBILITY API
+           ============================================================ -->
+      <section id="visibility">
+        <span class="section-tag">11 — Page Visibility</span>
+        <h2>Page Visibility API</h2>
+        <p>Detect when the user switches tabs or minimises the window so you can pause expensive work, stop timers, or save bandwidth — without any polling.</p>
+
+        <div class="demo-box">
+          <span class="label">Tab focus state &amp; elapsed-seconds counter</span>
+          <div class="vis-status-box">
+            <div class="vis-dot" id="vis-dot"></div>
+            <div>
+              <div id="vis-state-label" style="font-weight:600; font-size:0.95rem">Visible</div>
+              <div id="vis-hidden-msg" style="font-size:0.78rem; color:var(--text-secondary)">Counter is running</div>
+            </div>
+            <div class="vis-counter" id="vis-counter">0s</div>
+          </div>
+          <div class="api-output muted" id="vis-output" style="margin-top:var(--space-2)">Switch to another tab and come back to see it pause</div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">// document.visibilityState → "visible" | "hidden"</span>
+<span class="cm">// document.hidden          → boolean shorthand</span>
+
+document.<span class="fn">addEventListener</span>(<span class="str">"visibilitychange"</span>, () => {
+  <span class="kw">if</span> (document.hidden) {
+    video.<span class="fn">pause</span>();
+    analytics.<span class="fn">track</span>(<span class="str">"tab_hidden"</span>);
+  } <span class="kw">else</span> {
+    video.<span class="fn">play</span>();
+  }
+});
+
+<span class="cm">// Good for: pausing video/audio, stopping polling,</span>
+<span class="cm">//           saving battery, measuring engagement time</span></div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           12. BROADCAST CHANNEL API
+           ============================================================ -->
+      <section id="broadcast">
+        <span class="section-tag">12 — Broadcast Channel</span>
+        <h2>BroadcastChannel API</h2>
+        <p>Send messages between all pages from the same origin — tabs, windows, iframes, workers — with zero infrastructure. Classic use case: broadcasting a logout across all open tabs.</p>
+
+        <div class="demo-box">
+          <span class="label">&#9989; Two in-page channel endpoints (simulating two tabs)</span>
+          <div class="bc-grid">
+            <div class="bc-panel">
+              <div class="bc-panel-title">Tab A</div>
+              <div class="bc-messages" id="bc-msgs-a"><span style="opacity:0.4;font-style:italic">Listening&#8230;</span></div>
+              <div class="bc-input-row">
+                <input class="bc-input" id="bc-input-a" placeholder="Type a message&#8230;" autocomplete="off">
+                <button class="demo-btn" id="bc-send-a">Send</button>
+              </div>
+            </div>
+            <div class="bc-panel">
+              <div class="bc-panel-title">Tab B</div>
+              <div class="bc-messages" id="bc-msgs-b"><span style="opacity:0.4;font-style:italic">Listening&#8230;</span></div>
+              <div class="bc-input-row">
+                <input class="bc-input" id="bc-input-b" placeholder="Type a message&#8230;" autocomplete="off">
+                <button class="demo-btn demo-btn-coral" id="bc-send-b">Send</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">// Same channel name = same broadcast group (same origin only)</span>
+<span class="kw">const</span> ch = <span class="kw">new</span> <span class="fn">BroadcastChannel</span>(<span class="str">"auth"</span>);
+
+<span class="cm">// Receive</span>
+ch.onmessage = (e) => {
+  <span class="kw">if</span> (e.data === <span class="str">"logout"</span>) <span class="fn">redirectToLogin</span>();
+};
+
+<span class="cm">// Send (fires in every other page on the same channel)</span>
+ch.<span class="fn">postMessage</span>(<span class="str">"logout"</span>);
+
+<span class="cm">// Always close when done</span>
+ch.<span class="fn">close</span>();</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           13. POPOVER API
+           ============================================================ -->
+      <section id="popover">
+        <span class="section-tag">13 — Popover API</span>
+        <h2>Popover API</h2>
+        <p>Native browser popovers: light-dismiss, top-layer stacking, and keyboard (Esc) support &#8212; with <em>zero JavaScript</em> for the basic case. Replaces most tooltip/dropdown library dependencies.</p>
+
+        <div class="demo-box">
+          <span class="label">Zero-JS popover via HTML attributes only</span>
+          <div class="popover-demo-grid">
+            <button class="demo-btn" popovertarget="pop-menu">Open Menu Popover</button>
+            <button class="demo-btn demo-btn-coral" popovertarget="pop-info">Open Info Popover</button>
+          </div>
+          <p style="font-size:0.78rem;color:var(--text-secondary);margin-top:var(--space-2)">Click outside or press Esc to dismiss (auto mode). No JS needed.</p>
+
+          <div id="pop-menu" popover>
+            <ul class="popover-menu">
+              <li>&#9999;&#65039; Edit</li>
+              <li>&#128203; Duplicate</li>
+              <li>&#128465; Delete</li>
+            </ul>
+          </div>
+
+          <div id="pop-info" popover style="text-align:center">
+            <p style="margin:0 0 var(--space-2)">&#127760; <strong>Native Popover</strong></p>
+            <p style="margin:0;font-size:0.82rem;color:var(--text-secondary)">No z-index wars. No portals.<br>Top-layer guaranteed.</p>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">JS-controlled popover</span>
+          <div class="btn-row">
+            <button class="demo-btn" id="pop-show-btn">Show</button>
+            <button class="demo-btn demo-btn-coral" id="pop-hide-btn">Hide</button>
+            <button class="demo-btn" id="pop-toggle-btn">Toggle</button>
+          </div>
+          <div class="toggle-log" id="toggle-log">&#8212;</div>
+          <div id="pop-js" popover="manual" style="top:50%;left:50%;transform:translate(-50%,-50%)">
+            <p style="margin:0 0 6px;font-weight:600">JS-controlled popover</p>
+            <p style="margin:0;font-size:0.82rem;color:var(--text-secondary)">popover="manual" &#8212; no light-dismiss.</p>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label">The pattern</span>
+          <div class="code-block"><span class="cm">/* HTML: zero JS needed for auto popovers */</span>
+&lt;<span class="kw">button</span> <span class="fn">popovertarget</span>=<span class="str">"my-pop"</span>&gt;Open&lt;/<span class="kw">button</span>&gt;
+&lt;<span class="kw">div</span> <span class="fn">id</span>=<span class="str">"my-pop"</span> <span class="fn">popover</span>&gt;I&#8217;m a native popover!&lt;/<span class="kw">div</span>&gt;
+
+<span class="cm">/* JS control */</span>
+<span class="kw">const</span> el = document.<span class="fn">getElementById</span>(<span class="str">"my-pop"</span>);
+el.<span class="fn">showPopover</span>();
+el.<span class="fn">hidePopover</span>();
+el.<span class="fn">togglePopover</span>();
+
+<span class="cm">/* Lifecycle events */</span>
+el.<span class="fn">addEventListener</span>(<span class="str">"toggle"</span>, (e) => {
+  console.<span class="fn">log</span>(e.newState); <span class="cm">// "open" | "closed"</span>
+});</div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           REFERENCE TABLE
+           ============================================================ -->
+      <section>
+        <span class="section-tag">Quick Reference</span>
+        <h2>API Cheat Sheet</h2>
+        <div class="demo-box" style="padding: 0; overflow: hidden">
+          <table class="api-table">
+            <thead>
+              <tr>
+                <th style="padding-left: var(--space-3)">API</th>
+                <th>Primary use</th>
+                <th>Async?</th>
+                <th>Permission?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">localStorage</span></td>
+                <td class="api-use">Persist small key/value data across sessions</td>
+                <td><span class="api-sync sync-yes">Sync</span></td>
+                <td><span class="status-badge badge-ok">No</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">Geolocation</span></td>
+                <td class="api-use">Device coordinates for location-aware features</td>
+                <td><span class="api-sync sync-no">Async</span></td>
+                <td><span class="status-badge badge-warn">Prompt</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">Drag &amp; Drop</span></td>
+                <td class="api-use">File drop zones, sortable lists</td>
+                <td><span class="api-sync sync-yes">Sync</span></td>
+                <td><span class="status-badge badge-ok">No</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">Web Workers</span></td>
+                <td class="api-use">Off-thread heavy computations</td>
+                <td><span class="api-sync sync-worker">Worker</span></td>
+                <td><span class="status-badge badge-ok">No</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">IntersectionObserver</span></td>
+                <td class="api-use">Lazy load, scroll animations, infinite scroll</td>
+                <td><span class="api-sync sync-no">Async</span></td>
+                <td><span class="status-badge badge-ok">No</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">Clipboard</span></td>
+                <td class="api-use">Copy / paste text and rich content</td>
+                <td><span class="api-sync sync-no">Async</span></td>
+                <td><span class="status-badge badge-warn">Prompt (read)</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">Fullscreen</span></td>
+                <td class="api-use">Immersive media and dashboard modes</td>
+                <td><span class="api-sync sync-no">Async</span></td>
+                <td><span class="status-badge badge-ok">No</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">History</span></td>
+                <td class="api-use">SPA routing without a framework</td>
+                <td><span class="api-sync sync-yes">Sync</span></td>
+                <td><span class="status-badge badge-ok">No</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3)"><span class="api-name">SpeechRecognition</span></td>
+                <td class="api-use">Voice input / transcription</td>
+                <td><span class="api-sync sync-no">Async</span></td>
+                <td><span class="status-badge badge-warn">Mic prompt</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3); padding-bottom: var(--space-2)"><span class="api-name">Notifications</span></td>
+                <td class="api-use">OS-level push alerts, re-engagement</td>
+                <td><span class="api-sync sync-no">Async</span></td>
+                <td><span class="status-badge badge-warn">Prompt</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3); padding-bottom: var(--space-2)"><span class="api-name">Page Visibility</span></td>
+                <td class="api-use">Pause work when tab is hidden</td>
+                <td><span class="api-sync sync-yes">Sync</span></td>
+                <td><span class="status-badge badge-ok">None</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3); padding-bottom: var(--space-2)"><span class="api-name">BroadcastChannel</span></td>
+                <td class="api-use">Cross-tab messaging, same origin</td>
+                <td><span class="api-sync sync-yes">Sync</span></td>
+                <td><span class="status-badge badge-ok">None</span></td>
+              </tr>
+              <tr>
+                <td style="padding-left: var(--space-3); padding-bottom: var(--space-2)"><span class="api-name">Popover</span></td>
+                <td class="api-use">Native tooltips / menus, top-layer</td>
+                <td><span class="api-sync sync-yes">Sync</span></td>
+                <td><span class="status-badge badge-ok">None</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div><!-- /.container -->
+
+    <script>
+      /* =================================================================
+         1. LOCAL STORAGE — DRAFT AUTO-SAVE
+         ================================================================= */
+      (function () {
+        const area = document.getElementById("draft-area");
+        const indicator = document.getElementById("draft-saved");
+        const output = document.getElementById("draft-output");
+        const restoreBtn = document.getElementById("draft-restore-btn");
+        const clearBtn = document.getElementById("draft-clear-btn");
+        const KEY = "pattern-lab-draft";
+
+        function updateOutput() {
+          const raw = localStorage.getItem(KEY);
+          if (raw) {
+            output.textContent = `localStorage["${KEY}"] = ${raw.slice(0, 120)}${raw.length > 120 ? "…" : ""}`;
+            output.classList.remove("muted");
+          } else {
+            output.textContent = "No draft in storage";
+            output.classList.add("muted");
+          }
+        }
+
+        // Restore on load
+        const saved = localStorage.getItem(KEY);
+        if (saved) {
+          try {
+            area.value = JSON.parse(saved).text ?? "";
+            indicator.textContent = "Draft restored";
+            indicator.classList.add("saved");
+          } catch (_) { /* ignore corrupt data */ }
+        }
+        updateOutput();
+
+        let debounce;
+        area.addEventListener("input", () => {
+          indicator.textContent = "Saving…";
+          indicator.classList.remove("saved");
+          clearTimeout(debounce);
+          debounce = setTimeout(() => {
+            localStorage.setItem(KEY, JSON.stringify({ text: area.value, ts: Date.now() }));
+            indicator.textContent = "Saved";
+            indicator.classList.add("saved");
+            updateOutput();
+          }, 600);
+        });
+
+        restoreBtn.addEventListener("click", () => {
+          const raw = localStorage.getItem(KEY);
+          if (raw) {
+            try { area.value = JSON.parse(raw).text ?? ""; } catch (_) { /* ignore */ }
+            indicator.textContent = "Draft restored";
+            indicator.classList.add("saved");
+          }
+        });
+
+        clearBtn.addEventListener("click", () => {
+          localStorage.removeItem(KEY);
+          area.value = "";
+          indicator.textContent = "Cleared";
+          indicator.classList.remove("saved");
+          updateOutput();
+        });
+      }());
+
+      /* =================================================================
+         2. GEOLOCATION
+         ================================================================= */
+      (function () {
+        const btn = document.getElementById("geo-btn");
+        const badge = document.getElementById("geo-badge");
+        const coords = document.getElementById("geo-coords");
+        const output = document.getElementById("geo-output");
+
+        function setBadge(text, cls) {
+          badge.innerHTML = `<span class="status-badge ${cls}">${text}</span>`;
+        }
+
+        btn.addEventListener("click", () => {
+          if (!("geolocation" in navigator)) {
+            setBadge("Not supported", "badge-err");
+            output.textContent = "navigator.geolocation is unavailable";
+            return;
+          }
+          setBadge("Requesting…", "badge-warn");
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const { latitude, longitude, accuracy } = pos.coords;
+              document.getElementById("geo-lat").textContent = latitude.toFixed(6);
+              document.getElementById("geo-lng").textContent = longitude.toFixed(6);
+              document.getElementById("geo-acc").textContent = `±${Math.round(accuracy)} m`;
+              document.getElementById("geo-ts").textContent =
+                new Date(pos.timestamp).toLocaleTimeString();
+              coords.style.display = "grid";
+              output.textContent = `{ lat: ${latitude.toFixed(4)}, lng: ${longitude.toFixed(4)}, accuracy: ${Math.round(accuracy)}m }`;
+              output.classList.remove("muted");
+              setBadge("Granted ✓", "badge-ok");
+            },
+            (err) => {
+              const msgs = ["", "Permission denied", "Position unavailable", "Timeout"];
+              output.textContent = `Error ${err.code}: ${msgs[err.code] ?? err.message}`;
+              setBadge("Denied", "badge-err");
+            },
+            { enableHighAccuracy: true, timeout: 8000 }
+          );
+        });
+      }());
+
+      /* =================================================================
+         3. DRAG AND DROP
+         ================================================================= */
+      (function () {
+        const zone = document.getElementById("drop-zone");
+        const input = document.getElementById("drop-input");
+        const list = document.getElementById("drop-file-list");
+
+        function formatBytes(bytes) {
+          if (bytes < 1024) return `${bytes} B`;
+          if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+          return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+        }
+
+        function renderFiles(files) {
+          list.innerHTML = "";
+          Array.from(files).forEach((file) => {
+            const li = document.createElement("li");
+            li.className = "drop-file-item";
+            li.innerHTML = `
+              <span class="drop-file-name">${file.name}</span>
+              <span class="drop-file-size">${file.type || "unknown"} · ${formatBytes(file.size)}</span>`;
+            list.appendChild(li);
+          });
+        }
+
+        zone.addEventListener("dragenter", (e) => { e.preventDefault(); zone.classList.add("drag-over"); });
+        zone.addEventListener("dragleave", (e) => { if (!zone.contains(e.relatedTarget)) zone.classList.remove("drag-over"); });
+        zone.addEventListener("dragover", (e) => e.preventDefault());
+        zone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          zone.classList.remove("drag-over");
+          if (e.dataTransfer.files.length) renderFiles(e.dataTransfer.files);
+        });
+
+        zone.addEventListener("click", () => input.click());
+        input.addEventListener("change", () => { if (input.files.length) renderFiles(input.files); });
+
+        // Prevent page-level drop fallback
+        document.addEventListener("dragover", (e) => e.preventDefault());
+        document.addEventListener("drop", (e) => { if (e.target !== zone) e.preventDefault(); });
+      }());
+
+      /* =================================================================
+         4. WEB WORKERS — simulated via setTimeout chunks (no separate file)
+         ================================================================= */
+      (function () {
+        const startBtn = document.getElementById("worker-start-btn");
+        const result = document.getElementById("worker-result");
+        const bar = document.getElementById("worker-progress-bar");
+        const counter = document.getElementById("main-counter");
+
+        // Keep main thread counter ticking to prove UI is not frozen
+        let tick = 0;
+        setInterval(() => {
+          tick++;
+          counter.textContent = tick;
+        }, 50);
+
+        startBtn.addEventListener("click", () => {
+          startBtn.disabled = true;
+          result.textContent = "Running…";
+          result.classList.remove("done");
+          bar.style.width = "0%";
+
+          // Simulate chunked off-thread work with inline Worker via Blob
+          const workerCode = `
+            self.onmessage = function() {
+              const TOTAL = 50_000_000;
+              let sum = 0;
+              for (let i = 0; i < TOTAL; i++) {
+                sum += i;
+                if (i % 5_000_000 === 0) {
+                  self.postMessage({ progress: Math.round(i / TOTAL * 100), done: false, result: null });
+                }
+              }
+              self.postMessage({ progress: 100, done: true, result: sum });
+            };
+          `;
+          const blob = new Blob([workerCode], { type: "application/javascript" });
+          const url = URL.createObjectURL(blob);
+          const worker = new Worker(url);
+          worker.postMessage("start");
+          worker.onmessage = (e) => {
+            bar.style.width = e.data.progress + "%";
+            if (e.data.done) {
+              result.textContent = `Sum = ${e.data.result.toLocaleString()}`;
+              result.classList.add("done");
+              startBtn.disabled = false;
+              worker.terminate();
+              URL.revokeObjectURL(url);
+            }
+          };
+        });
+      }());
+
+      /* =================================================================
+         5. INTERSECTION OBSERVER
+         ================================================================= */
+      (function () {
+        const scroller = document.getElementById("io-scroller");
+        const items = [
+          "Lazy loading images on scroll",
+          "Trigger CSS animations when visible",
+          "Infinite scroll pagination",
+          "Auto-pause off-screen videos",
+          "Analytics: track element impressions",
+          "Sticky headers: detect section boundaries",
+          "Ad viewability measurement",
+          "Prefetch links near the viewport",
+        ];
+
+        items.forEach((text, i) => {
+          const card = document.createElement("div");
+          card.className = "io-card";
+          card.innerHTML = `<div class="io-card-dot"></div><span>${i + 1}. ${text}</span>`;
+          scroller.appendChild(card);
+        });
+
+        const obs = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                obs.unobserve(entry.target);
+              }
+            });
+          },
+          { root: scroller, threshold: 0.15 }
+        );
+
+        scroller.querySelectorAll(".io-card").forEach((el) => obs.observe(el));
+      }());
+
+      /* =================================================================
+         6. CLIPBOARD API
+         ================================================================= */
+      (function () {
+        const copyBtn = document.getElementById("copy-btn");
+        const pasteBtn = document.getElementById("paste-btn");
+        const source = document.getElementById("clipboard-source");
+        const success = document.getElementById("copy-success");
+        const pasteDisplay = document.getElementById("paste-display");
+
+        copyBtn.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(source.textContent);
+            success.classList.add("show");
+            setTimeout(() => success.classList.remove("show"), 2000);
+          } catch (err) {
+            source.style.color = "var(--neon-coral)";
+            setTimeout(() => (source.style.color = ""), 1500);
+          }
+        });
+
+        pasteBtn.addEventListener("click", async () => {
+          try {
+            const text = await navigator.clipboard.readText();
+            pasteDisplay.textContent = text || "(clipboard is empty)";
+            pasteDisplay.style.color = "var(--text-primary)";
+          } catch (_) {
+            pasteDisplay.textContent = "Permission denied or clipboard unavailable";
+            pasteDisplay.style.color = "var(--neon-coral)";
+          }
+        });
+      }());
+
+      /* =================================================================
+         7. FULLSCREEN API
+         ================================================================= */
+      (function () {
+        const target = document.getElementById("fullscreen-target");
+        const enterBtn = document.getElementById("fs-enter-btn");
+        const exitBtn = document.getElementById("fs-exit-btn");
+        const hint = document.getElementById("fs-hint");
+
+        function syncButtons() {
+          const active = Boolean(document.fullscreenElement);
+          enterBtn.style.display = active ? "none" : "";
+          exitBtn.style.display = active ? "" : "none";
+          hint.textContent = active
+            ? "Press Esc or click Exit Fullscreen to return"
+            : "Esc or the button above exits fullscreen mode";
+        }
+
+        enterBtn.addEventListener("click", () =>
+          target.requestFullscreen().catch((err) => console.warn(err))
+        );
+        exitBtn.addEventListener("click", () => document.exitFullscreen());
+        document.addEventListener("fullscreenchange", syncButtons);
+      }());
+
+      /* =================================================================
+         8. HISTORY API — SPA navigation demo
+         ================================================================= */
+      (function () {
+        const nav = document.getElementById("spa-nav");
+        const urlPath = document.getElementById("spa-url-path");
+        const view = document.getElementById("spa-view");
+
+        const views = {
+          home:     { title: "Home",     body: "Welcome! You are on the home view." },
+          about:    { title: "About",    body: "This is the about view. Same JS runtime, new URL." },
+          settings: { title: "Settings", body: "Settings view loaded. No page reload occurred." },
+        };
+
+        function renderView(name) {
+          const v = views[name] ?? views.home;
+          view.style.opacity = "0";
+          setTimeout(() => {
+            view.innerHTML = `<strong>${v.title}</strong>${v.body}`;
+            view.style.opacity = "1";
+          }, 120);
+        }
+
+        function activateTab(name) {
+          nav.querySelectorAll(".spa-nav-btn").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.view === name);
+          });
+        }
+
+        function applyView(name) {
+          urlPath.textContent = "/" + (name || "home");
+          activateTab(name || "home");
+          renderView(name || "home");
+        }
+
+        nav.addEventListener("click", (e) => {
+          const btn = e.target.closest(".spa-nav-btn");
+          if (!btn) return;
+          const viewName = btn.dataset.view;
+          // Use hash routing so the demo works on file:// without a SecurityError
+          location.hash = viewName;
+          // applyView is called by the hashchange handler, but also apply
+          // immediately so there's no flicker on the first click
+          applyView(viewName);
+        });
+
+        window.addEventListener("hashchange", () => {
+          const name = location.hash.slice(1) || "home";
+          applyView(name);
+        });
+
+        // Restore state on load if a hash is already present
+        if (location.hash) {
+          applyView(location.hash.slice(1));
+        }
+      }());
+
+      /* =================================================================
+         9. WEB SPEECH API
+         ================================================================= */
+      (function () {
+        /* — Speech Recognition — */
+        const micBtn = document.getElementById("speech-btn");
+        const transcript = document.getElementById("speech-transcript");
+        const speechStatus = document.getElementById("speech-status");
+
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SR) {
+          const recognition = new SR();
+          recognition.continuous = false;
+          recognition.interimResults = true;
+          recognition.lang = "en-US";
+          let listening = false;
+
+          micBtn.addEventListener("click", () => {
+            if (listening) {
+              recognition.stop();
+            } else {
+              try { recognition.start(); } catch (_) { /* already started */ }
+            }
+          });
+
+          recognition.onstart = () => {
+            listening = true;
+            micBtn.classList.add("listening");
+            speechStatus.textContent = "Listening…";
+            transcript.textContent = "";
+            transcript.classList.remove("has-content");
+          };
+          recognition.onend = () => {
+            listening = false;
+            micBtn.classList.remove("listening");
+            speechStatus.textContent = "Click the mic to start";
+          };
+          recognition.onresult = (e) => {
+            const interim = Array.from(e.results)
+              .map((r) => r[0].transcript)
+              .join(" ");
+            transcript.textContent = interim;
+            transcript.classList.add("has-content");
+          };
+          recognition.onerror = (e) => {
+            speechStatus.textContent = `Error: ${e.error}`;
+            listening = false;
+            micBtn.classList.remove("listening");
+          };
+        } else {
+          micBtn.disabled = true;
+          micBtn.title = "SpeechRecognition not supported in this browser";
+          speechStatus.textContent = "Not supported — try Chrome or Edge";
+        }
+
+        /* — Text-to-Speech — */
+        const ttsInput = document.getElementById("tts-input");
+        const ttsPlay = document.getElementById("tts-play-btn");
+        const ttsStop = document.getElementById("tts-stop-btn");
+        const ttsStatus = document.getElementById("tts-status");
+
+        ttsPlay.addEventListener("click", () => {
+          if (!speechSynthesis) {
+            ttsStatus.textContent = "SpeechSynthesis not supported";
+            return;
+          }
+          speechSynthesis.cancel();
+          const utt = new SpeechSynthesisUtterance(ttsInput.value.trim() || "Nothing to speak");
+          utt.lang = "en-US";
+          utt.onstart = () => { ttsStatus.textContent = "Speaking…"; ttsStatus.style.color = "var(--neon-cyan)"; };
+          utt.onend = () => { ttsStatus.textContent = "Done"; ttsStatus.style.color = ""; };
+          utt.onerror = () => { ttsStatus.textContent = "Error"; ttsStatus.style.color = "var(--neon-coral)"; };
+          speechSynthesis.speak(utt);
+        });
+        ttsStop.addEventListener("click", () => {
+          speechSynthesis.cancel();
+          ttsStatus.textContent = "Stopped";
+          ttsStatus.style.color = "";
+        });
+      }());
+
+      /* =================================================================
+         10. NOTIFICATION API
+         ================================================================= */
+      (function () {
+        const requestBtn = document.getElementById("notif-request-btn");
+        const fireBtn = document.getElementById("notif-fire-btn");
+        const output = document.getElementById("notif-output");
+
+        function updateUI(permission) {
+          output.textContent = `Current permission: "${permission}"`;
+          output.classList.remove("muted");
+
+          ["default", "granted", "denied"].forEach((state) => {
+            const el = document.getElementById(`notif-state-${state}`);
+            el.classList.toggle("current", state === permission);
+          });
+
+          fireBtn.disabled = permission !== "granted";
+        }
+
+        if (!("Notification" in window)) {
+          output.textContent = "Notification API not supported in this browser";
+          requestBtn.disabled = true;
+          return;
+        }
+
+        updateUI(Notification.permission);
+
+        requestBtn.addEventListener("click", async () => {
+          const permission = await Notification.requestPermission();
+          updateUI(permission);
+        });
+
+        fireBtn.addEventListener("click", () => {
+          if (Notification.permission !== "granted") return;
+          new Notification("2026 HTML5 Lab", {
+            body: "Your task completed. No library required.",
+            tag: "lab-demo",
+          });
+        });
+      }());
+
+      /* =================================================================
+         11. PAGE VISIBILITY API
+         ================================================================= */
+      (function () {
+        const dot    = document.getElementById("vis-dot");
+        const label  = document.getElementById("vis-state-label");
+        const msg    = document.getElementById("vis-hidden-msg");
+        const ctr    = document.getElementById("vis-counter");
+        const output = document.getElementById("vis-output");
+
+        let seconds = 0;
+        let timer = null;
+        const events = [];
+
+        function start() {
+          if (timer !== null) return;
+          timer = setInterval(() => { seconds++; ctr.textContent = seconds + "s"; }, 1000);
+        }
+
+        function stop() {
+          clearInterval(timer);
+          timer = null;
+        }
+
+        function sync() {
+          const hidden = document.hidden;
+          dot.classList.toggle("hidden", hidden);
+          label.textContent   = hidden ? "Hidden" : "Visible";
+          msg.textContent     = hidden ? "Counter is paused" : "Counter is running";
+          label.style.color   = hidden ? "#94a3b8" : "var(--neon-cyan)";
+          if (hidden) { stop(); } else { start(); }
+        }
+
+        document.addEventListener("visibilitychange", () => {
+          const state = document.visibilityState;
+          events.push(state);
+          if (events.length > 4) events.shift();
+          output.textContent = "visibilitychange events: " + events.join(" → ");
+          sync();
+        });
+
+        // Initialise
+        start();
+        sync();
+      }());
+
+      /* =================================================================
+         12. BROADCAST CHANNEL API
+         ================================================================= */
+      (function () {
+        const chA = new BroadcastChannel("lab-demo-channel");
+        const chB = new BroadcastChannel("lab-demo-channel");
+
+        const msgsA = document.getElementById("bc-msgs-a");
+        const msgsB = document.getElementById("bc-msgs-b");
+        const inputA = document.getElementById("bc-input-a");
+        const inputB = document.getElementById("bc-input-b");
+        const sendA = document.getElementById("bc-send-a");
+        const sendB = document.getElementById("bc-send-b");
+
+        function appendMsg(container, text, fromSelf) {
+          // Clear placeholder on first message
+          if (container.querySelector("span[style]")) container.innerHTML = "";
+          const el = document.createElement("div");
+          el.className = "bc-msg";
+          el.textContent = (fromSelf ? "Sent: " : "Received: ") + text;
+          if (fromSelf) el.style.borderColor = "var(--neon-coral)";
+          container.appendChild(el);
+          container.scrollTop = container.scrollHeight;
+        }
+
+        chA.onmessage = (e) => appendMsg(msgsA, e.data, false);
+        chB.onmessage = (e) => appendMsg(msgsB, e.data, false);
+
+        function send(input, senderMsgs, channel) {
+          const text = input.value.trim();
+          if (!text) return;
+          appendMsg(senderMsgs, text, true);
+          channel.postMessage(text);
+          input.value = "";
+          input.focus();
+        }
+
+        sendA.addEventListener("click", () => send(inputA, msgsA, chA));
+        sendB.addEventListener("click", () => send(inputB, msgsB, chB));
+        inputA.addEventListener("keydown", (e) => { if (e.key === "Enter") send(inputA, msgsA, chA); });
+        inputB.addEventListener("keydown", (e) => { if (e.key === "Enter") send(inputB, msgsB, chB); });
+      }());
+
+      /* =================================================================
+         13. POPOVER API
+         ================================================================= */
+      (function () {
+        const pop      = document.getElementById("pop-js");
+        const showBtn  = document.getElementById("pop-show-btn");
+        const hideBtn  = document.getElementById("pop-hide-btn");
+        const toggleBtn = document.getElementById("pop-toggle-btn");
+        const log      = document.getElementById("toggle-log");
+
+        if (!pop.showPopover) {
+          log.textContent = "Popover API not supported in this browser.";
+          return;
+        }
+
+        pop.addEventListener("toggle", (e) => {
+          log.textContent = "toggle fired → newState: \"" + e.newState + "\"";
+        });
+
+        showBtn.addEventListener("click", () => {
+          try { pop.showPopover(); } catch (_) { /* already open */ }
+        });
+        hideBtn.addEventListener("click", () => {
+          try { pop.hidePopover(); } catch (_) { /* already closed */ }
+        });
+        toggleBtn.addEventListener("click", () => pop.togglePopover());
+      }());
+    </script>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>&lt;image-figure&gt; — Declarative Shadow DOM Web Component</title>
+  <style>
+    body { font: 16px/1.5 system-ui; padding: 2rem; max-width: 720px; margin: 0 auto; }
+    image-figure { container-type: inline-size; }
+  </style>
+</head>
+<body>
+  <h1>&lt;image-figure&gt;</h1>
+  <p>Web Component using declarative Shadow DOM — server-renderable
+     since the shadow tree comes from HTML, not JS.</p>
+
+  <image-figure src="https://placehold.co/600x400/06b6d4/white?text=Cat"
+                 caption="Mona, the office cat">
+    <p>Slot content: Mona's biography goes here.</p>
+  </image-figure>
+
+  <image-figure src="https://placehold.co/600x400/8b5cf6/white?text=Dog"
+                 caption="Ada, the office dog">
+    <p>Slot content: Ada's biography.</p>
+  </image-figure>
+
+  <!-- Declarative Shadow DOM — included directly in HTML -->
+  <template id="image-figure-template">
+    <style>
+      :host { display: block; container-type: inline-size; }
+      figure { margin: 0; display: grid; gap: 1rem; }
+      @container (min-width: 480px) {
+        figure { grid-template-columns: 1fr 2fr; align-items: center; }
+      }
+      img { width: 100%; height: auto; border-radius: .5rem;
+            aspect-ratio: 4/3; object-fit: cover; }
+      figcaption { font-size: 1rem; opacity: .7; }
+      figcaption::before { content: ''; display: block; font-size: .75rem;
+                           color: #888; text-transform: uppercase;
+                           letter-spacing: .05em; margin-bottom: .25rem; }
+    </style>
+    <figure>
+      <img part="img" alt="">
+      <figcaption>
+        <slot></slot>
+      </figcaption>
+    </figure>
+  </template>
+
+  <script>
+    customElements.define('image-figure', class extends HTMLElement {
+      static observedAttributes = ['src', 'caption']
+
+      constructor() {
+        super()
+        const tpl = document.getElementById('image-figure-template')
+        this.attachShadow({ mode: 'open' })
+          .appendChild(tpl.content.cloneNode(true))
+        this._img = this.shadowRoot.querySelector('img')
+        this.update()
+      }
+
+      connectedCallback() { this.update() }
+      attributeChangedCallback() { this.update() }
+
+      update() {
+        this._img.src   = this.getAttribute('src') ?? ''
+        this._img.alt   = this.getAttribute('caption') ?? ''
+      }
+    })
+  </script>
+</body>
+</html>

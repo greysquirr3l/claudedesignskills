@@ -1,5 +1,20 @@
 # Modern Web Design Assets
 
+## Ground-truth examples
+
+`groundtruth/pattern_lab_2026.html` — copy of `2026_pattern_lab.html`
+from [greysquirr3l/pattern_lab](https://github.com/greysquirr3l/pattern_lab).
+Twelve sections covering tracking & kinetics, button architecture,
+corner math, depth without shadows, cyber gradients, line-length
+rules, focus states, OKLCH colour, glassmorphism, bento grids,
+container queries, `:has()`. Use as a finished-design reference and
+re-pull from the user's repo when they update pattern_lab.
+
+`groundtruth/nth_letter_lab.html` — copy of `2026_nth_letter_lab.html`
+from `greysquirr3l/pattern_lab`. The per-letter tinting trick using
+custom properties, `:nth-child`, and `text-indent`. Useful for
+advanced typography work.
+
 ## Overview
 
 This directory contains design system templates, starter files, and reusable assets for modern web development. All assets follow accessibility, performance, and modern design best practices.

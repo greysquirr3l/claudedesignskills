@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>HTML5 Native Design — Starter</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: light-dark(#fafafa, #0b0f12);
+      --fg: light-dark(#1a1a1a, #f1f1f1);
+      --surface: light-dark(#fff, #131a20);
+      --line: light-dark(#eee, #1f2630);
+      --accent: light-dark(#06b6d4, #22d3ee);
+      --accent-2: light-dark(#8b5cf6, #a78bfa);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--fg);
+           font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+
+    main { max-width: 720px; margin: 0 auto; padding: 4rem 2rem; }
+
+    h1 { font-size: 2.25rem; font-weight: 700; letter-spacing: -.025em; margin: 0 0 .5rem; }
+    h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.01em;
+         margin: 2rem 0 .75rem; }
+
+    button {
+      padding: .5rem 1rem; border-radius: .375rem;
+      border: 1px solid var(--line);
+      background: var(--surface); color: var(--fg);
+      cursor: pointer;
+      transition: border-color 220ms;
+    }
+    button:hover { border-color: var(--accent); }
+    button.primary { background: var(--accent); color: white; border-color: transparent; }
+
+    /* Popovers get the modern open/close animation */
+    .popover,
+    dialog {
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      padding: 0;
+      background: var(--surface);
+      color: var(--fg);
+      box-shadow: 0 8px 24px rgba(0,0,0,.1);
+      width: min(420px, 90vw);
+
+      opacity: 0;
+      transform: translateY(8px) scale(.985);
+      transition: opacity 220ms ease-out,
+                  transform 280ms cubic-bezier(.2,.8,.2,1),
+                  overlay 280ms allow-discrete,
+                  display 280ms allow-discrete;
+    }
+    .popover:popover-open,
+    dialog[open] {
+      opacity: 1; transform: none;
+    }
+    @starting-style {
+      .popover:popover-open,
+      dialog[open] {
+        opacity: 0; transform: translateY(8px) scale(.985);
+      }
+    }
+
+    dialog::backdrop { background: transparent; transition: background 220ms; }
+    dialog[open]::backdrop { background: rgba(0,0,0,.4); }
+
+    .popover header, dialog header {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .popover header h3, dialog header h2 { margin: 0; font-size: 1.125rem; }
+    .popover > div, dialog article { padding: 1.25rem; }
+
+    /* Animated details */
+    details {
+      border: 1px solid var(--line);
+      border-radius: .5rem;
+      margin: 1.5rem 0;
+    }
+    summary {
+      padding: 1rem 1.25rem;
+      cursor: pointer; font-weight: 600;
+      list-style: none; /* hide default marker */
+    }
+    summary::-webkit-details-marker { display: none; }
+    .panel {
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 280ms cubic-bezier(.2,.8,.2,1);
+      padding: 0 1.25rem;
+      overflow: hidden;
+    }
+    details[open] .panel { grid-template-rows: 1fr; padding: 0 1.25rem 1rem; }
+    .panel > div { min-height: 0; }
+
+    /* Container-queried card */
+    .card {
+      container-type: inline-size;
+      container-name: card;
+      border: 1px solid var(--line);
+      border-radius: .75rem;
+      padding: 1.5rem;
+      background: var(--surface);
+      margin: 1.5rem 0;
+    }
+    @container card (min-width: 480px) {
+      .card-row {
+        display: grid;
+        grid-template-columns: 140px 1fr;
+        gap: 1.5rem;
+        align-items: center;
+      }
+      .card-thumb { aspect-ratio: 1; border-radius: .5rem;
+                    background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+    }
+    @container card (max-width: 479px) {
+      .card-thumb { aspect-ratio: 16/9; border-radius: .5rem; margin-bottom: 1rem;
+                    background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+    }
+
+    /* Form fields */
+    input[type=email] { width: 100%; }
+    form .row { display: flex; gap: .5rem; }
+    input {
+      padding: .5rem .75rem; border: 1px solid var(--line); border-radius: .375rem;
+      background: var(--surface); color: var(--fg); font: inherit;
+    }
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    input:user-invalid { border-color: #dc2626; }
+
+    @supports not (transition-behavior: allow-discrete) {
+      .popover, dialog { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>HTML5 Native Design</h1>
+    <p>Open every primitive below. Notice the smooth animations — pure CSS.</p>
+
+    <section>
+      <h2>1. Modal &lt;dialog&gt;</h2>
+      <button onclick="confirm.showModal()">Open confirm dialog</button>
+      <dialog id="confirm">
+        <header>
+          <h2>Confirm order</h2>
+          <form method="dialog"><button aria-label="Close">×</button></form>
+        </header>
+        <article>
+          <p>You're about to place a $42 order.</p>
+          <form method="dialog" style="display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem">
+            <button value="cancel">Cancel</button>
+            <button value="confirm" autofocus class="primary">Confirm</button>
+          </form>
+        </article>
+      </dialog>
+    </section>
+
+    <section>
+      <h2>2. Popover</h2>
+      <button popovertarget="info" popovertargetaction="toggle">Open info popover</button>
+      <div id="info" popover="auto" class="popover">
+        <header>
+          <h3>About this skill</h3>
+          <button popovertarget="info" popovertargetaction="hide" aria-label="Close">×</button>
+        </header>
+        <div>
+          <p>This page demonstrates every native HTML5 primitive in the
+             <code>html5-native-design</code> skill. Pair it with
+             <code>htmx</code> and <code>web-animations-api</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Animated &lt;details&gt; / &lt;summary&gt;</h2>
+      <details>
+        <summary>What is container queries?</summary>
+        <div class="panel"><div>
+          <p>Container queries let a component adapt its layout based on its
+             own size, not the viewport. <code>container-type: inline-size</code>
+             turns an element into a container; <code>@container</code> queries
+             that element.</p>
+        </div></div>
+      </details>
+      <details>
+        <summary>What is :has()?</summary>
+        <div class="panel"><div>
+          <p>The relational selector. Lets CSS reach up the tree based on
+             descendant state — e.g. <code>:has(:checked)</code> for a CSS-only
+             toggle.</p>
+        </div></div>
+      </details>
+    </section>
+
+    <section>
+      <h2>4. Container query card</h2>
+      <div class="card">
+        <div class="card-row">
+          <div class="card-thumb" aria-hidden="true"></div>
+          <div>
+            <h3>Resize me</h3>
+            <p>The card's internal layout shifts with its own size, not the
+               viewport width. Open DevTools and toggle device-pixel-ratio
+               emulation.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>5. Form fields with autocomplete</h2>
+      <form onsubmit="event.preventDefault()" style="display:grid;gap:.75rem">
+        <label>Email
+          <input type="email" autocomplete="email" inputmode="email"
+                 enterkeyhint="next" required>
+        </label>
+        <label>Country
+          <input list="cc" autocomplete="country">
+          <datalist id="cc">
+            <option value="United States">
+            <option value="United Kingdom">
+            <option value="Australia">
+          </datalist>
+        </label>
+        <button type="submit" class="primary">Submit</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>6. Native accordion (one open at a time)</h2>
+      <details name="acc">
+        <summary>Option A</summary>
+        <div class="panel"><div>The other panels close automatically.</div></div>
+      </details>
+      <details name="acc">
+        <summary>Option B</summary>
+        <div class="panel"><div>Try opening another — exclusive accordion
+            via the <code>name</code> attribute.</div></div>
+      </details>
+      <details name="acc">
+        <summary>Option C</summary>
+        <div class="panel"><div>Native HTML — no JS.</div></div>
+      </details>
+    </section>
+  </main>
+</body>
+</html>

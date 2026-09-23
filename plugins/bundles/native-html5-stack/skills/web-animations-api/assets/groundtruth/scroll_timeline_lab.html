@@ -1,0 +1,2047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSS Scroll Timelines Lab — greysquirr3l</title>
+<style>
+  /* ============================================================
+     CSS Scroll Timelines Lab
+     Covers: scroll(), view(), scroll-timeline-name/axis,
+     timeline-scope, animation-range, and design patterns.
+     Zero dependencies. Opens from disk.
+     ============================================================ */
+
+  :root {
+    --bg:        oklch(0.17 0.035 264);
+    --bg-2:      oklch(0.21 0.04 264);
+    --surface:   oklch(0.24 0.04 264 / 0.55);
+    --line:      oklch(0.45 0.05 264 / 0.35);
+    --line-soft: oklch(0.45 0.05 264 / 0.18);
+
+    --ink:       oklch(0.96 0.01 264);
+    --ink-dim:   oklch(0.74 0.02 264);
+    --ink-faint: oklch(0.56 0.02 264);
+
+    --cyan:   oklch(0.84 0.13 200);
+    --violet: oklch(0.72 0.16 295);
+    --lime:   oklch(0.88 0.18 135);
+    --coral:  oklch(0.74 0.13 25);
+    --amber:  oklch(0.82 0.16 70);
+
+    --font-ui:   ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Menlo, Consolas, monospace;
+
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(60rem 40rem at 75% -10%, oklch(0.4 0.16 295 / 0.22), transparent 60%),
+      radial-gradient(50rem 40rem at -10% 30%, oklch(0.55 0.13 200 / 0.16), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: clamp(2rem, 6vw, 5rem) clamp(1.1rem, 4vw, 2.5rem) 6rem;
+  }
+
+  /* ── Header ── */
+  header { margin-bottom: 4.5rem; }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    border: 1px solid var(--line);
+    background: oklch(0.84 0.13 200 / 0.06);
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+  }
+
+  h1 {
+    font-size: clamp(2.6rem, 8vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+    font-weight: 800;
+    margin: 1.4rem 0 0.6rem;
+    text-wrap: balance;
+  }
+  h1 code {
+    font-family: var(--font-mono);
+    font-size: 0.7em;
+    color: var(--cyan);
+    letter-spacing: -0.02em;
+  }
+
+  .lede {
+    max-width: 65ch;
+    font-size: clamp(1.02rem, 2.5vw, 1.2rem);
+    color: var(--ink-dim);
+    text-wrap: pretty;
+  }
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  .callout {
+    margin-top: 2rem;
+    border: 1px solid var(--line-soft);
+    border-left: 3px solid var(--violet);
+    background: linear-gradient(120deg, oklch(0.4 0.16 295 / 0.10), transparent 70%);
+    border-radius: 10px;
+    padding: 1.1rem 1.3rem;
+    font-size: 0.95rem;
+    color: var(--ink-dim);
+    max-width: 72ch;
+  }
+  .callout.warn   { border-left-color: var(--coral);  background: linear-gradient(120deg, oklch(0.74 0.13 25 / 0.10), transparent 70%); }
+  .callout.amber  { border-left-color: var(--amber);  background: linear-gradient(120deg, oklch(0.82 0.16 70 / 0.10), transparent 70%); }
+  .callout code { font-family: var(--font-mono); color: var(--cyan); font-size: 0.86em; }
+
+  /* ── Section scaffold ── */
+  section { margin-top: 3.2rem; }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.4rem;
+  }
+  h2 {
+    font-size: clamp(1.5rem, 4vw, 2.1rem);
+    letter-spacing: -0.025em;
+    font-weight: 750;
+    margin: 0 0 0.4rem;
+  }
+  h2 .n { color: var(--cyan); font-family: var(--font-mono); font-size: 0.7em; }
+
+  .note { color: var(--ink-dim); max-width: 68ch; margin: 0 0 1.4rem; }
+  .note code { font-family: var(--font-mono); color: var(--cyan); font-size: 0.86em; }
+
+  .card {
+    border: 1px solid var(--line-soft);
+    border-radius: var(--radius);
+    background: var(--surface);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
+    overflow: hidden;
+  }
+
+  .stage {
+    min-height: 200px;
+    padding: 1.5rem;
+    background: radial-gradient(40rem 20rem at 50% 120%, oklch(0.4 0.1 264 / 0.4), transparent 70%);
+    border-bottom: 1px solid var(--line-soft);
+    position: relative;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 0.6rem; right: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    animation: hint-bob 2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @keyframes hint-bob { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+  /* ── Code blocks ── */
+  .code {
+    margin: 0;
+    padding: 1.1rem 1.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--ink-dim);
+    overflow-x: auto;
+    background: oklch(0.13 0.03 264 / 0.6);
+  }
+  .code .c { color: var(--ink-faint); font-style: italic; }
+  .code .s { color: var(--cyan); }
+  .code .p { color: var(--violet); }
+  .code .v { color: var(--lime); }
+  .code .k { color: var(--amber); }
+
+  .split { display: grid; grid-template-columns: 1fr; }
+  @media (min-width: 760px) {
+    .split { grid-template-columns: 1fr 1fr; }
+    .split .code:first-child { border-right: 1px solid var(--line-soft); }
+  }
+  .codehead {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.6rem 1.3rem;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--line-soft);
+    background: oklch(0.13 0.03 264 / 0.5);
+  }
+  .codehead.scroll  { color: var(--cyan); }
+  .codehead.view    { color: var(--violet); }
+  .codehead.scope   { color: var(--amber); }
+
+  /* ============================================================
+     DEMO 1 — Reading progress bar
+     Named scroll-timeline on the container; sticky bar fills.
+     ============================================================ */
+  .d1-wrap {
+    scroll-timeline-name: --d1;
+    scroll-timeline-axis: block;
+    overflow-y: scroll;
+    height: 272px;
+    border-radius: 12px;
+    position: relative;
+  }
+  .d1-bar-track {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    height: 4px;
+    background: oklch(0.22 0.04 264);
+  }
+  .d1-bar {
+    height: 100%;
+    transform-origin: left;
+    background: linear-gradient(90deg, var(--cyan), var(--violet), var(--coral));
+    animation: d1-fill linear both;
+    animation-timeline: --d1;
+  }
+  @keyframes d1-fill {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  .d1-article {
+    padding: 1rem 1.5rem 2.5rem;
+    color: var(--ink-dim);
+    font-size: 0.88rem;
+    line-height: 1.75;
+  }
+  .d1-article h3 {
+    color: var(--ink);
+    font-size: 1rem;
+    margin: 1.3rem 0 0.4rem;
+    letter-spacing: -0.02em;
+  }
+  .d1-article h3:first-child { margin-top: 0.75rem; }
+
+  /* ============================================================
+     DEMO 2 — Scroll-reveal with view()
+     Each card animates in as it enters the scroll container.
+     ============================================================ */
+  .d2-wrap {
+    overflow-y: scroll;
+    height: 296px;
+    padding: 0.75rem 1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .d2-card {
+    background: oklch(0.22 0.04 264);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.85rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    flex-shrink: 0;
+    animation: d2-enter linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+  @keyframes d2-enter {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .d2-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+  .d2-title { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.15rem; }
+  .d2-sub   { font-size: 0.77rem; color: var(--ink-dim); }
+
+  /* ============================================================
+     DEMO 3 — CSS parallax layers
+     Named timeline on container; three layers with different
+     translateY endpoints — closer layers move faster.
+     ============================================================ */
+  .d3-outer {
+    scroll-timeline-name: --d3;
+    scroll-timeline-axis: block;
+    overflow-y: scroll;
+    height: 280px;
+    border-radius: 12px;
+    background: #040c18;
+    cursor: ns-resize;
+    user-select: none;
+  }
+  .d3-scene {
+    height: 700px;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Stars — barely move (translateY counter-acts upward scroll) */
+  .d3-stars {
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(1.2px 1.2px at 8%  12%, rgba(255,255,255,.85) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 34%  6%, rgba(255,255,255,.70) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 61% 19%, rgba(255,255,255,.90) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 83%  9%, rgba(255,255,255,.65) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 22% 41%, rgba(255,255,255,.75) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 70% 35%, rgba(255,255,255,.80) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 46% 52%, rgba(255,255,255,.60) 0%, transparent 100%),
+      radial-gradient(1.2px 1.2px at 91% 44%, rgba(255,255,255,.85) 0%, transparent 100%),
+      radial-gradient(1px   1px   at  5% 67%, rgba(255,255,255,.55) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 55% 70%, rgba(255,255,255,.90) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 31% 78%, rgba(255,255,255,.65) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 77% 82%, rgba(255,255,255,.70) 0%, transparent 100%),
+      radial-gradient(1px   1px   at 14% 90%, rgba(255,255,255,.80) 0%, transparent 100%);
+    animation: d3-stars linear;
+    animation-timeline: --d3;
+  }
+  @keyframes d3-stars  { to { transform: translateY(360px); } }
+
+  /* Far mountains — medium parallax */
+  .d3-mtn-far {
+    position: absolute;
+    bottom: 24%; left: 0; right: 0;
+    height: 220px;
+    background: linear-gradient(to top, oklch(0.22 0.08 260) 0%, transparent 75%);
+    clip-path: polygon(
+      0% 100%, 7% 58%, 16% 74%, 27% 38%, 38% 62%, 50% 24%, 62% 56%, 74% 36%, 86% 64%, 100% 44%, 100% 100%
+    );
+    animation: d3-mtn-far linear;
+    animation-timeline: --d3;
+  }
+  @keyframes d3-mtn-far  { to { transform: translateY(200px); } }
+
+  /* Near mountains — faster */
+  .d3-mtn-near {
+    position: absolute;
+    bottom: 10%; left: 0; right: 0;
+    height: 260px;
+    background: linear-gradient(to top, oklch(0.14 0.05 260) 0%, transparent 72%);
+    clip-path: polygon(
+      0% 100%, 4% 68%, 14% 44%, 23% 70%, 35% 28%, 46% 55%, 58% 18%, 70% 50%, 80% 32%, 92% 58%, 100% 38%, 100% 100%
+    );
+    animation: d3-mtn-near linear;
+    animation-timeline: --d3;
+  }
+  @keyframes d3-mtn-near { to { transform: translateY(90px); } }
+
+  /* Ground — almost full-speed */
+  .d3-ground {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 14%;
+    background: linear-gradient(to top, oklch(0.10 0.03 255) 0%, transparent 100%);
+    animation: d3-ground linear;
+    animation-timeline: --d3;
+  }
+  @keyframes d3-ground { to { transform: translateY(20px); } }
+
+  .d3-hint {
+    position: sticky;
+    top: 0.75rem;
+    text-align: center;
+    z-index: 10;
+    pointer-events: none;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .d3-stars, .d3-mtn-far, .d3-mtn-near, .d3-ground { animation: none; }
+  }
+
+  /* ============================================================
+     DEMO 4 — Horizontal scroll drives a gauge
+     scroll-timeline-axis: inline;  timeline-scope lifts the
+     named timeline out to a common ancestor so the gauge fill
+     (a sibling's descendant) can reference it.
+     ============================================================ */
+  .d4-outer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    timeline-scope: --d4;         /* ← lifts --d4 to common ancestor */
+  }
+  .d4-hstrip {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    scroll-timeline-name: --d4;
+    scroll-timeline-axis: inline; /* x-axis */
+    border-radius: 10px;
+    background: oklch(0.14 0.03 264);
+    border: 1px solid var(--line-soft);
+    cursor: grab;
+  }
+  .d4-hstrip:active { cursor: grabbing; }
+  .d4-track {
+    display: flex;
+    width: max-content;
+    padding: 1rem 1rem;
+    gap: 0.75rem;
+    align-items: center;
+  }
+  .d4-item {
+    flex-shrink: 0;
+    width: 130px; height: 76px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border: 1px solid var(--line);
+    background: oklch(0.19 0.04 264);
+    font-size: 0.72rem;
+    color: var(--ink-dim);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+  }
+  .d4-item .emo { font-size: 1.4rem; }
+  .d4-gauge-wrap {
+    padding: 1rem 1.25rem 0.9rem;
+    background: oklch(0.14 0.03 264);
+    border-radius: 10px;
+    border: 1px solid var(--line-soft);
+  }
+  .d4-gauge-label {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.55rem;
+  }
+  .d4-gauge-track {
+    height: 8px;
+    background: oklch(0.22 0.04 264);
+    border-radius: 4px;
+  }
+  .d4-gauge-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--violet), var(--cyan));
+    transform-origin: left;
+    box-shadow: 0 0 10px oklch(0.72 0.16 295 / 0.45);
+    animation: d4-fill linear both;
+    animation-timeline: --d4;     /* ← reads from the h-strip scroller */
+  }
+  @keyframes d4-fill {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* ============================================================
+     DEMO 5 — Vertical event timeline  (design pattern)
+     Two-column alternating layout; view() scroll-reveal;
+     center spine via ::before pseudo-element.
+     ============================================================ */
+  .d5-wrap {
+    overflow-y: scroll;
+    height: 360px;
+    padding: 1.25rem 1rem 2rem;
+  }
+  .d5-timeline {
+    position: relative;
+    list-style: none;
+    padding: 0; margin: 0;
+  }
+  /* Center spine */
+  .d5-timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 8px; bottom: 8px;
+    width: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(to bottom, var(--cyan), var(--violet), var(--coral));
+    opacity: 0.45;
+  }
+  .d5-event {
+    position: relative;
+    margin-bottom: 2.25rem;
+  }
+  .d5-card {
+    width: calc(50% - 2.2rem);
+    background: oklch(0.21 0.04 264);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+  }
+  .d5-event:nth-child(odd) .d5-card {
+    margin-right: auto;
+    animation: d5-left linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 65%;
+  }
+  .d5-event:nth-child(even) .d5-card {
+    margin-left: auto;
+    animation: d5-right linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 65%;
+  }
+  /* Center node dot */
+  .d5-event::after {
+    content: '';
+    position: absolute;
+    left: calc(50% - 6px);
+    top: 0.85rem;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--cyan);
+    box-shadow: 0 0 7px var(--cyan);
+  }
+  @keyframes d5-left  { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes d5-right { from { opacity: 0; transform: translateX(28px);  } to { opacity: 1; transform: translateX(0); } }
+
+  .d5-year {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--cyan);
+    letter-spacing: 0.1em;
+    margin-bottom: 0.2rem;
+  }
+  .d5-title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+    letter-spacing: -0.01em;
+  }
+  .d5-desc {
+    font-size: 0.76rem;
+    color: var(--ink-dim);
+    line-height: 1.5;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .d5-event:nth-child(odd) .d5-card,
+    .d5-event:nth-child(even) .d5-card { animation: none; }
+  }
+
+  /* ============================================================
+     DEMO 6 — Chat conversation
+     iMessage-style phone frame; each bubble uses view() with
+     direction-aware keyframes (left / right slide-in).
+     ============================================================ */
+  .d6-phone {
+    width: min(316px, 100%);
+    height: 526px;
+    border-radius: 44px;
+    background: #1c1c1e;
+    border: 2px solid #3a3a3c;
+    box-shadow:
+      0 28px 64px rgba(0,0,0,0.65),
+      0 0 0 6px rgba(255,255,255,0.025),
+      inset 0 1px 0 rgba(255,255,255,0.07);
+    overflow: hidden;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
+  .d6-statusbar {
+    height: 44px;
+    background: #1c1c1e;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 22px;
+    flex-shrink: 0;
+  }
+  .d6-time {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+  .d6-status-icons {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    font-size: 0.72rem;
+    color: #fff;
+  }
+  .d6-header {
+    background: rgba(28,28,30,0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    padding: 0.35rem 1rem 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-shrink: 0;
+  }
+  .d6-back { color: #007aff; font-size: 1.1rem; font-weight: 400; }
+  .d6-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, oklch(0.6 0.22 280), oklch(0.48 0.22 248));
+    display: grid;
+    place-items: center;
+    font-size: 1.05rem;
+    flex-shrink: 0;
+  }
+  .d6-contact-name  { font-size: 0.88rem; font-weight: 600; color: #fff; }
+  .d6-contact-sub   { font-size: 0.62rem; color: #8e8e93; }
+  .d6-messages {
+    flex: 1;
+    overflow-y: scroll;
+    padding: 0.65rem 0.7rem 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.22rem;
+    background: #000;
+  }
+  .d6-input-row {
+    height: 54px;
+    background: rgba(28,28,30,0.98);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    align-items: center;
+    padding: 0 0.7rem;
+    gap: 0.45rem;
+    flex-shrink: 0;
+  }
+  .d6-input-field {
+    flex: 1;
+    height: 32px;
+    background: #1c1c1e;
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 18px;
+    color: #8e8e93;
+    padding: 0 0.9rem;
+    font-size: 0.78rem;
+    font-family: var(--font-ui);
+  }
+  .d6-send {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #007aff;
+    border: none;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  /* Date divider */
+  .d6-date {
+    text-align: center;
+    font-size: 0.62rem;
+    color: #636366;
+    letter-spacing: 0.04em;
+    margin: 0.3rem 0 0.4rem;
+  }
+  /* Message rows */
+  .d6-msg {
+    display: flex;
+    flex-direction: column;
+  }
+  .d6-msg.them { align-items: flex-start; }
+  .d6-msg.me   { align-items: flex-end; }
+
+  /* Slide-in animation */
+  .d6-msg.them {
+    animation: d6-slide-left linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 65%;
+  }
+  .d6-msg.me {
+    animation: d6-slide-right linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 65%;
+  }
+  @keyframes d6-slide-left  { from { opacity:0; transform: translateX(-14px) scale(.94); } to { opacity:1; transform: translateX(0) scale(1); } }
+  @keyframes d6-slide-right { from { opacity:0; transform: translateX(14px)  scale(.94); } to { opacity:1; transform: translateX(0) scale(1); } }
+
+  .d6-bubble {
+    max-width: 80%;
+    padding: 0.48rem 0.78rem;
+    border-radius: 18px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #fff;
+  }
+  .d6-msg.them .d6-bubble { background: #2c2c2e; border-bottom-left-radius:  5px; }
+  .d6-msg.me   .d6-bubble { background: #007aff; border-bottom-right-radius: 5px; }
+
+  .d6-ts {
+    font-size: 0.58rem;
+    color: #636366;
+    padding: 0.1rem 0.4rem;
+  }
+  /* Typing indicator */
+  .d6-typing {
+    display: flex;
+    align-items: center;
+    animation: d6-slide-left linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+  .d6-typing .d6-bubble {
+    padding: 0.55rem 0.75rem;
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    background: #2c2c2e;
+    border-bottom-left-radius: 5px;
+  }
+  .d6-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #8e8e93;
+    animation: d6-dot-bob 1.2s ease-in-out infinite;
+  }
+  .d6-dot:nth-child(2) { animation-delay: 0.18s; }
+  .d6-dot:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes d6-dot-bob { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-4px)} }
+
+  .d6-code-inline {
+    background: rgba(255,255,255,0.15);
+    padding: 0 3px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .d6-msg.them, .d6-msg.me, .d6-typing { animation: none; }
+    .d6-dot { animation: none; }
+  }
+
+  /* ============================================================
+     DEMO 7 — Step progress tracker
+     Each numbered node activates (glow border) via view(),
+     each connector line fills (scaleY) via view().
+     ============================================================ */
+  .d7-wrap {
+    overflow-y: scroll;
+    height: 340px;
+    padding: 1.25rem 1.5rem 2.5rem;
+  }
+  .d7-step {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 1rem;
+  }
+  .d7-left { display: flex; flex-direction: column; align-items: center; }
+
+  .d7-num {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    border: 2px solid var(--line);
+    color: var(--ink-faint);
+    background: oklch(0.19 0.04 264);
+    animation: d7-num-glow linear both;
+    animation-timeline: view();
+    animation-range: entry 15% entry 65%;
+  }
+  @keyframes d7-num-glow {
+    from { border-color: oklch(0.45 0.05 264 / 0.35); color: var(--ink-faint); background: oklch(0.19 0.04 264); box-shadow: none; }
+    to   { border-color: var(--cyan); color: var(--cyan); background: oklch(0.84 0.13 200 / 0.10); box-shadow: 0 0 16px oklch(0.84 0.13 200 / 0.28); }
+  }
+  .d7-connector {
+    width: 2px;
+    flex: 1;
+    min-height: 2.25rem;
+    margin: 0.2rem 0;
+    transform-origin: top;
+    animation: d7-line-fill linear both;
+    animation-timeline: view();
+    animation-range: entry 25% entry 85%;
+  }
+  @keyframes d7-line-fill {
+    from { background: oklch(0.45 0.05 264 / 0.3); transform: scaleY(0); }
+    to   { background: linear-gradient(to bottom, var(--cyan), var(--violet)); transform: scaleY(1); }
+  }
+  .d7-content {
+    padding: 0.5rem 0 2.75rem;
+    animation: d7-content-in linear both;
+    animation-timeline: view();
+    animation-range: entry 5% entry 60%;
+  }
+  @keyframes d7-content-in {
+    from { opacity: 0; transform: translateX(14px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .d7-title { font-size: 0.93rem; font-weight: 700; margin-bottom: 0.2rem; letter-spacing: -0.01em; }
+  .d7-desc  { font-size: 0.78rem; color: var(--ink-dim); line-height: 1.55; }
+  .d7-tag {
+    display: inline-block;
+    margin-top: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    padding: 0.18rem 0.55rem;
+    border-radius: 999px;
+    letter-spacing: 0.06em;
+  }
+  .d7-tag.c { background: oklch(0.84 0.13 200 / 0.12); color: var(--cyan);   border: 1px solid oklch(0.84 0.13 200 / 0.25); }
+  .d7-tag.v { background: oklch(0.72 0.16 295 / 0.12); color: var(--violet); border: 1px solid oklch(0.72 0.16 295 / 0.25); }
+  .d7-tag.l { background: oklch(0.88 0.18 135 / 0.12); color: var(--lime);   border: 1px solid oklch(0.88 0.18 135 / 0.25); }
+  .d7-tag.a { background: oklch(0.82 0.16 70  / 0.12); color: var(--amber);  border: 1px solid oklch(0.82 0.16 70  / 0.25); }
+  @media (prefers-reduced-motion: reduce) {
+    .d7-num, .d7-connector, .d7-content { animation: none; }
+    .d7-num { border-color: var(--cyan); color: var(--cyan); }
+    .d7-connector { background: var(--violet); transform: none; }
+  }
+
+  /* ============================================================
+     DEMO 8 — Scroll-driven colour theme shift
+     @property registers --hue as an animatable angle.
+     scroll() drives it 0→360. Every oklch() value on the
+     page inherits the hue — the entire palette rotates as
+     you scroll. One keyframe. Zero JS.
+     ============================================================ */
+  @property --page-hue {
+    syntax: "<angle>";
+    inherits: true;
+    initial-value: 200deg;
+  }
+  .d8-outer {
+    scroll-timeline-name: --d8;
+    scroll-timeline-axis: block;
+    overflow-y: scroll;
+    height: 320px;
+    border-radius: 12px;
+    animation: d8-hue-spin linear both;
+    animation-timeline: --d8;
+  }
+  @keyframes d8-hue-spin {
+    from { --page-hue: 200deg; }
+    to   { --page-hue: 560deg; } /* 360+200 so it completes a full circle */
+  }
+  .d8-content {
+    padding: 1.25rem 1.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .d8-swatch-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .d8-swatch {
+    height: 52px;
+    flex: 1 1 60px;
+    border-radius: 10px;
+    border: 1px solid oklch(0.45 0.05 var(--page-hue) / 0.3);
+  }
+  .d8-swatch:nth-child(1) { background: oklch(0.55 0.2  calc(var(--page-hue))); }
+  .d8-swatch:nth-child(2) { background: oklch(0.55 0.2  calc(var(--page-hue) + 40deg)); }
+  .d8-swatch:nth-child(3) { background: oklch(0.55 0.2  calc(var(--page-hue) + 80deg)); }
+  .d8-swatch:nth-child(4) { background: oklch(0.55 0.2  calc(var(--page-hue) + 120deg)); }
+  .d8-swatch:nth-child(5) { background: oklch(0.55 0.2  calc(var(--page-hue) + 160deg)); }
+  .d8-swatch:nth-child(6) { background: oklch(0.55 0.2  calc(var(--page-hue) + 200deg)); }
+  .d8-title-el {
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: oklch(0.88 0.18 var(--page-hue));
+    text-shadow: 0 0 40px oklch(0.6 0.22 var(--page-hue) / 0.45);
+    transition: none;
+  }
+  .d8-body-el {
+    font-size: 0.85rem;
+    color: oklch(0.74 0.06 var(--page-hue));
+    line-height: 1.7;
+    max-width: 55ch;
+  }
+  .d8-badge {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    letter-spacing: 0.08em;
+    background: oklch(0.55 0.2 var(--page-hue) / 0.15);
+    border: 1px solid oklch(0.55 0.2 var(--page-hue) / 0.3);
+    color: oklch(0.84 0.16 var(--page-hue));
+  }
+  .d8-hint {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: oklch(0.5 0.05 var(--page-hue));
+    margin-top: 0.25rem;
+  }
+  @media (prefers-reduced-motion: reduce) { .d8-outer { animation: none; } }
+
+  /* ============================================================
+     DEMO 9 — Scroll-peeled sticky label
+     A "sticker" starts 100% opaque & scale(1) at the top of
+     its zone. As the user scrolls past it, it peels up
+     (rotateX + scaleY) and vanishes — a contain-range
+     animation runs during the fully-visible phase.
+     ============================================================ */
+  .d9-outer {
+    overflow-y: scroll;
+    height: 320px;
+    border-radius: 12px;
+  }
+  .d9-scene {
+    height: 900px;
+    padding: 1.5rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.6rem;
+  }
+  .d9-zone {
+    perspective: 600px;
+    perspective-origin: 50% 0%;
+  }
+  .d9-sticker {
+    transform-origin: top center;
+    border-radius: 14px;
+    padding: 1.1rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid oklch(0.45 0.05 264 / 0.3);
+    animation: d9-peel linear both;
+    animation-timeline: view();
+    animation-range: contain 0% exit 80%;
+  }
+  .d9-sticker:nth-child(1) { background: oklch(0.84 0.13 200 / 0.12); }
+  .d9-sticker:nth-child(2) { background: oklch(0.72 0.16 295 / 0.12); }
+  .d9-sticker:nth-child(3) { background: oklch(0.74 0.13 25  / 0.12); }
+  .d9-sticker:nth-child(4) { background: oklch(0.88 0.18 135 / 0.12); }
+  .d9-sticker:nth-child(5) { background: oklch(0.82 0.16 70  / 0.12); }
+  @keyframes d9-peel {
+    0%   { transform: rotateX(0deg)   scaleY(1);    opacity: 1; }
+    70%  { transform: rotateX(0deg)   scaleY(1);    opacity: 1; }
+    100% { transform: rotateX(-88deg) scaleY(0.15); opacity: 0; }
+  }
+  .d9-emo  { font-size: 1.6rem; flex-shrink: 0; }
+  .d9-sticker-title { font-size: 0.88rem; font-weight: 700; }
+  .d9-sticker-sub   { font-size: 0.72rem; color: var(--ink-dim); }
+  @media (prefers-reduced-motion: reduce) { .d9-sticker { animation: none; } }
+
+  /* ============================================================
+     DEMO 10 — Warp-speed starfield
+     Named scroll-timeline on a container. Stars are absolutely
+     positioned spans. Their animation: star-warp drives scaleX
+     from 1→20 + opacity fade, so they streak from tiny dots
+     into light-speed trails as you scroll.
+     ============================================================ */
+  .d10-outer {
+    scroll-timeline-name: --d10;
+    overflow-y: scroll;
+    height: 320px;
+    border-radius: 12px;
+    background: #000;
+    position: relative;
+    cursor: ns-resize;
+  }
+  .d10-tunnel {
+    height: 1200px;
+    position: relative;
+    overflow: hidden;
+  }
+  .d10-star {
+    position: absolute;
+    height: 2px;
+    border-radius: 2px;
+    transform-origin: left center;
+    animation: d10-streak linear both;
+    animation-timeline: --d10;
+  }
+  @keyframes d10-streak {
+    0%   { transform: scaleX(1);  opacity: 0.9; }
+    100% { transform: scaleX(22); opacity: 0; }
+  }
+  /* 40 stars via inline style for position/size variation */
+  @media (prefers-reduced-motion: reduce) { .d10-star { animation: none; } }
+  .d10-label {
+    position: sticky;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+    pointer-events: none;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.18);
+    z-index: 2;
+  }
+
+  /* ============================================================
+     DEMO 11 — Scroll-driven typewriter
+     @property --chars is a unitless integer. scroll() drives
+     it 0→N. clip-path on the text uses calc(--chars * 1ch)
+     to reveal exactly N characters. As you scroll, the
+     sentence types itself — scroll backward to erase it.
+     ============================================================ */
+  @property --chars {
+    syntax: "<integer>";
+    inherits: false;
+    initial-value: 0;
+  }
+  .d11-outer {
+    scroll-timeline-name: --d11;
+    overflow-y: scroll;
+    height: 320px;
+    border-radius: 12px;
+    position: relative;
+  }
+  .d11-scene {
+    height: 1100px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .d11-line {
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+  /* The clipping trick: overflow hidden + inline-block + max-width driven by --chars */
+  .d11-text {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: bottom;
+    animation: d11-type linear both;
+    animation-timeline: --d11;
+  }
+  .d11-line:nth-child(1) .d11-text { animation-range: 0%    18%; color: var(--cyan);   }
+  .d11-line:nth-child(2) .d11-text { animation-range: 18%   36%; color: var(--violet); }
+  .d11-line:nth-child(3) .d11-text { animation-range: 36%   54%; color: var(--lime);   }
+  .d11-line:nth-child(4) .d11-text { animation-range: 54%   72%; color: var(--coral);  }
+  .d11-line:nth-child(5) .d11-text { animation-range: 72%  100%; color: var(--amber);  }
+  @keyframes d11-type {
+    from { max-width: 0ch; }
+    to   { max-width: 100%; }
+  }
+  .d11-cursor {
+    display: inline-block;
+    width: 0.55em; height: 1.1em;
+    background: currentColor;
+    vertical-align: bottom;
+    margin-left: 1px;
+    animation: d11-blink 0.9s step-end infinite;
+  }
+  @keyframes d11-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  @media (prefers-reduced-motion: reduce) {
+    .d11-text { animation: none; max-width: 100%; }
+    .d11-cursor { animation: none; }
+  }
+
+  /* ============================================================
+     DEMO 12 — 3D card deck reveal
+     A stack of cards each starts rotated away (rotateY -90deg)
+     and buried beneath the others (z-index, translateZ).
+     view() + staggered animation-range pops them into place
+     one at a time as you scroll, like dealing cards face-up.
+     ============================================================ */
+  .d12-outer {
+    overflow-y: scroll;
+    height: 360px;
+    padding: 1rem 1rem 3rem;
+    perspective: 1200px;
+    perspective-origin: 50% 40%;
+  }
+  .d12-deck {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    align-items: center;
+  }
+  .d12-card {
+    width: min(380px, 100%);
+    border-radius: 16px;
+    padding: 1.1rem 1.3rem;
+    border: 1px solid oklch(0.45 0.05 264 / 0.3);
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    animation: d12-deal linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 70%;
+  }
+  @keyframes d12-deal {
+    from {
+      opacity: 0;
+      transform: rotateY(-72deg) translateX(-40px) scale(0.88);
+    }
+    to {
+      opacity: 1;
+      transform: rotateY(0deg)   translateX(0)    scale(1);
+    }
+  }
+  .d12-card:nth-child(odd)  { transform-origin: right center; }
+  .d12-card:nth-child(odd) { animation-name: d12-deal-right; }
+  @keyframes d12-deal-right {
+    from { opacity:0; transform: rotateY(72deg) translateX(40px) scale(0.88); }
+    to   { opacity:1; transform: rotateY(0deg)  translateX(0)    scale(1);    }
+  }
+  .d12-card:nth-child(1) { background: oklch(0.22 0.06 200); }
+  .d12-card:nth-child(2) { background: oklch(0.22 0.06 295); }
+  .d12-card:nth-child(3) { background: oklch(0.22 0.06 25); }
+  .d12-card:nth-child(4) { background: oklch(0.22 0.06 135); }
+  .d12-card:nth-child(5) { background: oklch(0.22 0.06 70); }
+  .d12-card-suit   { font-size: 1.8rem; margin-bottom: 0.3rem; }
+  .d12-card-title  { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.15rem; }
+  .d12-card-body   { font-size: 0.77rem; color: var(--ink-dim); line-height: 1.55; }
+  @media (prefers-reduced-motion: reduce) { .d12-card { animation: none; } }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 4.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line-soft);
+    color: var(--ink-faint);
+    font-size: 0.85rem;
+    font-family: var(--font-mono);
+  }
+  footer a { color: var(--cyan); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="eyebrow">◇ Pattern Lab · Scroll Animation</span>
+    <h1>CSS <code>scroll-timeline</code> Lab</h1>
+    <p class="lede">
+      <strong>Scroll-driven animations</strong> arrived natively in 2023. Link any
+      <code>@keyframes</code> animation to scroll position using
+      <code>animation-timeline: scroll()</code> for container progress, or
+      <code>animation-timeline: view()</code> to animate elements as they enter the
+      viewport — no JavaScript, no <code>IntersectionObserver</code>, no
+      <code>requestAnimationFrame</code>.
+    </p>
+    <div class="callout amber">
+      <strong>Browser support (2026):</strong> Chrome 115+, Edge 115+, Firefox 127+, Safari 18+.
+      Guard with <code>@supports (animation-timeline: scroll())</code> for older engines.
+      All seven demos below run natively in any of those.
+    </div>
+  </header>
+
+  <!-- ============== DEMO 1 ============== -->
+  <section>
+    <p class="label">Demo 01 — scroll progress</p>
+    <h2>Reading progress bar <span class="n">scroll-timeline-name</span></h2>
+    <p class="note">
+      <code>scroll-timeline-name</code> gives a scrollable container an identity. The
+      sticky gradient bar inside reads that identity via
+      <code>animation-timeline: --reader</code> and grows from 0 → 100% with a plain
+      <code>scaleX</code> keyframe. No event listeners, no main-thread work.
+      <em>(Scroll the text ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d1-wrap">
+          <div class="d1-bar-track"><div class="d1-bar"></div></div>
+          <div class="d1-article">
+            <h3>The case for scroll-driven animations</h3>
+            <p>Before <code>animation-timeline</code>, every scroll-linked effect required
+            JavaScript — a scroll event listener, throttling with
+            <code>requestAnimationFrame</code>, manual progress calculation, and DOM updates on
+            every tick. A reading-progress bar was 30+ lines of JS that ran on the main thread and
+            competed with everything else the browser was doing.</p>
+            <h3>The new model: scroll replaces time</h3>
+            <p>Now you assign a scroll container a name — <code>scroll-timeline-name: --reader</code>
+            — and point any animation at it: <code>animation-timeline: --reader</code>. The browser
+            wires them together on the compositor thread. The scroll position becomes the clock hand;
+            the keyframe percentage becomes the scroll percentage.</p>
+            <h3>Anonymous timelines</h3>
+            <p>For the simplest cases you don't even need a name.
+            <code>animation-timeline: scroll()</code> automatically uses the nearest scrollable
+            ancestor. <code>animation-timeline: view()</code> tracks how much of the element is
+            visible within that ancestor — the foundation of every scroll-reveal animation.</p>
+            <h3>Named timelines and timeline-scope</h3>
+            <p><code>scroll-timeline-name</code> + <code>timeline-scope</code> on a common ancestor
+            lets a scrollable element share its progress with elements that live elsewhere in the DOM
+            tree — even siblings or cousins. This is what powers the horizontal-scroll gauge demo
+            and the multi-axis 3D experiments from the CSS-Tricks article.</p>
+            <h3>animation-range</h3>
+            <p>By default the animation covers the full scroll range. Use
+            <code>animation-range: entry 0% entry 60%</code> to fire only as the element enters the
+            viewport, or <code>contain</code> to fire only while it's fully visible.
+            The range keywords — <code>entry</code>, <code>exit</code>, <code>contain</code>,
+            <code>cover</code> — give you surgical control over exactly which slice of scroll
+            drives which slice of the animation.</p>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead scroll">↕ named scroll-timeline on the container</div>
+<pre class="code"><span class="s">.container</span> {
+  <span class="p">scroll-timeline-name</span>: <span class="v">--reader</span>;
+  <span class="p">scroll-timeline-axis</span>: <span class="v">block</span>;
+  <span class="p">overflow-y</span>: <span class="v">scroll</span>;
+}
+<span class="s">.bar</span> {
+  <span class="p">position</span>: <span class="v">sticky</span>; <span class="p">top</span>: <span class="v">0</span>;
+  <span class="p">transform-origin</span>: <span class="v">left</span>;
+  <span class="p">animation</span>: <span class="v">fill linear both</span>;
+  <span class="p">animation-timeline</span>: <span class="v">--reader</span>;
+}</pre>
+        </div>
+        <div>
+          <div class="codehead view">◈ keyframe + scaleX trick</div>
+<pre class="code"><span class="p">@keyframes</span> fill {
+  <span class="v">from</span> { <span class="p">transform</span>: <span class="v">scaleX(0)</span> }
+  <span class="v">to</span>   { <span class="p">transform</span>: <span class="v">scaleX(1)</span> }
+}
+<span class="c">/* animation-fill-mode: both (via
+   the "both" shorthand keyword)
+   holds the 0% state before the
+   scroll starts and 100% after */</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 2 ============== -->
+  <section>
+    <p class="label">Demo 02 — view progress</p>
+    <h2>Scroll-reveal entrance <span class="n">animation-timeline: view()</span></h2>
+    <p class="note">
+      <code>view()</code> creates a <em>view progress timeline</em>: the animation advances as
+      the element travels through its scroll container's visible area.
+      <code>animation-range: entry 0% entry 60%</code> fires only on entry — elements
+      stay visible after they arrive. <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d2-wrap">
+          <div class="d2-card">
+            <div class="d2-icon" style="background:oklch(0.84 0.13 200 / 0.14)">🧭</div>
+            <div>
+              <div class="d2-title">IntersectionObserver — before</div>
+              <div class="d2-sub">≈25 lines of JS, callback setup, threshold tuning</div>
+            </div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-icon" style="background:oklch(0.72 0.16 295 / 0.14)">✨</div>
+            <div>
+              <div class="d2-title">animation-timeline: view()</div>
+              <div class="d2-sub">One CSS property replaces all of that</div>
+            </div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-icon" style="background:oklch(0.88 0.18 135 / 0.14)">🎯</div>
+            <div>
+              <div class="d2-title">animation-range</div>
+              <div class="d2-sub">Surgically control which slice of scroll fires the animation</div>
+            </div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-icon" style="background:oklch(0.74 0.13 25 / 0.14)">⚡</div>
+            <div>
+              <div class="d2-title">Compositor-thread only</div>
+              <div class="d2-sub">Zero JS. Doesn't compete with scroll events.</div>
+            </div>
+          </div>
+          <div class="d2-card">
+            <div class="d2-icon" style="background:oklch(0.82 0.16 70 / 0.14)">📦</div>
+            <div>
+              <div class="d2-title">No library required</div>
+              <div class="d2-sub">AOS, ScrollReveal, GSAP ScrollTrigger — all optional now</div>
+            </div>
+          </div>
+        </div>
+        <span class="scroll-hint">scroll ↓</span>
+      </div>
+<pre class="code"><span class="s">.card</span> {
+  <span class="p">animation</span>: <span class="v">reveal linear both</span>;
+  <span class="p">animation-timeline</span>: <span class="v">view()</span>;
+  <span class="p">animation-range</span>: <span class="v">entry 0% entry 60%</span>;
+}
+<span class="p">@keyframes</span> reveal {
+  <span class="v">from</span> { <span class="p">opacity</span>:<span class="v">0</span>; <span class="p">transform</span>:<span class="v">translateY(22px)</span> }
+  <span class="v">to</span>   { <span class="p">opacity</span>:<span class="v">1</span>; <span class="p">transform</span>:<span class="v">translateY(0)</span> }
+}
+<span class="c">/* view() auto-discovers the nearest
+   overflow:scroll ancestor as the scroller */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 3 ============== -->
+  <section>
+    <p class="label">Demo 03 — multi-layer scroll</p>
+    <h2>CSS parallax <span class="n">named timeline + layer depth</span></h2>
+    <p class="note">
+      One named scroll timeline drives three layers simultaneously — each with a different
+      <code>translateY</code> endpoint. Because each layer is position:absolute, a positive
+      <code>translateY</code> <em>counteracts</em> the viewport moving up, making it appear to
+      move more slowly. Stars barely drift. The ground nearly keeps pace. Depth is pure
+      arithmetic in <code>@keyframes</code>. <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d3-outer">
+          <div class="d3-scene">
+            <div class="d3-stars"></div>
+            <div class="d3-mtn-far"></div>
+            <div class="d3-mtn-near"></div>
+            <div class="d3-ground"></div>
+            <div class="d3-hint">scroll ↓</div>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead scroll">↕ one scroll source, three depths</div>
+<pre class="code"><span class="s">.scene</span> { <span class="p">scroll-timeline-name</span>: <span class="v">--scene</span>; }
+<span class="c">/* positive translateY counters upward
+   scroll — larger value = slower layer */</span>
+<span class="s">.stars</span>    { <span class="p">animation-timeline</span>: <span class="v">--scene</span> }
+<span class="s">.mtn-far</span>  { <span class="p">animation-timeline</span>: <span class="v">--scene</span> }
+<span class="s">.mtn-near</span> { <span class="p">animation-timeline</span>: <span class="v">--scene</span> }
+<span class="s">.ground</span>   { <span class="p">animation-timeline</span>: <span class="v">--scene</span> }</pre>
+        </div>
+        <div>
+          <div class="codehead view">◈ depth ∝ keyframe translateY</div>
+<pre class="code"><span class="p">@keyframes</span> d3-stars    <span class="c">/* slowest  */</span>
+  { to{ <span class="p">transform</span>:<span class="v">translateY(360px)</span> } }
+<span class="p">@keyframes</span> d3-mtn-far
+  { to{ <span class="p">transform</span>:<span class="v">translateY(200px)</span> } }
+<span class="p">@keyframes</span> d3-mtn-near
+  { to{ <span class="p">transform</span>:<span class="v">translateY(90px)</span>  } }
+<span class="p">@keyframes</span> d3-ground   <span class="c">/* fastest  */</span>
+  { to{ <span class="p">transform</span>:<span class="v">translateY(20px)</span>  } }</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 4 ============== -->
+  <section>
+    <p class="label">Demo 04 — axis control + timeline-scope</p>
+    <h2>Horizontal scroll drives a gauge <span class="n">scroll-timeline-axis: inline</span></h2>
+    <p class="note">
+      <code>scroll-timeline-axis: inline</code> tracks horizontal scroll. The gauge is a
+      <em>sibling's</em> descendant — it can't inherit the timeline directly. The fix:
+      <code>timeline-scope: --d4</code> on the shared parent lifts the named timeline up so
+      both the strip and the gauge can see it. <em>(Drag the strip →)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="background: none;">
+        <div class="d4-outer">
+          <div class="d4-hstrip">
+            <div class="d4-track">
+              <div class="d4-item"><span class="emo">📜</span>scroll()</div>
+              <div class="d4-item"><span class="emo">👁️</span>view()</div>
+              <div class="d4-item"><span class="emo">🏷️</span>timeline-name</div>
+              <div class="d4-item"><span class="emo">📐</span>timeline-axis</div>
+              <div class="d4-item"><span class="emo">🔭</span>timeline-scope</div>
+              <div class="d4-item"><span class="emo">📏</span>animation-range</div>
+              <div class="d4-item"><span class="emo">🎞️</span>@keyframes</div>
+              <div class="d4-item"><span class="emo">⚡</span>60fps native</div>
+            </div>
+          </div>
+          <div class="d4-gauge-wrap">
+            <div class="d4-gauge-label">Scroll progress ←→</div>
+            <div class="d4-gauge-track">
+              <div class="d4-gauge-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead scope">⬡ timeline-scope lifts the name</div>
+<pre class="code"><span class="s">.outer</span> {
+  <span class="p">timeline-scope</span>: <span class="v">--hscroll</span>;
+}
+<span class="s">.strip</span> {
+  <span class="p">overflow-x</span>: <span class="v">scroll</span>;
+  <span class="p">scroll-timeline-name</span>: <span class="v">--hscroll</span>;
+  <span class="p">scroll-timeline-axis</span>: <span class="v">inline</span>;
+}</pre>
+        </div>
+        <div>
+          <div class="codehead view">◈ gauge reads across the DOM</div>
+<pre class="code"><span class="s">.gauge-fill</span> {
+  <span class="p">transform-origin</span>: <span class="v">left</span>;
+  <span class="p">animation</span>: <span class="v">fill linear both</span>;
+  <span class="p">animation-timeline</span>: <span class="v">--hscroll</span>;
+  <span class="c">/* sibling's descendant — works because
+     timeline-scope is on the shared parent */</span>
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 5 ============== -->
+  <section>
+    <p class="label">Demo 05 — design pattern</p>
+    <h2>Vertical event timeline <span class="n">view() + alternating reveal</span></h2>
+    <p class="note">
+      The classic "history timeline" UI pattern upgraded with scroll-driven entrances.
+      Odd events slide from the left, even from the right — two <code>@keyframes</code>
+      applied via <code>:nth-child</code>. The spine and glow nodes are pure
+      <code>::before</code> / <code>::after</code> pseudo-elements. No layout library.
+      <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d5-wrap">
+          <ul class="d5-timeline">
+            <li class="d5-event">
+              <div class="d5-card">
+                <div class="d5-year">2018</div>
+                <div class="d5-title">scroll event listeners</div>
+                <div class="d5-desc">JS-only. Main thread. Jank guaranteed. Everyone throttled with rAF anyway.</div>
+              </div>
+            </li>
+            <li class="d5-event">
+              <div class="d5-card">
+                <div class="d5-year">2020</div>
+                <div class="d5-title">IntersectionObserver v2</div>
+                <div class="d5-desc">Async, off-main-thread. Tells you <em>if</em> something is visible, not <em>how much</em>.</div>
+              </div>
+            </li>
+            <li class="d5-event">
+              <div class="d5-card">
+                <div class="d5-year">2022</div>
+                <div class="d5-title">Scroll-driven Animations spec</div>
+                <div class="d5-desc">CSS WG publishes the spec. Developers everywhere hold their breath.</div>
+              </div>
+            </li>
+            <li class="d5-event">
+              <div class="d5-card">
+                <div class="d5-year">2023</div>
+                <div class="d5-title">Chrome 115 ships it</div>
+                <div class="d5-desc"><code style="font-family:monospace;font-size:0.85em">animation-timeline: scroll()</code> and <code style="font-family:monospace;font-size:0.85em">view()</code> land. Compositor-thread. Zero JS.</div>
+              </div>
+            </li>
+            <li class="d5-event">
+              <div class="d5-card">
+                <div class="d5-year">2024</div>
+                <div class="d5-title">Firefox 127 + Safari 18</div>
+                <div class="d5-desc">Cross-browser. GSAP ScrollTrigger is now optional, not required.</div>
+              </div>
+            </li>
+            <li class="d5-event">
+              <div class="d5-card">
+                <div class="d5-year">2026</div>
+                <div class="d5-title">You are here</div>
+                <div class="d5-desc">This demo was built with zero JavaScript. The future already arrived.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+        <span class="scroll-hint">scroll ↓</span>
+      </div>
+<pre class="code"><span class="s">.event</span>               { <span class="p">animation</span>: <span class="v">enter-left  linear both</span>; <span class="p">animation-timeline</span>: <span class="v">view()</span> }
+<span class="s">.event:nth-child(even)</span> { <span class="p">animation-name</span>: <span class="v">enter-right</span> }
+<span class="p">@keyframes</span> enter-left  { <span class="v">from</span>{ <span class="p">opacity</span>:<span class="v">0</span>; <span class="p">transform</span>:<span class="v">translateX(-28px)</span> } }
+<span class="p">@keyframes</span> enter-right { <span class="v">from</span>{ <span class="p">opacity</span>:<span class="v">0</span>; <span class="p">transform</span>:<span class="v">translateX(28px)</span>  } }
+<span class="c">/* two keyframes × :nth-child = alternating sides — no JS */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 6 ============== -->
+  <section>
+    <p class="label">Demo 06 — chat UI</p>
+    <h2>Conversation timeline <span class="n">per-bubble view() entrance</span></h2>
+    <p class="note">
+      Each message bubble uses <code>animation-timeline: view()</code> with direction-aware
+      keyframes: their messages slide from <code>−X</code>, yours from <code>+X</code>, both
+      with a subtle <code>scale(0.94)</code> pop. The phone chrome, typing indicator, bubble
+      tails, and dot animation are all pure CSS. <em>(Scroll ↓ inside the phone)</em>
+    </p>
+    <div class="card">
+      <div class="stage">
+        <div class="d6-phone">
+          <!-- Status bar -->
+          <div class="d6-statusbar">
+            <span class="d6-time">9:41</span>
+            <div class="d6-status-icons">
+              <span>●●●</span>
+              <span>WiFi</span>
+              <span>🔋</span>
+            </div>
+          </div>
+          <!-- Contact header -->
+          <div class="d6-header">
+            <span class="d6-back">‹</span>
+            <div class="d6-avatar">🧙</div>
+            <div>
+              <div class="d6-contact-name">CSS Wizard</div>
+              <div class="d6-contact-sub">scroll to reveal ↓</div>
+            </div>
+          </div>
+          <!-- Messages -->
+          <div class="d6-messages">
+            <div class="d6-date">Today 9:31 AM</div>
+
+            <div class="d6-msg them">
+              <div class="d6-bubble">yo did you see scroll-timeline has real cross-browser support now?</div>
+              <div class="d6-ts">9:31</div>
+            </div>
+            <div class="d6-msg me">
+              <div class="d6-bubble">WAIT. finally??</div>
+              <div class="d6-ts">9:32</div>
+            </div>
+            <div class="d6-msg them">
+              <div class="d6-bubble">Chrome 115, Firefox 127, Safari 18. it's everywhere</div>
+            </div>
+            <div class="d6-msg me">
+              <div class="d6-bubble">so we can ditch the IntersectionObserver hacks??</div>
+            </div>
+            <div class="d6-msg them">
+              <div class="d6-bubble">pretty much. <span class="d6-code-inline">view()</span> tracks element visibility in the scroller natively</div>
+            </div>
+            <div class="d6-msg me">
+              <div class="d6-bubble">and it's just… <span class="d6-code-inline">animation-timeline: view();</span></div>
+            </div>
+            <div class="d6-msg them">
+              <div class="d6-bubble">one property. no JS. no libraries. compositor-thread.</div>
+            </div>
+            <div class="d6-msg me">
+              <div class="d6-bubble">this changes everything</div>
+              <div class="d6-ts">9:34</div>
+            </div>
+            <div class="d6-msg them">
+              <div class="d6-bubble">calm down lol</div>
+            </div>
+            <div class="d6-msg me">
+              <div class="d6-bubble">no i will not calm down. scroll-driven parallax. IN. PURE. CSS. 😤</div>
+            </div>
+            <div class="d6-msg them">
+              <div class="d6-bubble">did you see the multi-axis 3D demo? scrolling X rotates horizontal, scrolling Y rotates vertical. at the same time.</div>
+            </div>
+            <div class="d6-msg me">
+              <div class="d6-bubble"><span class="d6-code-inline">timeline-scope</span> on the body + two named scroll timelines?</div>
+            </div>
+            <div class="d6-msg them">
+              <div class="d6-bubble">exactly. and the model just… follows</div>
+            </div>
+            <div class="d6-msg me">
+              <div class="d6-bubble">my brain is melting 🤯</div>
+              <div class="d6-ts">9:36</div>
+            </div>
+            <div class="d6-msg them">
+              <div class="d6-bubble">🤌</div>
+            </div>
+            <div class="d6-msg me">
+              <div class="d6-bubble">ok going to go build something immediately</div>
+            </div>
+            <div class="d6-msg them">
+              <div class="d6-bubble">same honestly. send me whatever you make</div>
+            </div>
+            <div class="d6-typing">
+              <div class="d6-bubble">
+                <div class="d6-dot"></div>
+                <div class="d6-dot"></div>
+                <div class="d6-dot"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Input bar -->
+          <div class="d6-input-row">
+            <input class="d6-input-field" type="text" placeholder="iMessage" disabled />
+            <button class="d6-send">↑</button>
+          </div>
+        </div>
+      </div>
+<pre class="code"><span class="s">.msg.them</span> { <span class="p">animation</span>: <span class="v">slide-left  linear both</span>; <span class="p">animation-timeline</span>: <span class="v">view()</span> }
+<span class="s">.msg.me</span>   { <span class="p">animation</span>: <span class="v">slide-right linear both</span>; <span class="p">animation-timeline</span>: <span class="v">view()</span> }
+<span class="p">@keyframes</span> slide-left  { <span class="v">from</span>{ <span class="p">transform</span>:<span class="v">translateX(-14px) scale(.94)</span>; <span class="p">opacity</span>:<span class="v">0</span> } }
+<span class="p">@keyframes</span> slide-right { <span class="v">from</span>{ <span class="p">transform</span>:<span class="v">translateX(14px)  scale(.94)</span>; <span class="p">opacity</span>:<span class="v">0</span> } }
+<span class="c">/* .d6-messages { overflow-y: scroll } is the scroll container.
+   view() auto-discovers it — no scroll-timeline-name needed. */</span></pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 7 ============== -->
+  <section>
+    <p class="label">Demo 07 — progress tracker</p>
+    <h2>Step progress <span class="n">per-node view() activation</span></h2>
+    <p class="note">
+      Each step node activates — border glow, colour shift, background tint — as it enters
+      the visible area via <code>animation-timeline: view()</code>. The connector line below
+      each node fills with a separate <code>scaleY</code> animation on the same timeline,
+      with a slightly later <code>animation-range</code> so the fill trails the node activation.
+      No scroll event. No JavaScript. <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d7-wrap">
+
+          <div class="d7-step">
+            <div class="d7-left">
+              <div class="d7-num">1</div>
+              <div class="d7-connector"></div>
+            </div>
+            <div class="d7-content">
+              <div class="d7-title">Define the scroll container</div>
+              <div class="d7-desc">Any element with <code style="font-family:monospace;font-size:0.85em">overflow: scroll</code> or <code style="font-family:monospace;font-size:0.85em">auto</code> can source a scroll timeline. The browser tracks its scroll position automatically.</div>
+              <span class="d7-tag c">overflow: scroll</span>
+            </div>
+          </div>
+
+          <div class="d7-step">
+            <div class="d7-left">
+              <div class="d7-num">2</div>
+              <div class="d7-connector"></div>
+            </div>
+            <div class="d7-content">
+              <div class="d7-title">Name it (optional)</div>
+              <div class="d7-desc">Assign a <code style="font-family:monospace;font-size:0.85em">scroll-timeline-name</code> if you need to target the timeline from outside the container, or to share it across elements with <code style="font-family:monospace;font-size:0.85em">timeline-scope</code>. Skip it for <code style="font-family:monospace;font-size:0.85em">view()</code> — it auto-discovers its nearest scroll ancestor.</div>
+              <span class="d7-tag v">scroll-timeline-name</span>
+            </div>
+          </div>
+
+          <div class="d7-step">
+            <div class="d7-left">
+              <div class="d7-num">3</div>
+              <div class="d7-connector"></div>
+            </div>
+            <div class="d7-content">
+              <div class="d7-title">Write a normal @keyframes</div>
+              <div class="d7-desc">Scroll timelines consume any existing keyframe animation unchanged. The only conceptual shift is that scroll position drives the progress percentage instead of elapsed time.</div>
+              <span class="d7-tag l">@keyframes</span>
+            </div>
+          </div>
+
+          <div class="d7-step">
+            <div class="d7-left">
+              <div class="d7-num">4</div>
+              <div class="d7-connector"></div>
+            </div>
+            <div class="d7-content">
+              <div class="d7-title">Set animation-timeline</div>
+              <div class="d7-desc">Point the animation at <code style="font-family:monospace;font-size:0.85em">scroll()</code>, <code style="font-family:monospace;font-size:0.85em">view()</code>, or a named timeline. Add <code style="font-family:monospace;font-size:0.85em">animation-fill-mode: both</code> to hold the start and end states.</div>
+              <span class="d7-tag c">animation-timeline</span>
+              <span class="d7-tag v" style="margin-left:0.3rem">fill-mode: both</span>
+            </div>
+          </div>
+
+          <div class="d7-step">
+            <div class="d7-left">
+              <div class="d7-num">5</div>
+            </div>
+            <div class="d7-content">
+              <div class="d7-title">Tune with animation-range</div>
+              <div class="d7-desc">Use <code style="font-family:monospace;font-size:0.85em">animation-range</code> to control <em>which slice</em> of scroll drives the animation. Keywords: <code style="font-family:monospace;font-size:0.85em">entry</code>, <code style="font-family:monospace;font-size:0.85em">exit</code>, <code style="font-family:monospace;font-size:0.85em">contain</code>, <code style="font-family:monospace;font-size:0.85em">cover</code> — plus arbitrary percentages.</div>
+              <span class="d7-tag a">animation-range</span>
+            </div>
+          </div>
+
+        </div>
+        <span class="scroll-hint">scroll ↓</span>
+      </div>
+<pre class="code"><span class="s">.step-num</span> {
+  <span class="p">animation</span>: <span class="v">activate linear both</span>;
+  <span class="p">animation-timeline</span>: <span class="v">view()</span>;
+  <span class="p">animation-range</span>: <span class="v">entry 15% entry 65%</span>;
+}
+<span class="s">.connector</span> {
+  <span class="p">animation</span>: <span class="v">line-fill linear both</span>;
+  <span class="p">animation-timeline</span>: <span class="v">view()</span>;
+  <span class="p">animation-range</span>: <span class="v">entry 25% entry 85%</span>;
+  <span class="c">/* later range = fill trails the node glow */</span>
+}</pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 8 ============== -->
+  <section>
+    <p class="label">Demo 08 — @property + scroll</p>
+    <h2>Palette rotation <span class="n">@property --hue + scroll()</span></h2>
+    <p class="note">
+      <code>@property</code> registers <code>--page-hue</code> as an animatable
+      <code>&lt;angle&gt;</code>. A single <code>scroll()</code> keyframe drives it from
+      <code>200deg → 560deg</code> (a full lap around the OKLCH wheel). Every colour on the
+      screen is expressed as <code>oklch(… var(--page-hue))</code>, so the entire palette
+      rotates in lockstep as you scroll — title, badges, swatches, body text.
+      One keyframe replaces a whole theme-switching system. <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d8-outer">
+          <div class="d8-content">
+            <div>
+              <div class="d8-title-el">Scroll to rotate</div>
+              <div class="d8-body-el">Every colour here is expressed as <code style="font-family:monospace;font-size:0.9em">oklch(L C var(--page-hue))</code>. The <code style="font-family:monospace;font-size:0.9em">@property</code> declaration makes the custom property animatable as a real CSS angle, so the browser can interpolate it through the colour wheel continuously.</div>
+            </div>
+            <div class="d8-swatch-row">
+              <div class="d8-swatch"></div>
+              <div class="d8-swatch"></div>
+              <div class="d8-swatch"></div>
+              <div class="d8-swatch"></div>
+              <div class="d8-swatch"></div>
+              <div class="d8-swatch"></div>
+            </div>
+            <div>
+              <span class="d8-badge">@property</span>
+              <span class="d8-badge" style="margin-left:0.4rem">scroll()</span>
+              <span class="d8-badge" style="margin-left:0.4rem">oklch</span>
+            </div>
+            <div class="d8-body-el">This is the same technique as the CSS-Tricks multi-axis 3D model — register animatable custom properties with <code style="font-family:monospace;font-size:0.9em">@property</code>, drive them with scroll timelines, and let the rest of the CSS inherit them. One scroll source can mutate an arbitrary number of derived values simultaneously.</div>
+            <div class="d8-hint">↑ scroll to see the full hue lap ↑</div>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead scroll">↕ register + animate the custom property</div>
+<pre class="code"><span class="k">@property</span> --page-hue {
+  <span class="p">syntax</span>: <span class="v">"&lt;angle&gt;"</span>;
+  <span class="p">inherits</span>: <span class="v">true</span>;    <span class="c">/* flows to children */</span>
+  <span class="p">initial-value</span>: <span class="v">200deg</span>;
+}
+<span class="s">.page</span> {
+  <span class="p">animation</span>: <span class="v">hue-spin linear both</span>;
+  <span class="p">animation-timeline</span>: <span class="v">scroll()</span>;
+}
+<span class="k">@keyframes</span> hue-spin {
+  <span class="v">from</span>{ <span class="p">--page-hue</span>: <span class="v">200deg</span> }
+  <span class="v">to</span>  { <span class="p">--page-hue</span>: <span class="v">560deg</span> }
+}</pre>
+        </div>
+        <div>
+          <div class="codehead view">◈ all colours inherit the hue</div>
+<pre class="code"><span class="s">h1</span>    { <span class="p">color</span>: <span class="v">oklch(0.88 0.18 var(--page-hue))</span> }
+<span class="s">.badge</span>{ <span class="p">background</span>: <span class="v">oklch(0.55 0.2
+         var(--page-hue) / 0.15)</span> }
+<span class="s">p</span>     { <span class="p">color</span>: <span class="v">oklch(0.74 0.06 var(--page-hue))</span> }
+<span class="c">/* Offset swatches with + N deg:
+   swatch:nth-child(2) uses
+   calc(var(--page-hue) + 40deg) */</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 9 ============== -->
+  <section>
+    <p class="label">Demo 09 — contain range</p>
+    <h2>Scroll-peel stickers <span class="n">animation-range: contain → exit</span></h2>
+    <p class="note">
+      Each card starts flat. As it exits the scroll container, a
+      <code>rotateX(-88deg) scaleY(0.15)</code> keyframe makes it peel backwards off the
+      screen — like a Post-it being lifted from a surface. The secret is
+      <code>animation-range: contain 0% exit 80%</code>: the animation holds at 0% while
+      the card is fully visible, then executes only during the exit phase.
+      <code>perspective</code> on the parent makes the 3D rotation visible. <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d9-outer">
+          <div class="d9-scene">
+            <div class="d9-zone">
+              <div class="d9-sticker"><div class="d9-emo">📜</div><div><div class="d9-sticker-title">contain 0%</div><div class="d9-sticker-sub">animation holds at 0% while element is fully in view</div></div></div>
+            </div>
+            <div class="d9-zone">
+              <div class="d9-sticker"><div class="d9-emo">🚪</div><div><div class="d9-sticker-title">exit 0%</div><div class="d9-sticker-sub">begins executing when the leading edge starts leaving</div></div></div>
+            </div>
+            <div class="d9-zone">
+              <div class="d9-sticker"><div class="d9-emo">🌀</div><div><div class="d9-sticker-title">rotateX + scaleY</div><div class="d9-sticker-sub">peel effect — perspective on parent gives depth</div></div></div>
+            </div>
+            <div class="d9-zone">
+              <div class="d9-sticker"><div class="d9-emo">🎛️</div><div><div class="d9-sticker-title">animation-range</div><div class="d9-sticker-sub">any two range keywords — mix entry, contain, exit, cover</div></div></div>
+            </div>
+            <div class="d9-zone">
+              <div class="d9-sticker"><div class="d9-emo">⚡</div><div><div class="d9-sticker-title">No JS</div><div class="d9-sticker-sub">Pure CSS. Compositor thread. Zero reflows.</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+<pre class="code"><span class="s">.sticker</span> {
+  <span class="p">transform-origin</span>: <span class="v">top center</span>;
+  <span class="p">animation</span>: <span class="v">peel linear both</span>;
+  <span class="p">animation-timeline</span>: <span class="v">view()</span>;
+  <span class="p">animation-range</span>: <span class="v">contain 0% exit 80%</span>; <span class="c">/* hold → then peel */</span>
+}
+<span class="k">@keyframes</span> peel {
+  <span class="v">0%, 70%</span> { <span class="p">transform</span>:<span class="v">rotateX(0)       scaleY(1)</span>;    <span class="p">opacity</span>:<span class="v">1</span> }
+  <span class="v">100%</span>   { <span class="p">transform</span>:<span class="v">rotateX(-88deg) scaleY(0.15)</span>; <span class="p">opacity</span>:<span class="v">0</span> }
+}</pre>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 10 ============== -->
+  <section>
+    <p class="label">Demo 10 — custom property + scaleX</p>
+    <h2>Warp-speed starfield <span class="n">scroll drives streak length</span></h2>
+    <p class="note">
+      40 star spans each start as a 2-pixel dot. A named scroll timeline drives
+      <code>scaleX(1 → 22)</code> + opacity fade. Scroll down: the stars stretch into
+      light-speed trails. Scroll back up: they contract back to pinpoints.
+      The depth illusion comes from varying each star's initial <code>width</code> and
+      <code>top/left</code> position with inline styles. Zero canvas, zero JS. <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d10-outer">
+          <div class="d10-tunnel">
+            <div class="d10-label">scroll ↓ to jump to warp</div>
+            <!-- 40 stars via inline-style position + width -->
+            <span class="d10-star" style="top:4%;  left:12%; width:3px;  background:rgba(255,255,255,0.9)"></span>
+            <span class="d10-star" style="top:7%;  left:55%; width:2px;  background:rgba(200,220,255,0.8)"></span>
+            <span class="d10-star" style="top:11%; left:81%; width:4px;  background:rgba(255,255,255,0.7)"></span>
+            <span class="d10-star" style="top:14%; left:23%; width:2px;  background:rgba(180,200,255,0.9)"></span>
+            <span class="d10-star" style="top:18%; left:68%; width:3px;  background:rgba(255,255,255,0.8)"></span>
+            <span class="d10-star" style="top:22%; left:9%;  width:2px;  background:rgba(220,230,255,0.7)"></span>
+            <span class="d10-star" style="top:25%; left:44%; width:5px;  background:rgba(255,255,255,0.9)"></span>
+            <span class="d10-star" style="top:29%; left:76%; width:2px;  background:rgba(200,220,255,0.8)"></span>
+            <span class="d10-star" style="top:33%; left:33%; width:3px;  background:rgba(255,240,200,0.9)"></span>
+            <span class="d10-star" style="top:36%; left:88%; width:2px;  background:rgba(255,255,255,0.7)"></span>
+            <span class="d10-star" style="top:40%; left:17%; width:4px;  background:rgba(180,210,255,0.8)"></span>
+            <span class="d10-star" style="top:43%; left:62%; width:2px;  background:rgba(255,255,255,0.9)"></span>
+            <span class="d10-star" style="top:47%; left:38%; width:3px;  background:rgba(220,220,255,0.7)"></span>
+            <span class="d10-star" style="top:50%; left:92%; width:2px;  background:rgba(255,255,255,0.8)"></span>
+            <span class="d10-star" style="top:54%; left:6%;  width:3px;  background:rgba(200,230,255,0.9)"></span>
+            <span class="d10-star" style="top:57%; left:51%; width:2px;  background:rgba(255,255,255,0.7)"></span>
+            <span class="d10-star" style="top:61%; left:74%; width:4px;  background:rgba(255,240,210,0.8)"></span>
+            <span class="d10-star" style="top:64%; left:28%; width:2px;  background:rgba(255,255,255,0.9)"></span>
+            <span class="d10-star" style="top:68%; left:85%; width:3px;  background:rgba(180,220,255,0.7)"></span>
+            <span class="d10-star" style="top:71%; left:42%; width:2px;  background:rgba(255,255,255,0.8)"></span>
+            <span class="d10-star" style="top:3%;  left:70%; width:2px;  background:rgba(255,255,255,0.6)"></span>
+            <span class="d10-star" style="top:8%;  left:36%; width:3px;  background:rgba(200,210,255,0.9)"></span>
+            <span class="d10-star" style="top:13%; left:94%; width:2px;  background:rgba(255,255,255,0.7)"></span>
+            <span class="d10-star" style="top:17%; left:3%;  width:4px;  background:rgba(220,240,255,0.8)"></span>
+            <span class="d10-star" style="top:21%; left:58%; width:2px;  background:rgba(255,255,255,0.9)"></span>
+            <span class="d10-star" style="top:27%; left:19%; width:3px;  background:rgba(255,230,200,0.7)"></span>
+            <span class="d10-star" style="top:31%; left:83%; width:2px;  background:rgba(255,255,255,0.8)"></span>
+            <span class="d10-star" style="top:35%; left:47%; width:5px;  background:rgba(180,200,255,0.9)"></span>
+            <span class="d10-star" style="top:39%; left:26%; width:2px;  background:rgba(255,255,255,0.7)"></span>
+            <span class="d10-star" style="top:44%; left:72%; width:3px;  background:rgba(210,220,255,0.8)"></span>
+            <span class="d10-star" style="top:48%; left:14%; width:2px;  background:rgba(255,255,255,0.9)"></span>
+            <span class="d10-star" style="top:52%; left:89%; width:4px;  background:rgba(200,230,255,0.7)"></span>
+            <span class="d10-star" style="top:56%; left:32%; width:2px;  background:rgba(255,255,255,0.8)"></span>
+            <span class="d10-star" style="top:60%; left:66%; width:3px;  background:rgba(220,230,255,0.9)"></span>
+            <span class="d10-star" style="top:65%; left:48%; width:2px;  background:rgba(255,255,255,0.7)"></span>
+            <span class="d10-star" style="top:69%; left:10%; width:4px;  background:rgba(255,240,200,0.8)"></span>
+            <span class="d10-star" style="top:73%; left:79%; width:2px;  background:rgba(255,255,255,0.9)"></span>
+            <span class="d10-star" style="top:76%; left:57%; width:3px;  background:rgba(180,210,255,0.7)"></span>
+            <span class="d10-star" style="top:80%; left:21%; width:2px;  background:rgba(255,255,255,0.8)"></span>
+            <span class="d10-star" style="top:83%; left:91%; width:4px;  background:rgba(210,225,255,0.9)"></span>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead scroll">↕ scaleX driven by scroll progress</div>
+<pre class="code"><span class="s">.tunnel</span> {
+  <span class="p">scroll-timeline-name</span>: <span class="v">--warp</span>;
+}
+<span class="s">.star</span> {
+  <span class="p">height</span>: <span class="v">2px</span>;
+  <span class="p">transform-origin</span>: <span class="v">left center</span>;
+  <span class="p">animation</span>: <span class="v">streak linear both</span>;
+  <span class="p">animation-timeline</span>: <span class="v">--warp</span>;
+}</pre>
+        </div>
+        <div>
+          <div class="codehead view">◈ stretch + fade = light-speed</div>
+<pre class="code"><span class="k">@keyframes</span> streak {
+  <span class="v">0%</span>   { <span class="p">transform</span>:<span class="v">scaleX(1)</span>;  <span class="p">opacity</span>:<span class="v">0.9</span> }
+  <span class="v">100%</span> { <span class="p">transform</span>:<span class="v">scaleX(22)</span>; <span class="p">opacity</span>:<span class="v">0</span>   }
+}
+<span class="c">/* depth illusion: vary width 2–5px
+   and position per star via
+   inline style — no JS needed */</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 11 ============== -->
+  <section>
+    <p class="label">Demo 11 — @property integer clip</p>
+    <h2>Scroll typewriter <span class="n">max-width: 0ch → 100%</span></h2>
+    <p class="note">
+      Scroll down and the lines type themselves; scroll back up to erase them.
+      The trick: each <code>.d11-text</code> span has <code>overflow: hidden</code> and its
+      <code>max-width</code> animates from <code>0ch → 100%</code> driven by
+      <code>animation-timeline: --d11</code> with a sequential <code>animation-range</code>
+      slice per line. Each line claims ~18% of the total scroll range, so they reveal
+      one at a time. The blinking cursor is a plain <code>@keyframes</code> on a sibling
+      span — no JS, no canvas. <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d11-outer">
+          <div class="d11-scene">
+            <div class="d11-line">
+              <span class="d11-text">scroll-timeline replaces the clock<span class="d11-cursor">▋</span></span>
+            </div>
+            <div class="d11-line">
+              <span class="d11-text">@property makes variables animatable<span class="d11-cursor">▋</span></span>
+            </div>
+            <div class="d11-line">
+              <span class="d11-text">view() tracks element visibility natively<span class="d11-cursor">▋</span></span>
+            </div>
+            <div class="d11-line">
+              <span class="d11-text">animation-range slices the scroll zone<span class="d11-cursor">▋</span></span>
+            </div>
+            <div class="d11-line">
+              <span class="d11-text">zero javascript. pure compositor.<span class="d11-cursor">▋</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead scroll">↕ sequential animation-range slices</div>
+<pre class="code"><span class="c">/* each line claims ~18% of total scroll */</span>
+<span class="s">.line:nth-child(1) .text</span>{
+  <span class="p">animation-range</span>: <span class="v">0% 18%</span>;
+  <span class="p">animation-timeline</span>: <span class="v">--page</span>;
+}
+<span class="s">.line:nth-child(2) .text</span>{
+  <span class="p">animation-range</span>: <span class="v">18% 36%</span>;
+}</pre>
+        </div>
+        <div>
+          <div class="codehead view">◈ overflow clip = typewriter</div>
+<pre class="code"><span class="s">.text</span> {
+  <span class="p">display</span>: <span class="v">inline-block</span>;
+  <span class="p">overflow</span>: <span class="v">hidden</span>;
+  <span class="p">animation</span>: <span class="v">type linear both</span>;
+}
+<span class="k">@keyframes</span> type {
+  <span class="v">from</span> { <span class="p">max-width</span>: <span class="v">0ch</span>    }
+  <span class="v">to</span>   { <span class="p">max-width</span>: <span class="v">100%</span>  }
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== DEMO 12 ============== -->
+  <section>
+    <p class="label">Demo 12 — 3D preserve-3d</p>
+    <h2>Card deck deal <span class="n">rotateY + translateX + view()</span></h2>
+    <p class="note">
+      Each card starts rotated <code>72deg</code> off-axis — invisible edge-on —
+      and translates in from off-screen. As it enters the viewport,
+      <code>view()</code> snaps it flat with a satisfying 3D swing.
+      Odd and even cards swing from opposite sides (<code>rotateY ±72deg</code>)
+      using two keyframes selected by <code>:nth-child(odd)</code>.
+      <code>perspective</code> on the scroll container provides the shared vanishing point.
+      <em>(Scroll ↓)</em>
+    </p>
+    <div class="card">
+      <div class="stage" style="padding: 0; background: none;">
+        <div class="d12-outer">
+          <div class="d12-deck">
+            <div class="d12-card">
+              <div class="d12-card-suit">📜</div>
+              <div class="d12-card-title">scroll() — Container Progress</div>
+              <div class="d12-card-body">Tracks how far the scroll container has scrolled from top to bottom. Drives progress bars, parallax, and colour rotation.</div>
+            </div>
+            <div class="d12-card">
+              <div class="d12-card-suit">👁️</div>
+              <div class="d12-card-title">view() — Element Visibility</div>
+              <div class="d12-card-body">Tracks how much of this element is visible inside its scroll container. Drives scroll-reveal, peel effects, and chat bubbles.</div>
+            </div>
+            <div class="d12-card">
+              <div class="d12-card-suit">🏷️</div>
+              <div class="d12-card-title">scroll-timeline-name</div>
+              <div class="d12-card-body">Names a scroll container so its progress can be referenced by any element, including siblings and cousins outside the container.</div>
+            </div>
+            <div class="d12-card">
+              <div class="d12-card-suit">🔭</div>
+              <div class="d12-card-title">timeline-scope</div>
+              <div class="d12-card-body">Lifts a named timeline up to a common ancestor, so elements that are not descendants of the scroller can still consume it.</div>
+            </div>
+            <div class="d12-card">
+              <div class="d12-card-suit">📏</div>
+              <div class="d12-card-title">animation-range</div>
+              <div class="d12-card-body">Clips which portion of the scroll range drives the animation. Keywords: entry, exit, contain, cover — plus arbitrary percentages.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="split">
+        <div>
+          <div class="codehead view">◈ opposite sides from :nth-child</div>
+<pre class="code"><span class="s">.card</span>             { <span class="p">animation-name</span>: <span class="v">deal-left</span>  }
+<span class="s">.card:nth-child(odd)</span>{ <span class="p">animation-name</span>: <span class="v">deal-right</span> }
+<span class="k">@keyframes</span> deal-left {
+  <span class="v">from</span> { <span class="p">transform</span>:<span class="v">rotateY(-72deg)
+           translateX(-40px) scale(.88)</span>; <span class="p">opacity</span>:<span class="v">0</span> }
+}</pre>
+        </div>
+        <div>
+          <div class="codehead scroll">↕ perspective on the container</div>
+<pre class="code"><span class="s">.deck-container</span> {
+  <span class="p">perspective</span>: <span class="v">1200px</span>;
+  <span class="p">perspective-origin</span>: <span class="v">50% 40%</span>;
+}
+<span class="s">.card</span> {
+  <span class="p">transform-style</span>: <span class="v">preserve-3d</span>;
+  <span class="p">animation-timeline</span>: <span class="v">view()</span>;
+  <span class="p">animation-range</span>: <span class="v">entry 0% entry 70%</span>;
+}</pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="callout warn">
+    <strong>The core insight.</strong> Scroll-driven animations don't replace
+    <code>@keyframes</code> — they replace the <em>clock</em> that drives them. Swap elapsed time
+    for scroll position, and the same keyframe that fades in a modal now fades in a card as it
+    enters the viewport. That single conceptual swap — combined with <code>@property</code> for
+    animatable custom properties and <code>timeline-scope</code> for cross-DOM reach — unlocks
+    palette rotation, warp-speed starfields, typewriters, 3D card decks, and peel effects.
+    All pure CSS. All on the compositor thread.
+  </div>
+
+  <footer>
+    CSS Scroll Timelines Lab · pure HTML5 + CSS · no dependencies ·
+    <a href="https://github.com/greysquirr3l/pattern_lab">greysquirr3l/pattern_lab</a>
+  </footer>
+
+</div>
+</body>
+</html>

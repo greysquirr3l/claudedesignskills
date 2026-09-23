@@ -1,0 +1,2533 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>2026 UI Pattern Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* =========================================
+         * CORE THEME VARIABLES
+         *
+         * ========================================= */
+      :root {
+        /* Tinted Backgrounds (No Pure Black/White) */
+        --bg-base: #0a0e27;
+        --bg-surface: #131836;
+        --bg-surface-highlight: #1c2345;
+
+        /* Text */
+        --text-primary: #fafbfc;
+        --text-secondary: #94a3b8;
+
+        /* 2026 Cyber Palette */
+        --neon-cyan: #00f5ff;
+        --neon-coral: #ff006e;
+        --electric-purple: #764ba2;
+
+        /* Spacing Scale (8pt Grid) */
+        --space-1: 8px;
+        --space-2: 16px;
+        --space-3: 24px;
+        --space-4: 32px;
+        --space-6: 48px;
+
+        /* Borders */
+        --border-light: rgba(255, 255, 255, 0.08);
+      }
+
+      /* =========================================
+         * GLOBAL RESET & UTILS
+         * ========================================= */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-base);
+        color: var(--text-primary);
+        font-family: "Inter", sans-serif;
+        padding-bottom: 100px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 var(--space-3);
+      }
+
+      section {
+        margin: var(--space-6) 0;
+        padding: var(--space-4);
+        border: 1px solid var(--border-light);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.01);
+      }
+
+      /* Section Headers */
+      .section-tag {
+        color: var(--neon-cyan);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        margin-bottom: var(--space-2);
+        display: block;
+      }
+
+      h2 {
+        font-size: 2rem;
+        margin-bottom: var(--space-4);
+        border-bottom: 1px solid var(--border-light);
+        padding-bottom: var(--space-2);
+      }
+
+      /* Grid for comparisons */
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+      }
+
+      @media (max-width: 768px) {
+        .comparison-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .demo-box {
+        background: var(--bg-surface);
+        padding: var(--space-3);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+      }
+
+      .label {
+        display: block;
+        margin-bottom: var(--space-2);
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      /* =========================================
+         * 1. TYPOGRAPHY PHYSICS
+         *
+         * ========================================= */
+      /* Negative tracking for headlines > 40px */
+      .tracking-good {
+        font-size: 3.5rem;
+        font-weight: 800;
+        letter-spacing: -0.03em; /* -3% */
+        line-height: 1.1;
+      }
+
+      .tracking-bad {
+        font-size: 3.5rem;
+        font-weight: 800;
+        letter-spacing: 0; /* Default */
+        line-height: 1.1;
+      }
+
+      /* Kinetic Text */
+      .kinetic-word {
+        display: inline-block;
+        cursor: pointer;
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+      .kinetic-word:hover {
+        transform: scale(1.1) rotate(-2deg);
+        color: var(--neon-cyan);
+      }
+
+      /* =========================================
+         * 2. BUTTON ANATOMY
+         *
+         * ========================================= */
+      /* Bad Button */
+      .btn-bad {
+        padding: 12px 24px; /* Default cramping */
+        background: #444;
+        border: none;
+        color: white;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      /* Good Button: 3:1 Ratio, Tactile */
+      .btn-good {
+        /* Ratio: 16px vertical, 48px horizontal */
+        padding: 16px 48px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        border-radius: 12px; /* Height approx 54px / 5 = ~11px */
+        border: none;
+        color: white;
+        cursor: pointer;
+
+        /* Tactile Maximalism Gradient & Shadow */
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        box-shadow:
+          0 4px 12px rgba(0, 0, 0, 0.3),
+          inset 0 1px 1px rgba(255, 255, 255, 0.3);
+
+        transition: transform 0.1s;
+      }
+
+      .btn-good:active {
+        transform: scale(0.96); /* Tactile press */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Context Text */
+      .btn-context {
+        margin-top: var(--space-1);
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      /* =========================================
+         * 3. CORNER MATH VISUALIZER
+         *
+         * ========================================= */
+      .math-outer {
+        width: 100%;
+        height: 200px;
+        background: var(--bg-surface-highlight);
+        border-radius: 32px; /* Outer R */
+        padding: 16px; /* Gap P */
+        position: relative;
+        border: 2px dashed rgba(255, 255, 255, 0.2);
+      }
+
+      .math-inner {
+        width: 100%;
+        height: 100%;
+        background: var(--neon-coral);
+        border-radius: 16px; /* Inner = 32 - 16 = 16px */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .math-bad-inner {
+        border-radius: 32px; /* Matching outer looks wrong */
+      }
+
+      /* =========================================
+         * 4. DEPTH WITHOUT SHADOWS
+         *
+         * ========================================= */
+      .depth-card {
+        height: 150px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* The Old Way */
+      .shadow-method {
+        background: #131836;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      /* The 2026 Way: Lightness */
+      .lightness-method {
+        /* Lighter than background + gradient */
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.08) 0%,
+          rgba(255, 255, 255, 0.02) 100%
+        );
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      /* =========================================
+         * 5. CYBER GRADIENTS
+         *
+         * ========================================= */
+      .gradient-strip {
+        height: 80px;
+        border-radius: 12px;
+        margin-bottom: var(--space-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      .cyber-1 {
+        background: linear-gradient(
+          135deg,
+          #000000 0%,
+          #1a1a2e 50%,
+          #0f3460 100%
+        );
+        border: 1px solid var(--neon-cyan);
+        color: var(--neon-cyan);
+      }
+
+      .cyber-2 {
+        background: linear-gradient(135deg, #240b36 0%, #c31432 100%);
+        color: white;
+      }
+
+      /* =========================================
+         * TYPE SCALE (1.5× ratio)
+         * ========================================= */
+      .scale-h1 {
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 4px;
+      }
+      .scale-h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        line-height: 1.2;
+        margin-bottom: 4px;
+      }
+      .scale-h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: 4px;
+      }
+      .scale-body {
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.7;
+        color: var(--text-secondary);
+      }
+      .flat-h1 {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .flat-h2 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .flat-h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .flat-body {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+      }
+
+      /* =========================================
+         * BUTTON HIERARCHY
+         * ========================================= */
+      .btn-primary-h {
+        padding: 12px 28px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .btn-secondary-h {
+        padding: 12px 28px;
+        background: transparent;
+        color: #8b9cf4;
+        font-weight: 500;
+        border: 1.5px solid #8b9cf4;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .btn-ghost-h {
+        padding: 12px 28px;
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 400;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      /* =========================================
+         * 60-30-10 COLOUR RULE
+         * ========================================= */
+      .swatch-row {
+        display: flex;
+        gap: var(--space-2);
+        align-items: flex-start;
+        margin-bottom: var(--space-2);
+      }
+      .swatch {
+        width: 64px;
+        height: 64px;
+        border-radius: 8px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+      .swatch-label {
+        font-size: 0.9rem;
+        padding-top: 6px;
+        line-height: 1.6;
+      }
+      .swatch-60 {
+        background: var(--bg-base);
+        color: var(--text-secondary);
+        border: 1px solid var(--border-light);
+      }
+      .swatch-30 {
+        background: var(--bg-surface);
+        color: var(--text-secondary);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .swatch-10 {
+        background: var(--neon-cyan);
+        color: #000;
+      }
+
+      /* =========================================
+         * LINE LENGTH
+         * ========================================= */
+      .line-bad {
+        width: 100%;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        font-size: 1rem;
+      }
+      .line-good {
+        max-width: 65ch;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        font-size: 1rem;
+      }
+
+      /* =========================================
+         * OKLCH COLOR SYSTEM
+         * ========================================= */
+      .oklch-chip-row {
+        display: flex;
+        gap: 8px;
+        margin-bottom: var(--space-2);
+      }
+      .oklch-chip {
+        height: 48px;
+        border-radius: 8px;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .oklch-grad {
+        background: linear-gradient(
+          to right,
+          oklch(0.5 0.25 270),
+          oklch(0.65 0.2 30)
+        );
+      }
+      .srgb-grad {
+        background: linear-gradient(
+          to right,
+          hsl(270, 80%, 40%),
+          hsl(30, 75%, 55%)
+        );
+      }
+      .oklch-c1 {
+        background: oklch(0.6 0.18 240);
+        color: white;
+      }
+      .oklch-c2 {
+        background: oklch(0.5 0.18 240);
+        color: white;
+      } /* l - 0.1 */
+      .oklch-c3 {
+        background: oklch(0.75 0.1 240);
+        color: #000;
+      } /* l + 0.15 */
+      .oklch-c4 {
+        background: oklch(0.6 0 240);
+        color: white;
+      } /* chroma 0 = greyed */
+
+      /* =========================================
+         * GLASSMORPHISM
+         * ========================================= */
+      .glass-bg {
+        background: linear-gradient(
+          135deg,
+          oklch(0.38 0.22 280),
+          oklch(0.42 0.18 30)
+        );
+        padding: var(--space-4);
+        border-radius: 16px;
+        display: flex;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+      }
+      .glass-card {
+        background: rgba(255, 255, 255, 0.07);
+        backdrop-filter: blur(18px) saturate(180%);
+        -webkit-backdrop-filter: blur(18px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 16px;
+        padding: var(--space-3);
+        flex: 1;
+        min-width: 160px;
+      }
+      .plain-card {
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 16px;
+        padding: var(--space-3);
+        flex: 1;
+        min-width: 160px;
+      }
+      .glass-card h4,
+      .plain-card h4 {
+        font-size: 1rem;
+        margin-bottom: 6px;
+      }
+      .glass-card p,
+      .plain-card p {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.65);
+      }
+
+      /* =========================================
+         * BENTO GRID
+         * ========================================= */
+      .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: 80px;
+        gap: 10px;
+      }
+      .bento-item {
+        background: var(--bg-surface-highlight);
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-align: center;
+        padding: 8px;
+      }
+      .bento-wide {
+        grid-column: span 2;
+      }
+      .bento-tall {
+        grid-row: span 2;
+      }
+      .bento-hero {
+        grid-column: span 2;
+        grid-row: span 2;
+        background: linear-gradient(
+          135deg,
+          rgba(103, 126, 234, 0.15),
+          rgba(118, 75, 162, 0.2)
+        );
+        border-color: rgba(103, 126, 234, 0.4);
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      /* =========================================
+         * CONTAINER QUERIES
+         * ========================================= */
+      .cq-demo {
+        display: flex;
+        gap: var(--space-3);
+        flex-wrap: wrap;
+      }
+      .cq-wide {
+        container-type: inline-size;
+        container-name: cq;
+        flex: 2;
+        min-width: 220px;
+      }
+      .cq-narrow {
+        container-type: inline-size;
+        container-name: cq;
+        width: 190px;
+        flex-shrink: 0;
+      }
+      .cq-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-2);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .cq-img {
+        width: 56px;
+        height: 56px;
+        flex-shrink: 0;
+        background: linear-gradient(
+          135deg,
+          var(--neon-cyan),
+          var(--electric-purple)
+        );
+        border-radius: 8px;
+      }
+      .cq-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+      }
+      .cq-body {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+      @container cq (inline-size > 280px) {
+        .cq-card {
+          flex-direction: row;
+          align-items: flex-start;
+        }
+      }
+
+      /* =========================================
+         * :has() SELECTOR
+         * ========================================= */
+      .has-group {
+        padding: var(--space-2);
+        border: 2px solid var(--border-light);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        transition: border-color 0.2s;
+      }
+      .has-group:has(:invalid) {
+        border-color: var(--neon-coral);
+      }
+      .has-group label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 6px;
+      }
+      .has-inp {
+        width: 100%;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid #444;
+        color: white;
+        border-radius: 6px;
+        outline: none;
+      }
+      .has-inp:focus-visible {
+        border-color: var(--neon-cyan);
+        outline: 2px solid var(--neon-cyan);
+        outline-offset: 2px;
+      }
+      .has-card {
+        border: 2px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-2);
+        transition:
+          border-color 0.2s,
+          background 0.2s;
+      }
+      .has-card:has(button:focus-visible) {
+        border-color: var(--neon-cyan);
+        background: rgba(0, 245, 255, 0.04);
+      }
+      .has-card p {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-1);
+      }
+
+      /* =========================================
+         * text-box TRIM
+         * ========================================= */
+      .textbox-row {
+        display: flex;
+        gap: var(--space-2);
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .textbox-btn {
+        padding: 0 24px;
+        height: 52px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border: none;
+        color: white;
+        font-family: inherit;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 10px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+      }
+      .textbox-trimmed {
+        text-box: trim-both cap alphabetic;
+      }
+      .textbox-bg {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px dashed rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        padding: 0;
+      }
+
+      /* =========================================
+         * sibling-index() STAGGERED ANIMATIONS
+         * ========================================= */
+      .stagger-list {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .stagger-list.playing li {
+        animation: stagger-in 0.4s ease both;
+        animation-delay: calc(0.08s * (sibling-index() - 1));
+      }
+      @keyframes stagger-in {
+        from {
+          opacity: 0;
+          translate: 0 10px;
+        }
+        to {
+          opacity: 1;
+          translate: 0 0;
+        }
+      }
+      .stagger-list li {
+        padding: 12px var(--space-2);
+        background: var(--bg-surface-highlight);
+        border-radius: 8px;
+        border: 1px solid var(--border-light);
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .stagger-list li::before {
+        content: counter(list-item);
+        counter-increment: list-item;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0, 245, 255, 0.1);
+        border: 1px solid rgba(0, 245, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        color: var(--neon-cyan);
+        flex-shrink: 0;
+      }
+      .stagger-list {
+        counter-reset: list-item;
+      }
+      .stagger-replay {
+        margin-top: var(--space-2);
+        padding: 8px 20px;
+        background: transparent;
+        border: 1px solid rgba(0, 245, 255, 0.4);
+        color: var(--neon-cyan);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-family: inherit;
+      }
+      .stagger-replay:hover {
+        background: rgba(0, 245, 255, 0.06);
+      }
+
+      /* =========================================
+         * SCROLL-DRIVEN ANIMATIONS (view() timeline)
+         * ========================================= */
+      .scroll-demo-scroller {
+        height: 320px;
+        overflow-y: auto;
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-3);
+        scroll-behavior: smooth;
+      }
+      .scroll-reveal-item {
+        padding: var(--space-2) var(--space-3);
+        background: var(--bg-surface-highlight);
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        margin-bottom: 12px;
+        animation: scroll-fade-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 60%;
+      }
+      @keyframes scroll-fade-in {
+        from {
+          opacity: 0;
+          translate: 0 24px;
+        }
+        to {
+          opacity: 1;
+          translate: 0 0;
+        }
+      }
+      .scroll-demo-note {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(0, 245, 255, 0.1);
+        color: var(--neon-cyan);
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      /* =========================================
+         * text-wrap: balance
+         * ========================================= */
+      .wrap-demo {
+        max-width: 26ch;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .wrap-unbalanced {
+        text-wrap: wrap; /* explicit default — no balancing */
+      }
+      .wrap-balanced {
+        text-wrap: balance;
+      }
+
+      /* =========================================
+         * @starting-style ENTRY ANIMATIONS
+         * ========================================= */
+      .starting-demo {
+        display: flex;
+        gap: var(--space-2);
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .popup-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-3);
+        width: 220px;
+        /* Transition that plays on entry AND exit */
+        transition:
+          opacity 0.35s ease,
+          translate 0.35s ease,
+          display 0.35s ease allow-discrete;
+      }
+      .popup-box[hidden] {
+        display: none;
+        opacity: 0;
+        translate: 0 12px;
+      }
+      /* Entry animation via @starting-style */
+      @starting-style {
+        .popup-box:not([hidden]) {
+          opacity: 0;
+          translate: 0 12px;
+        }
+      }
+      .popup-box h4 {
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+      }
+      .popup-box p {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+      .show-hide-btn {
+        padding: 10px 20px;
+        background: transparent;
+        border: 1px solid rgba(0, 245, 255, 0.4);
+        color: var(--neon-cyan);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: background 0.15s;
+      }
+      .show-hide-btn:hover {
+        background: rgba(0, 245, 255, 0.06);
+      }
+
+      /* =========================================
+         * SKELETON SCREENS
+         * ========================================= */
+      .skeleton-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-3);
+      }
+      .skeleton-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-3);
+      }
+      .skeleton-card h4 {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin-bottom: var(--space-2);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 600;
+      }
+      .skel {
+        border-radius: 6px;
+        background: linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0.04) 0%,
+          rgba(255, 255, 255, 0.1) 40%,
+          rgba(255, 255, 255, 0.04) 80%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.6s infinite linear;
+      }
+      @keyframes shimmer {
+        from {
+          background-position: 200% 0;
+        }
+        to {
+          background-position: -200% 0;
+        }
+      }
+      .skel-avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        margin-bottom: 12px;
+      }
+      .skel-line {
+        height: 13px;
+        margin-bottom: 8px;
+      }
+      .skel-line-sm {
+        height: 11px;
+        width: 60%;
+        margin-bottom: 0;
+      }
+      /* Spinner comparison */
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top-color: var(--neon-cyan);
+        animation: spin 0.8s linear infinite;
+        margin: 18px auto 12px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .spinner-label {
+        text-align: center;
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+      }
+
+      /* =========================================
+         * DARK / LIGHT MODE TOGGLE — pure CSS :has()
+         * ========================================= */
+      .theme-demo-wrap {
+        /* Scoped custom properties — dark by default */
+        --td-bg: #1c2345;
+        --td-surface: #131836;
+        --td-text: #fafbfc;
+        --td-sub: #94a3b8;
+        --td-accent: #00f5ff;
+        --td-border: rgba(255, 255, 255, 0.1);
+        --td-btn-bg: linear-gradient(135deg, #667eea, #764ba2);
+        --td-btn-txt: #fff;
+        --td-shadow: rgba(0, 0, 0, 0.4);
+      }
+      /* When checkbox is checked → light theme */
+      .theme-demo-wrap:has(.theme-cb:checked) {
+        --td-bg: #f0f4ff;
+        --td-surface: #ffffff;
+        --td-text: #1e293b;
+        --td-sub: #64748b;
+        --td-accent: #6366f1;
+        --td-border: rgba(0, 0, 0, 0.1);
+        --td-btn-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
+        --td-btn-txt: #fff;
+        --td-shadow: rgba(0, 0, 0, 0.12);
+      }
+      /* Hide the real checkbox */
+      .theme-cb {
+        display: none;
+      }
+
+      .theme-stage {
+        background: var(--td-bg);
+        border-radius: 16px;
+        padding: var(--space-3);
+        transition:
+          background 0.35s,
+          color 0.35s;
+      }
+      /* Toggle pill */
+      .theme-toggle-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: var(--td-surface);
+        border: 1px solid var(--td-border);
+        box-shadow: 0 1px 4px var(--td-shadow);
+        user-select: none;
+        margin-bottom: var(--space-3);
+        transition:
+          background 0.35s,
+          border-color 0.35s;
+      }
+      .theme-toggle-track {
+        width: 40px;
+        height: 22px;
+        border-radius: 999px;
+        background: var(--td-accent);
+        position: relative;
+        transition: background 0.35s;
+        flex-shrink: 0;
+      }
+      .theme-toggle-track::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        transition: translate 0.25s ease;
+      }
+      .theme-cb:checked ~ .theme-stage .theme-toggle-track::after {
+        translate: 18px 0;
+      }
+      .theme-toggle-text {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--td-text);
+        transition: color 0.35s;
+      }
+      /* Preview card */
+      .theme-preview-card {
+        background: var(--td-surface);
+        border: 1px solid var(--td-border);
+        border-radius: 14px;
+        padding: var(--space-3);
+        box-shadow: 0 4px 16px var(--td-shadow);
+        transition:
+          background 0.35s,
+          border-color 0.35s,
+          box-shadow 0.35s;
+      }
+      .theme-card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--td-text);
+        margin-bottom: 6px;
+        transition: color 0.35s;
+      }
+      .theme-card-body {
+        font-size: 0.85rem;
+        color: var(--td-sub);
+        line-height: 1.6;
+        margin-bottom: var(--space-2);
+        transition: color 0.35s;
+      }
+      .theme-card-btn {
+        display: inline-block;
+        padding: 9px 22px;
+        background: var(--td-btn-bg);
+        color: var(--td-btn-txt);
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .theme-card-btn:hover {
+        opacity: 0.88;
+      }
+
+      /* =========================================
+         * VIDEO PATTERNS
+         * ========================================= */
+
+      /* --- Inline Responsive Video --- */
+      /* Aspect-ratio wrapper: replaces the old padding-top hack */
+      .video-wrapper {
+        aspect-ratio: 16 / 9;
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #000;
+        position: relative;
+      }
+      .video-wrapper video,
+      .video-wrapper iframe {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        border: none;
+      }
+
+      /* Video with poster / lazy-load placeholder */
+      .video-poster-wrap {
+        aspect-ratio: 16 / 9;
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+        position: relative;
+        background: var(--bg-surface-highlight);
+      }
+      .video-poster-wrap video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      /* Play overlay / caption track area */
+      .video-caption-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 8px 14px;
+        background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%);
+        font-size: 0.82rem;
+        color: rgba(255,255,255,0.85);
+        pointer-events: none;
+        border-radius: 0 0 16px 16px;
+      }
+
+      /* --- Bad: <div> faking a video --- */
+      .fake-video-div {
+        width: 100%;
+        height: 200px;
+        background: #222;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        border: 1px solid var(--border-light);
+      }
+
+      /* --- Background Video Hero --- */
+      .video-hero {
+        position: relative;
+        height: 260px;
+        border-radius: 20px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .video-hero video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* GPU-accelerated compositing layer */
+        will-change: transform;
+      }
+      /* Accessibility: respect motion preference */
+      @media (prefers-reduced-motion: reduce) {
+        .video-hero video {
+          display: none;
+        }
+        .video-hero {
+          background: linear-gradient(135deg, #0a0e27 0%, #1c2345 100%);
+        }
+      }
+      /* Scrim for text legibility — always present */
+      .video-scrim {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(0,0,0,0.25) 0%,
+          rgba(0,0,0,0.55) 100%
+        );
+      }
+      .video-hero-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        padding: var(--space-3);
+      }
+      .video-hero-content h3 {
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin-bottom: 6px;
+      }
+      .video-hero-content p {
+        font-size: 0.9rem;
+        color: rgba(255,255,255,0.8);
+      }
+
+      /* Video attributes checklist badges */
+      .attr-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: var(--space-2);
+      }
+      .attr-badge {
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        font-family: monospace;
+      }
+      .attr-good {
+        background: rgba(0, 245, 255, 0.1);
+        color: var(--neon-cyan);
+        border: 1px solid rgba(0, 245, 255, 0.3);
+      }
+      .attr-warn {
+        background: rgba(255, 180, 0, 0.1);
+        color: #ffb400;
+        border: 1px solid rgba(255, 180, 0, 0.3);
+      }
+      .attr-bad {
+        background: rgba(255, 0, 110, 0.1);
+        color: var(--neon-coral);
+        border: 1px solid rgba(255, 0, 110, 0.3);
+      }
+
+      /* =========================================
+         * INPUT TYPES
+         * ========================================= */
+      .input-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: var(--space-2);
+      }
+      .input-cell {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-2);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .input-cell-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        font-family: monospace;
+        color: var(--neon-cyan);
+      }
+      .input-cell-desc {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+      }
+      /* Unified input style for demos */
+      .lab-input {
+        width: 100%;
+        padding: 8px 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: var(--text-primary);
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 0.85rem;
+        outline: none;
+        color-scheme: dark;
+        accent-color: var(--neon-cyan);
+      }
+      .lab-input:focus-visible {
+        border-color: var(--neon-cyan);
+        outline: 2px solid var(--neon-cyan);
+        outline-offset: 2px;
+      }
+      /* Range track label */
+      .range-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .range-val {
+        font-size: 0.85rem;
+        font-family: monospace;
+        color: var(--neon-cyan);
+        min-width: 28px;
+        text-align: right;
+      }
+      /* Color swatch next to color input */
+      .color-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .color-swatch-preview {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        border: 1px solid var(--border-light);
+        flex-shrink: 0;
+        background: #4f46e5;
+      }
+      /* Datalist / power-attrs section */
+      .power-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-3);
+      }
+      .power-cell {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: var(--space-2) var(--space-2);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .power-cell-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        font-family: monospace;
+        color: var(--neon-cyan);
+      }
+      .power-cell-desc {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        line-height: 1.45;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header style="padding: 60px 0; text-align: center">
+        <h1 style="font-size: 3rem; margin-bottom: 16px">2026 Pattern Lab</h1>
+        <p style="color: var(--text-secondary)">
+          Visualizing the "Modern CSS & UI Design Patterns" guidelines.
+        </p>
+      </header>
+
+      <section>
+        <span class="section-tag">Typography Physics</span>
+        <h2>Tracking & Kinetics</h2>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label">❌ Default Tracking (Looks detached)</span>
+            <div class="tracking-bad">Headlines</div>
+          </div>
+          <div class="demo-box">
+            <span class="label">✅ Negative Tracking (-3%)</span>
+            <div class="tracking-good">Headlines</div>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: 24px">
+          <span class="label">✨ Kinetic Typography (Hover Me)</span>
+          <div style="font-size: 2rem; font-weight: 600">
+            We create
+            <span class="kinetic-word" style="color: var(--neon-cyan)"
+              >Digital</span
+            >
+            <span class="kinetic-word" style="color: var(--neon-coral)"
+              >Experiences</span
+            >
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: 24px">
+          <span class="label">Type Scale — 1.5× ratio vs flat hierarchy</span>
+          <div class="comparison-grid" style="margin-top: var(--space-2)">
+            <div>
+              <span class="label" style="color: var(--neon-coral)"
+                >❌ Flat — everything blurs together</span
+              >
+              <div class="flat-h1">Heading One</div>
+              <div class="flat-h2">Heading Two</div>
+              <div class="flat-h3">Heading Three</div>
+              <div class="flat-body">Body text paragraph copy.</div>
+            </div>
+            <div>
+              <span class="label" style="color: var(--neon-cyan)"
+                >✅ 1.5× scale — clear landing points</span
+              >
+              <div class="scale-h1">Heading One</div>
+              <div class="scale-h2">Heading Two</div>
+              <div class="scale-h3">Heading Three</div>
+              <div class="scale-body">Body text paragraph copy.</div>
+            </div>
+          </div>
+          <p class="btn-context" style="margin-top: var(--space-2)">
+            Minimum 1.25× between levels. 1.5× for real clarity. H1 at 3rem, H2
+            at 2rem, H3 at 1.5rem, body at 1rem.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Button Architecture</span>
+        <h2>Tactile & Contextual</h2>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label">❌ The "Generic" Button</span>
+            <button class="btn-bad">Click Here</button>
+            <p class="btn-context" style="visibility: hidden">Spacer</p>
+          </div>
+          <div class="demo-box">
+            <span class="label">✅ The "Benefit" Button + Context</span>
+            <button class="btn-good">Start My Free Trial</button>
+            <p class="btn-context">No credit card required • Cancel anytime</p>
+          </div>
+        </div>
+
+        <div class="demo-box" style="margin-top: 24px">
+          <span class="label"
+            >✅ Three-tier hierarchy — one dominant action per page
+            context</span
+          >
+          <div
+            style="
+              display: flex;
+              gap: var(--space-2);
+              align-items: center;
+              flex-wrap: wrap;
+              margin-bottom: var(--space-1);
+            "
+          >
+            <button class="btn-primary-h">Save Changes</button>
+            <button class="btn-secondary-h">Cancel</button>
+            <button class="btn-ghost-h">Learn more</button>
+          </div>
+          <p class="btn-context">
+            Primary is unmissable. Secondary steps back. Ghost is nearly
+            invisible. One primary per page.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Layout Precision</span>
+        <h2>Nested Corner Math</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 24px">
+          Formula: Inner Radius = Outer Radius - Gap
+        </p>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label">❌ Bad: Inner radius matches outer</span>
+            <div class="math-outer">
+              <div class="math-inner math-bad-inner">Bulges at corners</div>
+            </div>
+          </div>
+          <div class="demo-box">
+            <span class="label"
+              >✅ Good: 32px (Outer) - 16px (Gap) = 16px (Inner)</span
+            >
+            <div class="math-outer">
+              <div class="math-inner">Perfectly concentric</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Modern Depth</span>
+        <h2>Depth Without Shadows</h2>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label">Old: Drop Shadows (Muddy)</span>
+            <div class="depth-card shadow-method">Shadow Depth</div>
+          </div>
+          <div class="demo-box">
+            <span class="label">New: Lightness + Gradient (Clean)</span>
+            <div class="depth-card lightness-method">Lightness Depth</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Color Theory</span>
+        <h2>Cyber Gradients & Tints</h2>
+
+        <div class="demo-box" style="margin-bottom: var(--space-3)">
+          <span class="label"
+            >The 60–30–10 Rule — limit your accent to 10% of the interface</span
+          >
+          <div class="swatch-row">
+            <div class="swatch swatch-60">60%</div>
+            <div class="swatch-label">
+              <strong>Dominant neutral</strong> — background, large surfaces<br /><small
+                style="color: var(--text-secondary)"
+                >If everything shouts, nothing is heard</small
+              >
+            </div>
+          </div>
+          <div class="swatch-row">
+            <div class="swatch swatch-30">30%</div>
+            <div class="swatch-label">
+              <strong>Secondary surface</strong> — cards, sidebars, panels<br /><small
+                style="color: var(--text-secondary)"
+                >Creates separation without adding colour noise</small
+              >
+            </div>
+          </div>
+          <div class="swatch-row" style="margin-bottom: 0">
+            <div class="swatch swatch-10">10%</div>
+            <div class="swatch-label">
+              <strong>Accent</strong> — primary buttons and highlights only<br /><small
+                style="color: var(--text-secondary)"
+                >Scarcity is what makes it meaningful</small
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label">Background Check</span>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px">
+              <div
+                style="
+                  width: 50px;
+                  height: 50px;
+                  background: #000;
+                  border: 1px solid #333;
+                  display: grid;
+                  place-items: center;
+                  font-size: 0.7rem;
+                "
+              >
+                #000
+              </div>
+              <div
+                style="font-size: 0.9rem; display: flex; align-items: center"
+              >
+                ❌ Pure Black (Too harsh)
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px">
+              <div
+                style="
+                  width: 50px;
+                  height: 50px;
+                  background: #0a0e27;
+                  border: 1px solid #333;
+                  display: grid;
+                  place-items: center;
+                  font-size: 0.7rem;
+                "
+              >
+                Tint
+              </div>
+              <div
+                style="font-size: 0.9rem; display: flex; align-items: center"
+              >
+                ✅ Tinted Black (#0A0E27)
+              </div>
+            </div>
+          </div>
+          <div class="demo-box">
+            <span class="label">2026 Trend Gradients</span>
+            <div class="gradient-strip cyber-1">Deep Cyber</div>
+            <div class="gradient-strip cyber-2">Sunset Neon</div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Readability</span>
+        <h2>Line Length: The 65ch Rule</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          Ideal body text: 50–75 characters per line. On a wide monitor,
+          full-width text can run 150+ characters — the eye travels too far and
+          loses its place. <code>max-width: 65ch</code> is the single-property
+          fix.
+        </p>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label">❌ Full width — exhausting to track</span>
+            <p class="line-bad">
+              This paragraph stretches all the way to the edge of its container.
+              On a large monitor a single line can exceed 120 characters. The
+              reader's eye makes an enormous journey back to the start of the
+              next line, burning focus before understanding even begins.
+            </p>
+          </div>
+          <div class="demo-box">
+            <span class="label">✅ 65ch max — comfortable rhythm</span>
+            <p class="line-good">
+              This paragraph is constrained to 65 characters wide. Each line
+              completes in a comfortable arc. The eye snaps back cleanly to
+              start the next line without losing its place in the text.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Accessibility</span>
+        <h2>Focus States</h2>
+        <div class="demo-box">
+          <span class="label">Try Tabbing with your keyboard</span>
+
+          <input type="text" placeholder="Focus me..." class="a11y-input" />
+
+          <style>
+            /* Base State: Remove browser default outline here, not inline */
+            .a11y-input {
+              width: 100%;
+              padding: 12px;
+              background: rgba(255, 255, 255, 0.05);
+              border: 1px solid #444;
+              color: white;
+              border-radius: 8px;
+              outline: none; /* Move this here */
+              transition: border-color 0.2s;
+            }
+
+            /* Focus State: Now this has enough power to override the base state */
+            /* */
+            .a11y-input:focus-visible {
+              /* Define specific styles to ensure visibility */
+              outline: 2px solid var(--neon-cyan);
+              outline-offset: 4px;
+              border-color: var(--neon-cyan);
+            }
+          </style>
+
+          <p
+            style="
+              margin-top: 10px;
+              font-size: 0.9rem;
+              color: var(--text-secondary);
+            "
+          >
+            Uses <code>outline-offset: 4px</code> for clear separation.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Color System — 2026</span>
+        <h2>OKLCH: Perceptually Uniform Color</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          OKLCH is the recommended color space for 2025–2026. Unlike HSL, its
+          lightness channel matches human perception — so the same
+          <code>L</code> value looks equally bright across all hues. Gradients
+          have no muddy gray midpoints. Relative colors enable systematic
+          darkening/lightening without hardcoding new hex values. Baseline
+          widely available.
+        </p>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label"
+              >❌ sRGB/HSL gradient — gray mud in the middle</span
+            >
+            <div
+              class="oklch-chip srgb-grad"
+              style="
+                height: 56px;
+                border-radius: 10px;
+                margin-bottom: var(--space-2);
+              "
+            >
+              Purple → Orange
+            </div>
+            <p class="btn-context">
+              HSL travels through desaturated grey at the midpoint
+            </p>
+          </div>
+          <div class="demo-box">
+            <span class="label"
+              >✅ OKLCH gradient — vivid all the way through</span
+            >
+            <div
+              class="oklch-chip oklch-grad"
+              style="
+                height: 56px;
+                border-radius: 10px;
+                margin-bottom: var(--space-2);
+              "
+            >
+              Purple → Orange
+            </div>
+            <p class="btn-context">
+              OKLCH maintains perceived brightness and saturation throughout
+            </p>
+          </div>
+        </div>
+        <div class="demo-box" style="margin-top: var(--space-3)">
+          <span class="label"
+            >Systematic derivation from one base colour — no hex-guessing</span
+          >
+          <div class="oklch-chip-row">
+            <div class="oklch-chip oklch-c3">L+0.15<br />light</div>
+            <div class="oklch-chip oklch-c1">Base<br />oklch(0.6 0.18 240)</div>
+            <div class="oklch-chip oklch-c2">L−0.1<br />hover</div>
+            <div class="oklch-chip oklch-c4">C=0<br />muted</div>
+          </div>
+          <p class="btn-context" style="margin-top: 8px">
+            <code>oklch(from var(--primary) calc(l - 0.1) c h)</code> — hover
+            state derived automatically via relative color syntax.
+          </p>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Visual Depth — 2026</span>
+        <h2>Glassmorphism</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          Dominant SaaS aesthetic: frosted-glass panels create depth without
+          consuming space. Requires <code>backdrop-filter: blur()</code> on a
+          layer that has something colorful behind it. Remember: contrast
+          degrades — bump typography weight or darken text on light-behind
+          backgrounds.
+        </p>
+        <div class="glass-bg">
+          <div class="plain-card">
+            <h4>Without Glass</h4>
+            <p>
+              Plain dark background. No depth relationship to content behind the
+              card.
+            </p>
+          </div>
+          <div class="glass-card">
+            <h4>With Glassmorphism</h4>
+            <p>
+              The gradient behind bleeds through, frosted. The panel feels
+              elevated without a drop shadow.
+            </p>
+          </div>
+          <div class="glass-card">
+            <h4>Layered</h4>
+            <p>
+              Multiple glass panels can stack. Each one compounds the depth
+              effect.
+            </p>
+          </div>
+        </div>
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          <code>backdrop-filter: blur(18px) saturate(180%)</code> +
+          <code>background: rgba(255,255,255,0.07)</code> +
+          <code>border: 1px solid rgba(255,255,255,0.18)</code>. Must have a
+          colorful or image-based background behind the element.
+        </p>
+      </section>
+
+      <section>
+        <span class="section-tag">Layout — 2026</span>
+        <h2>Bento Grid</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          The defining dashboard/marketing layout of 2025–2026, popularised by
+          Apple and Microsoft. Modular cells of varying sizes create visual
+          rhythm and scanability. Built with CSS Grid:
+          <code>grid-column: span 2</code>, <code>grid-row: span 2</code>.
+        </p>
+        <div class="bento-grid">
+          <div class="bento-item bento-hero">Hero<br />2 × 2</div>
+          <div class="bento-item bento-tall">Tall<br />1 × 2</div>
+          <div class="bento-item">1 × 1</div>
+          <div class="bento-item">1 × 1</div>
+          <div class="bento-item bento-wide">Wide — 2 × 1</div>
+          <div class="bento-item">1 × 1</div>
+          <div class="bento-item">1 × 1</div>
+          <div class="bento-item bento-wide">Wide — 2 × 1</div>
+          <div class="bento-item">1 × 1</div>
+          <div class="bento-item">1 × 1</div>
+        </div>
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          <code>grid-auto-rows: 80px</code> + named span classes. Variant sizes
+          create hierarchy — users know what to look at first.
+        </p>
+      </section>
+
+      <section>
+        <span class="section-tag">Responsive Design — 2026</span>
+        <h2>Container Queries</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          The most significant responsive design advancement since media
+          queries. A component responds to <em>its container's width</em>, not
+          the viewport — making it genuinely portable. Baseline widely available
+          since Aug 2025 (Chrome 105+, Firefox 110+, Safari 16+).
+        </p>
+        <div class="cq-demo">
+          <div>
+            <span class="label">Narrow container (190px) → column layout</span>
+            <div class="cq-narrow">
+              <div class="cq-card">
+                <div class="cq-img"></div>
+                <div>
+                  <div class="cq-title">Card Title</div>
+                  <div class="cq-body">
+                    Same component, same CSS class, different container width.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="flex: 1; min-width: 240px">
+            <span class="label"
+              >Wide container (&gt;280px) → row layout. Same component, zero
+              extra classes.</span
+            >
+            <div class="cq-wide">
+              <div class="cq-card">
+                <div class="cq-img"></div>
+                <div>
+                  <div class="cq-title">Card Title</div>
+                  <div class="cq-body">
+                    The component queries its own container and switches to row
+                    layout automatically.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          <code>container-type: inline-size</code> on the wrapper +
+          <code
+            >@container (inline-size &gt; 280px) { .cq-card { flex-direction:
+            row; } }</code
+          >. No JS. No class toggling.
+        </p>
+      </section>
+
+      <section>
+        <span class="section-tag">CSS Selectors — 2026</span>
+        <h2>The <code>:has()</code> Parent Selector</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          The most used and most loved CSS feature in the State of CSS 2025
+          survey. Enables parent selection and conditional styling that
+          previously required JavaScript. Baseline widely available.
+        </p>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label"
+              >Form group border turns coral when input is invalid — type
+              letters in the email field</span
+            >
+            <div class="has-group">
+              <label>Email address</label>
+              <input class="has-inp" type="email" placeholder="not-an-email" />
+            </div>
+            <p class="btn-context">
+              <code>.form-group:has(:invalid) { border-color: coral; }</code>
+            </p>
+          </div>
+          <div class="demo-box">
+            <span class="label"
+              >Entire card highlights when its inner button receives keyboard
+              focus — Tab to the button</span
+            >
+            <div class="has-card">
+              <p>
+                Card content. The whole card responds to focus inside it, not
+                just the button.
+              </p>
+              <button class="btn-secondary-h" style="width: 100%">
+                Action inside card
+              </button>
+            </div>
+            <p class="btn-context">
+              <code
+                >.card:has(button:focus-visible) { border-color: cyan; }</code
+              >
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Typography Precision — 2025+</span>
+        <h2>text-box: Perfect Vertical Centering</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          A font's content box is sized by its internal ascent/descent metrics,
+          not by the cap height and baseline where Latin glyphs actually live.
+          This makes text look optically high even when it is mathematically
+          centered. <code>text-box: trim-both cap alphabetic</code> removes the
+          phantom whitespace. Chrome 128+, Safari 18.2+.
+        </p>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label"
+              >❌ Default — text sits visually high inside the box</span
+            >
+            <div class="textbox-bg">
+              <button class="textbox-btn">Save Changes</button>
+            </div>
+            <p class="btn-context" style="margin-top: 8px">
+              Font metrics push cap height above the vertical midpoint. Looks
+              off on short buttons and icon–label pairs.
+            </p>
+          </div>
+          <div class="demo-box">
+            <span class="label"
+              >✅ text-box: trim-both cap alphabetic — optically exact</span
+            >
+            <div class="textbox-bg">
+              <button class="textbox-btn textbox-trimmed">Save Changes</button>
+            </div>
+            <p class="btn-context" style="margin-top: 8px">
+              Cap height aligns to the true centre. No hacks, no magic numbers,
+              no <code>padding-top: 3px</code> tweaks.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <span class="section-tag">Animation — 2025+</span>
+        <h2>sibling-index() Staggered Animations</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          Previously, staggered list animations required counting DOM elements
+          and hardcoding <code>:nth-child(n) { animation-delay: Xms }</code> for
+          every item. The new <code>sibling-index()</code> function returns each
+          element's position automatically, making the delay formula one line of
+          CSS regardless of list length. Chrome 137+.
+        </p>
+        <div class="demo-box">
+          <ul class="stagger-list playing" id="stagger-demo">
+            <li>Design token layer (primitives)</li>
+            <li>Semantic alias layer (meaning)</li>
+            <li>Component token layer (scoped)</li>
+            <li>Utility override layer (last resort)</li>
+            <li>Theme variant layer (dark / light)</li>
+          </ul>
+          <button class="stagger-replay" id="replay-btn">
+            ↺ Replay animation
+          </button>
+          <p class="btn-context" style="margin-top: var(--space-1)">
+            <code>animation-delay: calc(0.08s * (sibling-index() - 1))</code> —
+            delay scales automatically. Add or remove list items; zero CSS
+            changes needed.
+          </p>
+        </div>
+        <script>
+          document
+            .getElementById("replay-btn")
+            .addEventListener("click", () => {
+              const list = document.getElementById("stagger-demo");
+              list.classList.remove("playing");
+              void list.offsetWidth;
+              list.classList.add("playing");
+            });
+        </script>
+      </section>
+
+      <section>
+        <span class="section-tag">Animation — 2025+</span>
+        <h2>Scroll-Driven Animations</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          Elements animate as they enter the viewport using
+          <code>animation-timeline: view()</code>. Zero JavaScript. Runs off the
+          main thread — no jank even on slow devices. Chrome 115+, Safari 26+.
+          Supersedes <code>IntersectionObserver</code> for purely visual scroll
+          effects.
+        </p>
+        <div class="scroll-demo-scroller">
+          <span class="scroll-demo-note">Scroll down inside this box</span>
+          <div class="scroll-reveal-item">
+            <strong>Design token layer</strong>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-top: 4px;
+              "
+            >
+              Fades • slides in as it enters the viewport
+            </p>
+          </div>
+          <div class="scroll-reveal-item">
+            <strong>Semantic alias layer</strong>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-top: 4px;
+              "
+            >
+              Each item has its own independent View Timeline
+            </p>
+          </div>
+          <div class="scroll-reveal-item">
+            <strong>Component scoped layer</strong>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-top: 4px;
+              "
+            >
+              No scroll event listener anywhere in this demo
+            </p>
+          </div>
+          <div class="scroll-reveal-item">
+            <strong>Utility override layer</strong>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-top: 4px;
+              "
+            >
+              <code>animation-range: entry 0% entry 60%</code>
+            </p>
+          </div>
+          <div class="scroll-reveal-item">
+            <strong>Theme variant layer</strong>
+            <p
+              style="
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-top: 4px;
+              "
+            >
+              animation-timeline: view() on each item — that's the entire setup
+            </p>
+          </div>
+        </div>
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          <code
+            >animation: scroll-fade-in linear both; animation-timeline: view();
+            animation-range: entry 0% entry 60%;</code
+          >
+          — works for reading indicators too:
+          <code>animation-timeline: scroll(root)</code>.
+        </p>
+      </section>
+
+      <section>
+        <span class="section-tag">Typography — 2025+</span>
+        <h2>text-wrap: balance</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          A single property that eliminates orphan words in headlines by asking
+          the browser to compute the optimal line-break distribution. Apply to
+          all headings site-wide. Chrome 114+, Firefox 121+, Safari 17.5+.
+          Limit: works for up to 6 wrapped lines.
+        </p>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label"
+              >❌ Default wrapping — orphan word stranded alone</span
+            >
+            <div class="wrap-demo wrap-unbalanced">
+              Building Interfaces That Don't Look Wrong
+            </div>
+          </div>
+          <div class="demo-box">
+            <span class="label"
+              >✅ text-wrap: balance — visually balanced block</span
+            >
+            <div class="wrap-demo wrap-balanced">
+              Building Interfaces That Don't Look Wrong
+            </div>
+          </div>
+        </div>
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          <code>h1, h2, h3, h4, h5, h6 { text-wrap: balance; }</code>
+          also <code>text-wrap: pretty</code> for body paragraphs (avoids
+          orphans with less reflow).
+        </p>
+      </section>
+
+      <section>
+        <span class="section-tag">Animation — 2025+</span>
+        <h2>@starting-style Entry Animations</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          Before <code>@starting-style</code>, animating an element as it
+          appears required JavaScript to add a class one frame after insertion.
+          Now you declare entry state in CSS alone. The transition fires when
+          the element first renders. Same mechanism works for
+          <code>popover</code> and <code>&lt;dialog&gt;</code>. Chrome 117+,
+          Firefox 129+, Safari 17.5+.
+        </p>
+        <div class="starting-demo">
+          <div>
+            <button class="show-hide-btn" id="popup-toggle">
+              Show / hide panel
+            </button>
+            <p class="btn-context" style="margin-top: 8px">
+              Watch the panel fade + slide in — no JS animation classes
+            </p>
+          </div>
+          <div class="popup-box" id="popup-panel">
+            <h4>Entry animation via CSS only</h4>
+            <p>
+              @starting-style defines the <em>from</em> state for elements
+              entering the DOM. The browser interpolates to the element's normal
+              styles automatically.
+            </p>
+          </div>
+        </div>
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          <code
+            >transition: opacity 0.35s, translate 0.35s, display 0.35s
+            allow-discrete;</code
+          >
+          +
+          <code
+            >@starting-style { .panel { opacity: 0; translate: 0 12px; } }</code
+          >
+        </p>
+        <script>
+          (() => {
+            const btn = document.getElementById("popup-toggle");
+            const panel = document.getElementById("popup-panel");
+            btn.addEventListener("click", () => {
+              if (panel.hasAttribute("hidden")) {
+                panel.removeAttribute("hidden");
+              } else {
+                panel.setAttribute("hidden", "");
+              }
+            });
+          })();
+        </script>
+      </section>
+
+      <section>
+        <span class="section-tag">Loading UX — 2026</span>
+        <h2>Skeleton Screens vs Spinners</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          A spinner tells the user they are waiting. A skeleton screen shows
+          them <em>what</em> they are waiting for, matching the layout that will
+          appear. Perceived load time is shorter because the user's eye has
+          already mapped the structure. The shimmer is pure CSS — a
+          <code>background-position</code> keyframe animation.
+        </p>
+        <div class="skeleton-grid">
+          <div class="skeleton-card">
+            <h4>❌ Spinner — vague, anxiety-inducing</h4>
+            <div class="spinner"></div>
+            <p class="spinner-label">Loading…</p>
+          </div>
+          <div class="skeleton-card">
+            <h4>✅ Skeleton — structural preview</h4>
+            <div class="skel skel-avatar"></div>
+            <div class="skel skel-line" style="width: 80%"></div>
+            <div class="skel skel-line" style="width: 95%"></div>
+            <div class="skel skel-line" style="width: 70%"></div>
+            <div class="skel skel-line skel-line-sm"></div>
+          </div>
+        </div>
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          Shimmer:
+          <code
+            >background: linear-gradient(90deg, dim, bright, dim);
+            background-size: 200% 100%; animation: shimmer 1.6s infinite
+            linear;</code
+          >
+        </p>
+      </section>
+
+      <section>
+        <span class="section-tag">CSS :has() — 2025+</span>
+        <h2>Dark / Light Mode Toggle — Zero JavaScript</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          A hidden <code>&lt;input type="checkbox"&gt;</code> drives the entire
+          theme switch. <code>:has(.theme-cb:checked)</code> on the wrapper
+          container rewrites scoped CSS custom properties — no JS event
+          listeners, no <code>classList.toggle</code>, no
+          <code>data-theme</code> attribute mutations. The transition on every
+          property makes the flip feel polished. Baseline widely available
+          (Chrome 121+, Firefox 121+, Safari 17.2+).
+        </p>
+
+        <!-- The checkbox lives INSIDE the wrapper so :has() can reach it -->
+        <div class="theme-demo-wrap">
+          <input type="checkbox" class="theme-cb" id="theme-cb" />
+          <div class="theme-stage">
+            <label class="theme-toggle-label" for="theme-cb">
+              <span class="theme-toggle-track"></span>
+              <span class="theme-toggle-text">Toggle dark / light</span>
+            </label>
+            <div class="comparison-grid">
+              <div class="theme-preview-card">
+                <div class="theme-card-title">Design token card</div>
+                <div class="theme-card-body">
+                  All colours, shadows, and borders reference scoped
+                  <code>--td-*</code> variables. Flipping the checkbox rewrites
+                  every token at once — one selector, zero JS.
+                </div>
+                <button class="theme-card-btn">Primary action</button>
+              </div>
+              <div class="theme-preview-card">
+                <div class="theme-card-title">How it works</div>
+                <div class="theme-card-body">
+                  <code>.wrapper { --td-bg: dark; }</code><br />
+                  <code>.wrapper:has(input:checked) { --td-bg: light; }</code
+                  ><br /><br />
+                  The `:has()` selector targets an ancestor based on a
+                  descendant's state. Previously impossible without JS.
+                </div>
+                <button class="theme-card-btn">See the CSS</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          Scale this up by scoping to <code>html:has(#toggle:checked)</code> to
+          switch the entire page theme from a single checkbox anywhere in the
+          DOM.
+        </p>
+      </section>
+
+      <!-- =============================================
+           VIDEO PATTERNS
+           ============================================= -->
+      <section>
+        <span class="section-tag">Media — 2026</span>
+        <h2>Video: Inline & Background Patterns</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          <code>&lt;video&gt;</code> is a replaced element like
+          <code>&lt;img&gt;</code> — it obeys <code>object-fit</code>,
+          <code>aspect-ratio</code>, and <code>border-radius</code>. The two
+          main patterns are <strong>inline</strong> (content video with controls
+          and captions) and <strong>background</strong> (ambient, muted,
+          decorative). They have opposite attribute requirements.
+        </p>
+
+        <!-- 1. Inline video comparison -->
+        <div class="comparison-grid" style="margin-bottom: var(--space-4)">
+          <div class="demo-box">
+            <span class="label">❌ Bad — fixed pixel dimensions, no aspect-ratio</span>
+            <div class="fake-video-div">
+              &lt;video width="640" height="360"&gt; — breaks on small screens,
+              overflows containers, requires JS resize hacks
+            </div>
+            <div class="attr-list">
+              <span class="attr-bad">width="640"</span>
+              <span class="attr-bad">height="360"</span>
+              <span class="attr-bad">no object-fit</span>
+              <span class="attr-bad">no &lt;track&gt;</span>
+            </div>
+          </div>
+
+          <div class="demo-box">
+            <span class="label">✅ Good — aspect-ratio wrapper + semantic attributes</span>
+            <!--
+              Real usage: swap src for an actual video file.
+              The gradient below simulates a poster frame.
+            -->
+            <div class="video-poster-wrap">
+              <video
+                preload="none"
+                controls
+                playsinline
+                poster=""
+                aria-label="Demo video clip"
+                style="background: linear-gradient(135deg, #131836, #1c2345);"
+              >
+                <!--
+                  <source src="video.webm" type="video/webm">
+                  <source src="video.mp4"  type="video/mp4">
+                  <track kind="captions" src="captions.vtt" srclang="en" label="English" default>
+                -->
+                Your browser does not support the video element.
+              </video>
+              <div class="video-caption-bar">Caption track renders here — always provide a <code>&lt;track&gt;</code></div>
+            </div>
+            <div class="attr-list" style="margin-top: var(--space-2)">
+              <span class="attr-good">preload="none"</span>
+              <span class="attr-good">controls</span>
+              <span class="attr-good">playsinline</span>
+              <span class="attr-good">poster="…"</span>
+              <span class="attr-good">&lt;track kind="captions"&gt;</span>
+              <span class="attr-good">aspect-ratio: 16/9</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Background video hero -->
+        <div class="demo-box" style="margin-bottom: var(--space-3)">
+          <span class="label" style="margin-bottom: var(--space-2)">✅ Good — background video hero (muted, autoplay, aria-hidden)</span>
+          <div class="video-hero">
+            <!--
+              Real usage: <video autoplay muted loop playsinline aria-hidden="true">
+                <source src="hero.webm" type="video/webm">
+                <source src="hero.mp4"  type="video/mp4">
+              </video>
+
+              Simulated with a CSS gradient here — the video element is present
+              but has no src so the gradient background-color shows through.
+            -->
+            <video
+              autoplay
+              muted
+              loop
+              playsinline
+              aria-hidden="true"
+              tabindex="-1"
+              style="background: linear-gradient(135deg, #0a0e27 0%, #667eea 50%, #ff006e 100%);"
+            ></video>
+            <div class="video-scrim"></div>
+            <div class="video-hero-content">
+              <h3>Background Video Hero</h3>
+              <p>Text sits on a scrim — legible at any contrast level</p>
+            </div>
+          </div>
+          <div class="attr-list" style="margin-top: var(--space-2)">
+            <span class="attr-good">autoplay</span>
+            <span class="attr-good">muted</span>
+            <span class="attr-good">loop</span>
+            <span class="attr-good">playsinline</span>
+            <span class="attr-good">aria-hidden="true"</span>
+            <span class="attr-good">tabindex="-1"</span>
+            <span class="attr-good">object-fit: cover</span>
+            <span class="attr-good">prefers-reduced-motion fallback</span>
+            <span class="attr-warn">no controls</span>
+            <span class="attr-warn">no &lt;track&gt; needed</span>
+          </div>
+        </div>
+
+        <!-- 3. Rules summary -->
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label" style="font-weight: 700; color: var(--text-primary)">Inline video rules</span>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• Wrap in <code>aspect-ratio: 16/9</code> container — never set px dimensions</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• Always include a <code>poster</code> image (prevents layout shift)</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• <code>preload="none"</code> — don't download video until user initiates</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• Add <code>&lt;track kind="captions"&gt;</code> — WCAG 2.1 AA requires captions</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• <code>playsinline</code> prevents iOS full-screen hijack</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• Serve WebM first, MP4 as fallback (<code>&lt;source&gt;</code> order matters)</li>
+            </ul>
+          </div>
+          <div class="demo-box">
+            <span class="label" style="font-weight: 700; color: var(--text-primary)">Background video rules</span>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• Always <code>muted</code> — browsers block autoplay with audio</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• <code>aria-hidden="true"</code> + <code>tabindex="-1"</code> — decorative, not content</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• Always overlay a scrim (<code>linear-gradient</code>) for text legibility</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• <code>@media (prefers-reduced-motion: reduce)</code> — hide video, show static fallback</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• <code>will-change: transform</code> promotes to GPU compositor layer</li>
+              <li style="font-size: 0.85rem; color: var(--text-secondary)">• Keep clips short (≤ 10s loop) and compressed — aim for &lt; 2 MB</li>
+            </ul>
+          </div>
+        </div>
+
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          Source order for <code>&lt;source&gt;</code>: WebM (AV1 or VP9) first —
+          smaller file, better quality. MP4 (H.264) as the universal fallback.
+          Never use <code>autoplay</code> without <code>muted</code>; browsers
+          will silently block it.
+        </p>
+      </section>
+
+      <!-- =============================================
+           INPUT TYPES
+           ============================================= -->
+      <section>
+        <span class="section-tag">Forms — HTML Fundamentals</span>
+        <h2>Input Types Worth Knowing</h2>
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-3)">
+          Skipping the obvious (<code>text</code>, <code>password</code>,
+          <code>email</code>, <code>number</code>). These are the input types
+          that eliminate JS libraries, improve mobile UX, and are easy to
+          forget exist. All use <code>accent-color</code> to pick up your brand
+          colour automatically.
+        </p>
+
+        <!-- Native pickers grid -->
+        <h3 style="font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-2);">
+          Native pickers — zero JS
+        </h3>
+        <div class="input-grid" style="margin-bottom: var(--space-4);">
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="date"</span>
+            <input class="lab-input" type="date" min="2024-01-01" max="2030-12-31">
+            <span class="input-cell-desc">Native date picker. <code>min</code>/<code>max</code> constrain the range. Replaces every date-picker library for 90% of use cases.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="time"</span>
+            <input class="lab-input" type="time" min="09:00" max="18:00">
+            <span class="input-cell-desc">Native time picker. Eliminates AM/PM dropdowns. <code>min</code>/<code>max</code> restrict bookable hours.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="datetime-local"</span>
+            <input class="lab-input" type="datetime-local">
+            <span class="input-cell-desc">Date + time in a single field. Ideal for event bookings and scheduling forms.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="month"</span>
+            <input class="lab-input" type="month" min="2025-01">
+            <span class="input-cell-desc">Month + year only. Perfect for credit card expiry or monthly billing cycles.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="week"</span>
+            <input class="lab-input" type="week">
+            <span class="input-cell-desc">Week-of-year selector. Niche, but eliminates bespoke week pickers in timesheet apps.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="color"</span>
+            <div class="color-row">
+              <input class="lab-input" type="color" id="color-pick" value="#4f46e5" style="width: auto; padding: 2px; height: 36px; cursor: pointer;">
+              <div class="color-swatch-preview" id="color-swatch"></div>
+            </div>
+            <span class="input-cell-desc">Native OS colour picker. No library needed for theme pickers, annotation tools, or simple config UIs.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="range"</span>
+            <div class="range-row">
+              <input class="lab-input" type="range" id="range-demo" min="0" max="100" step="5" value="50" style="padding: 0;">
+              <span class="range-val" id="range-val">50</span>
+            </div>
+            <span class="input-cell-desc">Slider for bounded values. <code>accent-color</code> styles the thumb and track. Pair with an <code>oninput</code> display for feedback.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="search"</span>
+            <input class="lab-input" type="search" placeholder="Search…">
+            <span class="input-cell-desc">Adds a clear (✕) button in most browsers. Semantically correct — assistive tech announces it as a search field.</span>
+          </div>
+
+        </div>
+
+        <!-- Mobile-optimised inputs -->
+        <h3 style="font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-2);">
+          Mobile keyboard optimisation
+        </h3>
+        <div class="input-grid" style="margin-bottom: var(--space-4);">
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="tel"</span>
+            <input class="lab-input" type="tel" placeholder="(123) 456-7890">
+            <span class="input-cell-desc">Triggers numeric keypad on iOS/Android. Does <em>not</em> validate format — combine with <code>pattern</code> if you need that.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">type="url"</span>
+            <input class="lab-input" type="url" placeholder="https://example.com">
+            <span class="input-cell-desc">Shows <code>.com</code> and <code>/</code> keys on mobile. Browser validates URL format on submit.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">inputmode="numeric"</span>
+            <input class="lab-input" type="text" inputmode="numeric" pattern="\d*" placeholder="4-digit PIN">
+            <span class="input-cell-desc"><code>inputmode</code> controls the on-screen keyboard <em>without</em> changing validation semantics. Use for PINs, OTPs, codes.</span>
+          </div>
+
+          <div class="input-cell">
+            <span class="input-cell-label">capture="environment"</span>
+            <input class="lab-input" type="file" accept="image/*" capture="environment">
+            <span class="input-cell-desc">On mobile, opens the rear camera directly instead of the file browser. <code>capture="user"</code> for selfie/front camera.</span>
+          </div>
+
+        </div>
+
+        <!-- Power attributes -->
+        <h3 style="font-size: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: var(--space-2);">
+          Power attributes
+        </h3>
+        <div class="power-grid">
+
+          <div class="power-cell">
+            <span class="power-cell-label">list + &lt;datalist&gt; — zero-JS autocomplete</span>
+            <input class="lab-input" type="text" list="frameworks-list" placeholder="Type a framework…">
+            <datalist id="frameworks-list">
+              <option value="React">
+              <option value="Vue">
+              <option value="Svelte">
+              <option value="Solid">
+              <option value="Astro">
+              <option value="Angular">
+            </datalist>
+            <span class="power-cell-desc">Free-text <em>plus</em> suggestions, no JS. The <code>list</code> attribute links to a <code>&lt;datalist&gt;</code> by ID. Works on all modern browsers.</span>
+          </div>
+
+          <div class="power-cell">
+            <span class="power-cell-label">pattern — regex validation without JS</span>
+            <input class="lab-input" type="text" pattern="[A-Z]{2}\d{4}" title="Format: 2 uppercase letters + 4 digits, e.g. AB1234" placeholder="e.g. AB1234">
+            <span class="power-cell-desc"><code>pattern</code> runs a regex against the value on submit. Always combine with <code>title</code> — it becomes the validation tooltip. Example: booking reference format.</span>
+          </div>
+
+          <div class="power-cell">
+            <span class="power-cell-label">autocomplete — stop frustrating users</span>
+            <input class="lab-input" type="text" autocomplete="given-name" placeholder="First name">
+            <span class="power-cell-desc">Use <code>autocomplete</code> tokens (<code>email</code>, <code>given-name</code>, <code>street-address</code>, etc.) so password managers and browsers fill forms correctly. Never set <code>autocomplete="off"</code> on login forms — it breaks password managers.</span>
+          </div>
+
+          <div class="power-cell">
+            <span class="power-cell-label">minlength / maxlength + required</span>
+            <input class="lab-input" type="text" minlength="3" maxlength="20" required placeholder="3–20 characters">
+            <span class="power-cell-desc"><code>required</code> blocks empty submission. <code>minlength</code>/<code>maxlength</code> constrain character count. The browser validates all three — no JS needed for these common constraints.</span>
+          </div>
+
+        </div>
+
+        <p class="btn-context" style="margin-top: var(--space-2)">
+          Left out intentionally: <code>text</code>, <code>password</code>,
+          <code>email</code>, <code>number</code>, <code>checkbox</code>,
+          <code>radio</code>, <code>hidden</code>, <code>submit</code>,
+          <code>reset</code>, <code>image</code> — well documented everywhere,
+          and <code>&lt;button type="submit"&gt;</code> is preferred over
+          <code>type="submit"</code> and <code>type="button"</code> inputs for
+          flexibility.
+        </p>
+      </section>
+
+      <script>
+        // Range value display
+        const rangeDemo = document.getElementById('range-demo');
+        const rangeVal  = document.getElementById('range-val');
+        if (rangeDemo && rangeVal) {
+          rangeDemo.addEventListener('input', () => { rangeVal.textContent = rangeDemo.value; });
+        }
+        // Color swatch preview
+        const colorPick  = document.getElementById('color-pick');
+        const colorSwatch = document.getElementById('color-swatch');
+        if (colorPick && colorSwatch) {
+          colorSwatch.style.background = colorPick.value;
+          colorPick.addEventListener('input', () => { colorSwatch.style.background = colorPick.value; });
+        }
+      </script>
+    </div>
+  </body>
+</html>

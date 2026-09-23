@@ -1,0 +1,28 @@
+{
+  "name": "htmx",
+  "version": "1.0.0",
+  "description": "Beautiful hypermedia-driven sites with HTMX 2.x. Pairs with native HTML5 elements and the Web Animations API for sites that feel 'alive'.",
+  "author": {
+    "name": "Claude Design Skillstack",
+    "email": "oladotun.olatunji@gmail.com"
+  },
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/greysquirr3l/claudedesignskills",
+  "repository": "https://github.com/greysquirr3l/claudedesignskills.git",
+  "keywords": [
+    "no-framework",
+    "htmx",
+    "hypermedia",
+    "server-rendered",
+    "progressive-enhancement",
+    "spa-feel",
+    "view-transitions"
+  ],
+  "skills": "./skills/",
+  "commands": [
+    "./commands/htmx-htmx_examples"
+  ],
+  "agents": [
+    "./agents/htmx-architect"
+  ]
+}

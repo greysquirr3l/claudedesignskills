@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pattern Lab — greysquirr3l</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-base:              #0a0e27;
+        --bg-surface:           #131836;
+        --bg-surface-highlight: #1c2345;
+
+        --text-primary:   #fafbfc;
+        --text-secondary: #94a3b8;
+
+        --neon-cyan:       #00f5ff;
+        --neon-coral:      #ff006e;
+        --electric-purple: #764ba2;
+
+        --space-1: 8px;
+        --space-2: 16px;
+        --space-3: 24px;
+        --space-4: 32px;
+        --space-6: 48px;
+
+        --border-light: rgba(255, 255, 255, 0.08);
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        background-color: var(--bg-base);
+        color: var(--text-primary);
+        font-family: "Inter", sans-serif;
+        padding-bottom: 100px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 0 var(--space-3);
+      }
+
+      section {
+        margin: var(--space-6) 0;
+        padding: var(--space-4);
+        border: 1px solid var(--border-light);
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.01);
+      }
+
+      .section-tag {
+        color: var(--neon-cyan);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        margin-bottom: var(--space-2);
+        display: block;
+      }
+
+      h2 {
+        font-size: 2rem;
+        margin-bottom: var(--space-4);
+        border-bottom: 1px solid var(--border-light);
+        padding-bottom: var(--space-2);
+        letter-spacing: -0.02em;
+      }
+
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-4);
+      }
+
+      @media (max-width: 768px) {
+        .comparison-grid { grid-template-columns: 1fr; }
+      }
+
+      .demo-box {
+        background: var(--bg-surface);
+        padding: var(--space-3);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+      }
+
+      .label {
+        display: block;
+        margin-bottom: var(--space-2);
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      /* ── BUTTONS ── */
+      .demo-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 22px;
+        background: transparent;
+        border: 1px solid rgba(0, 245, 255, 0.4);
+        color: var(--neon-cyan);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-family: inherit;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.15s;
+      }
+      .demo-btn:hover  { background: rgba(0, 245, 255, 0.06); }
+      .demo-btn:active { background: rgba(0, 245, 255, 0.12); }
+
+      .demo-btn-coral {
+        border-color: rgba(255, 0, 110, 0.4);
+        color: var(--neon-coral);
+      }
+      .demo-btn-coral:hover { background: rgba(255, 0, 110, 0.06); }
+
+      .demo-btn-purple {
+        border-color: rgba(118, 75, 162, 0.5);
+        color: #a78bfa;
+      }
+      .demo-btn-purple:hover { background: rgba(118, 75, 162, 0.08); }
+
+      .btn-row {
+        display: flex;
+        gap: var(--space-1);
+        flex-wrap: wrap;
+        margin-top: var(--space-2);
+      }
+
+      /* ── STATUS BADGES ── */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 600;
+      }
+      .badge-ok {
+        background: rgba(0, 245, 255, 0.1);
+        color: var(--neon-cyan);
+        border: 1px solid rgba(0, 245, 255, 0.25);
+      }
+      .badge-purple {
+        background: rgba(118, 75, 162, 0.12);
+        color: #a78bfa;
+        border: 1px solid rgba(118, 75, 162, 0.3);
+      }
+      .badge-coral {
+        background: rgba(255, 0, 110, 0.08);
+        color: #ff6b9d;
+        border: 1px solid rgba(255, 0, 110, 0.25);
+      }
+
+      /* ── DOC ENTRY CARD ── */
+      .doc-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: var(--space-3);
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2);
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .doc-card:hover {
+        border-color: rgba(0, 245, 255, 0.25);
+        background: var(--bg-surface-highlight);
+      }
+
+      .doc-card-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+      }
+
+      .doc-card-desc {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        line-height: 1.65;
+      }
+
+      .doc-card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      /* ── FOOTER ── */
+      footer {
+        text-align: center;
+        padding: var(--space-4);
+        font-size: 0.78rem;
+        color: #475569;
+        border-top: 1px solid var(--border-light);
+        margin-top: var(--space-6);
+      }
+      footer a {
+        color: var(--text-secondary);
+        text-decoration: none;
+      }
+      footer a:hover { color: var(--neon-cyan); }
+    </style>
+  </head>
+  <body>
+
+    <div class="container">
+
+      <header style="padding: 60px 0; text-align: center">
+        <h1 style="font-size: 3rem; margin-bottom: 16px; letter-spacing: -0.03em">
+          Pattern Lab
+        </h1>
+        <p style="color: var(--text-secondary); max-width: 48ch; margin: 0 auto; line-height: 1.7">
+          Interactive reference documents for modern browser APIs, UI patterns, and design systems.
+          Open any document to explore live demos and syntax-highlighted code patterns.
+        </p>
+      </header>
+
+      <!-- ============================================================
+           DOCUMENTS
+           ============================================================ -->
+      <section>
+        <span class="section-tag">Documents</span>
+        <h2>Pattern Lab Files</h2>
+
+        <div class="comparison-grid">
+
+          <div class="doc-card">
+            <span class="label">Design System</span>
+            <span class="doc-card-title">2026 UI Pattern Lab</span>
+            <p class="doc-card-desc">
+              Core component patterns: theming contracts, typography scale, button
+              variants, form states, cards, badges, code blocks, and responsive layout
+              strategies &#8212; all in a single self-contained file.
+            </p>
+            <div class="doc-card-badges">
+              <span class="status-badge badge-ok">CSS Custom Properties</span>
+              <span class="status-badge badge-purple">Grid &amp; Flex</span>
+              <span class="status-badge badge-coral">Dark Mode</span>
+            </div>
+            <div class="btn-row">
+              <a class="demo-btn" href="2026_pattern_lab.html">Open &#8594;</a>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <span class="label">Browser APIs</span>
+            <span class="doc-card-title">2026 HTML5 API Lab</span>
+            <p class="doc-card-desc">
+              13 live browser API demos: LocalStorage, Canvas, Drag &amp; Drop,
+              Web Workers, IntersectionObserver, Clipboard, Fullscreen, History,
+              Web Speech, Notifications, Page Visibility, BroadcastChannel, and Popover.
+            </p>
+            <div class="doc-card-badges">
+              <span class="status-badge badge-ok">Native APIs</span>
+              <span class="status-badge badge-purple">No Dependencies</span>
+              <span class="status-badge badge-coral">Live Demos</span>
+            </div>
+            <div class="btn-row">
+              <a class="demo-btn demo-btn-coral" href="2026_html5_apis.html">Open &#8594;</a>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <span class="label">Typography</span>
+            <span class="doc-card-title">2026 ::nth-letter Lab</span>
+            <p class="doc-card-desc">
+              12 live demos faking the still-unshipped <code style="font-size:0.82em;color:#a78bfa">::nth-letter</code>
+              pseudo-element in pure HTML5 + CSS &#8212; odd/even skew, spectral hue, kinetic
+              wave, glitch, bloom, shimmer, neon flicker, Solari flip, typewriter dissolve,
+              elastic bulge, and black-dust accumulation. Zero JavaScript.
+            </p>
+            <div class="doc-card-badges">
+              <span class="status-badge badge-purple">:nth-child</span>
+              <span class="status-badge badge-ok">sibling-index()</span>
+              <span class="status-badge badge-coral">Animations</span>
+            </div>
+            <div class="btn-row">
+              <a class="demo-btn demo-btn-purple" href="2026_nth_letter_lab.html">Open &#8594;</a>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <span class="label">Scroll Animation</span>
+            <span class="doc-card-title">2026 Scroll Timelines Lab</span>
+            <p class="doc-card-desc">
+              7 live demos covering the native CSS Scroll-driven Animations API &#8212;
+              reading progress bar, scroll-reveal, CSS parallax layers, horizontal scroll
+              gauge with <code style="font-size:0.82em;color:#00f5ff">timeline-scope</code>,
+              vertical event timeline, iMessage-style chat conversation, and a
+              step-progress tracker. Zero JavaScript.
+            </p>
+            <div class="doc-card-badges">
+              <span class="status-badge badge-ok">scroll() · view()</span>
+              <span class="status-badge badge-purple">timeline-scope</span>
+              <span class="status-badge badge-coral">animation-range</span>
+            </div>
+            <div class="btn-row">
+              <a class="demo-btn" href="2026_scroll_timeline_lab.html">Open &#8594;</a>
+            </div>
+          </div>
+
+          <div class="doc-card">
+            <span class="label">Data Visualization</span>
+            <span class="doc-card-title">Hexagonal Periodic Table</span>
+            <p class="doc-card-desc">
+              All 118 elements rendered as a hex grid using pure CSS
+              <code style="font-size:0.82em;color:#00f5ff">clip-path</code> polygons,
+              <code style="font-size:0.82em;color:#a78bfa">grid</code> layout, and
+              <code style="font-size:0.82em;color:#00f5ff">translateY</code> column offsets
+              for perfect honeycomb nesting. Colour-coded by category. Hover to zoom.
+              Zero JavaScript.
+            </p>
+            <div class="doc-card-badges">
+              <span class="status-badge badge-ok">clip-path</span>
+              <span class="status-badge badge-purple">CSS Grid</span>
+              <span class="status-badge badge-coral">118 Elements</span>
+            </div>
+            <div class="btn-row">
+              <a class="demo-btn demo-btn-coral" href="periodic_table.html">Open &#8594;</a>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ============================================================
+           ABOUT
+           ============================================================ -->
+      <section>
+        <span class="section-tag">About</span>
+        <h2>What Is This?</h2>
+        <div class="comparison-grid">
+          <div class="demo-box">
+            <span class="label">Purpose</span>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7">
+              A personal reference for modern browser-native capabilities and UI design
+              patterns. Every demo is interactive, every code snippet is copy-paste ready.
+              No build tools, no bundlers, no dependencies.
+            </p>
+          </div>
+          <div class="demo-box">
+            <span class="label">Stack</span>
+            <p style="font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7">
+              Plain HTML + CSS + JS. Each file is fully self-contained and opens directly
+              in any modern browser &#8212; including from the filesystem.
+            </p>
+            <div class="btn-row" style="margin-top: var(--space-3)">
+              <a class="demo-btn demo-btn-purple"
+                 href="https://github.com/greysquirr3l/pattern_lab"
+                 target="_blank" rel="noopener">GitHub &#8599;</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <footer>
+      <p>
+        <a href="https://github.com/greysquirr3l" target="_blank" rel="noopener">greysquirr3l</a>
+        &nbsp;&middot;&nbsp;
+        <a href="https://github.com/greysquirr3l/pattern_lab" target="_blank" rel="noopener">pattern_lab</a>
+      </p>
+    </footer>
+
+  </body>
+</html>
