@@ -5,7 +5,7 @@ description: "PixiJS v8 development for high-performance 2D web graphics, games,
 
 # PixiJS v8
 
-Use this skill for current PixiJS work. Prefer the single `pixi.js` package and v8 APIs. PixiJS is a 2D scene-graph renderer with WebGL and WebGPU backends; it is not a DOM layout system or a 3D engine.
+Use this skill for current PixiJS work. Prefer the single `pixi.js` package and v8 APIs. PixiJS is a 2D scene-graph renderer with WebGL, WebGPU, and an experimental Canvas renderer; it is not a DOM layout system or a 3D engine.
 
 ## Operating rules
 
@@ -43,7 +43,7 @@ app.ticker.add((ticker) => {
 });
 ```
 
-For a fixed-size canvas, pass `width` and `height`; for a responsive canvas, use `resizeTo` and lay out from `app.screen`. Prefer `background` in new code; `backgroundColor` remains a supported alias in the v8 guide. Choose `preference: 'webgpu'` only when the project has tested its browser and shader requirements; WebGL is the safer default.
+For a fixed-size canvas, pass `width` and `height`; for a responsive canvas, use `resizeTo` and lay out from `app.screen`. Prefer `background` in new code; `backgroundColor` remains a supported alias in the v8 guide. `preference` accepts a renderer name or an ordered array such as `['webgl', 'canvas']`. WebGL is the broad-compatibility default; Canvas is an experimental fallback with incomplete feature parity, while WebGPU should be selected only after testing browser and shader requirements.
 
 ### Project setup
 
@@ -82,10 +82,12 @@ const sprite = new Sprite(texture);
 - Use `getBounds`/`getLocalBounds` for layout and hit testing only when needed; repeated bounds calculations can be expensive.
 - Remove a child before destroying it when a container should remain reusable. Destroy with documented options when a subtree owns its textures.
 - Use render groups or culling intentionally. They can improve large scenes but may add render passes or batching costs.
+- Use `RenderLayer` when draw order must differ from logical parentage, such as a health bar that stays above a moving character. Treat it as an advanced/experimental scene feature and verify current import and lifecycle APIs.
+- Use `DOMContainer` for DOM elements that should track Pixi transforms; import the documented `pixi.js/dom` entry point. Keep DOM overlays in the DOM accessibility/focus model and use `app.domContainerRoot` when styling the overlay root.
 
 ## Sprites and animation
 
-Use `Sprite` for a single texture, `AnimatedSprite` for frame animation, `TilingSprite` for repeating backgrounds, and `NineSliceSprite` for scalable panels. For frame animation, keep frame textures in an atlas and control `animationSpeed`, `loop`, `play`, `stop`, and `gotoAndStop` from one owner. Do not recreate sprites every tick.
+Use `Sprite` for a single texture, `AnimatedSprite` for frame animation, `TilingSprite` for repeating backgrounds, and `NineSliceSprite` for scalable panels. Use `GifSprite`/`GifSource` through the documented `pixi.js/gif` extension for animated GIFs; do not decode GIF frames yourself unless the product needs custom control. For frame animation, keep frame textures in an atlas and control `animationSpeed`, `loop`, `play`, `stop`, and `gotoAndStop` from one owner. Do not recreate sprites every tick.
 
 ```ts
 const atlas = await Assets.load('run.json');
@@ -106,16 +108,18 @@ const card = new Graphics()
   .stroke({ width: 2, color: 0x6ea8fe });
 ```
 
-Use v8 names such as `rect`, `circle`, `ellipse`, `roundRect`, `poly`, and `star`. Replace v7 patterns such as `beginFill`, `endFill`, `drawRect`, `lineStyle`, and `beginHole` with `fill`, `stroke`, shape methods, and `cut`. Reuse a `GraphicsContext` when many objects share the same geometry. Generate a texture from stable graphics only when rasterization improves batching or reuse; do not regenerate it every frame.
+Use v8 names such as `rect`, `circle`, `ellipse`, `roundRect`, `poly`, and `star`. Replace v7 patterns such as `beginFill`, `endFill`, `drawRect`, `lineStyle`, and `beginHole` with `fill`, `stroke`, shape methods, and `cut`. Reuse a `GraphicsContext` when many objects share the same geometry. Use `FillPattern.textureSpace: 'global'` for seamless world-space patterns or `'local'` for per-shape mapping, and verify `setTransform()` behavior after upgrades. In v8.18+, use `graphicsContextToSvg()` when exporting supported Graphics paths to SVG. Generate a texture from stable graphics only when rasterization improves batching or reuse; do not regenerate it every frame.
 
 ## Text, masks, filters, and blend modes
 
 - Use `Text` for flexible styled text, `BitmapText` for large amounts of frequently changing text, and `HTMLText` only when its browser and accessibility trade-offs are acceptable.
+- Use tagged text (`TextStyle.tagStyles`) for inline styles without splitting a sentence into multiple objects. Use `SplitText` or `SplitBitmapText` for character/word/line animation, and call the documented style-change method after mutating a style.
 - Load bitmap/web fonts before measuring or laying out text. Avoid changing expensive text styles every frame.
 - Use masks and filters on the smallest practical subtree. Set a tight `filterArea` when the bounds are known.
+- In current v8 releases, `Sprite.setMask({ mask, channel: 'alpha' })` can use the alpha channel instead of the default red channel; choose the channel to match the mask asset rather than preprocessing blindly.
 - Prefer built-in filters for common effects. For custom GPU work, use the v8 shader/filter APIs and test both WebGL and WebGPU if both are supported.
 - Advanced blend modes and optional extensions may require an explicit `pixi.js/*` import. Register extensions before initialization when the documented API requires it.
-- Do not assume a filter, blend mode, or text extension is included in a custom build. Verify the import path against the release docs.
+- Do not assume a filter, blend mode, or text extension is included in a custom build. Verify the import path against the release docs. Advanced blend modes use the documented `pixi.js/advanced-blend-modes` entry point.
 
 ## Interaction and accessibility
 
@@ -159,6 +163,10 @@ Use `MeshSimple`, `MeshPlane`, `MeshRope`, or a custom `Mesh` when geometry or U
 - In custom builds, import required extensions explicitly and use the documented `skipExtensionImports` option. Be careful with text, events, filters, compressed textures, and `unsafe-eval` imports.
 - Use `Shader.from`, `GlProgram`/`GpuProgram`, and `Filter.from` only after checking the current API reference. Keep GLSL and WGSL source separate when portability is required; test uniform layout, coordinate origin, premultiplied alpha, and precision.
 - For render-to-texture, track render-texture size, resolution, color space, and lifecycle. Reuse temporary targets through the documented pool where appropriate.
+- Use `CullerPlugin` when screen-space culling is appropriate; set useful bounds/cull areas and remember that culling is not a substitute for reducing scene complexity.
+- Use the `Color` utility for hex, CSS, RGB, HSL, conversion, and premultiplication work rather than maintaining ad-hoc color parsing. Check the installed release for the exact `Color` methods.
+- `HTMLSource` and `ElementImageSource` from the experimental `pixi.js/html-source` entry point can mirror live DOM or snapshot DOM into textures. The browser HTML-in-Canvas API is not broadly available: feature-detect it, keep the element as a direct child of the Pixi canvas when required, and provide a non-HTML fallback.
+- For sharing a WebGL context with Three.js or another renderer, follow the official mixing guide and coordinate render order, state reset, resize, and teardown. Do not assume two render loops can share a context safely.
 
 ## Performance checklist
 
@@ -188,7 +196,7 @@ Use `MeshSimple`, `MeshPlane`, `MeshRope`, or a custom `Mesh` when geometry or U
 - **Wrong scale or blurry output:** separate CSS size from renderer size, configure `resolution`/`autoDensity`, and avoid scaling the canvas twice.
 - **Clicks miss:** set `eventMode`, check ancestor event modes, define `hitArea`, and verify coordinate conversion.
 - **Unexpected draw cost:** inspect filters, masks, render textures, texture switches, resolution, and object count before changing the renderer.
-- **WebGPU-only failure:** retry with WebGL, check browser support, shader language, optional extensions, and adapter/device errors.
+- **WebGPU-only failure:** retry with WebGL or Canvas, check browser support, shader language, optional extensions, and adapter/device errors. Canvas is experimental and may not support every filter, mask, or custom-rendering feature.
 - **Asset memory growth:** stop retaining scene objects, unload only after destruction, destroy generated targets, and verify aliases do not keep stale references.
 
 ## Official references
@@ -196,7 +204,10 @@ Use `MeshSimple`, `MeshPlane`, `MeshRope`, or a custom `Mesh` when geometry or U
 - [PixiJS getting started](https://pixijs.com/8.x/guides/getting-started/intro)
 - [Application](https://pixijs.com/8.x/guides/components/application)
 - [Assets](https://pixijs.com/8.x/guides/components/assets)
+- [Render layers](https://pixijs.com/8.x/guides/concepts/render-layers)
+- [Mixing PixiJS with Three.js](https://pixijs.com/8.x/guides/third-party/mixing-three-and-pixi)
 - [v8 migration guide](https://pixijs.com/8.x/guides/migrations/v8)
+- [Recent v8 release notes](https://pixijs.com/blog/june-2026)
 - [Official PixiJS skills](https://github.com/pixijs/pixijs-skills)
 - [Release API docs](https://pixijs.download/release/docs/)
 
