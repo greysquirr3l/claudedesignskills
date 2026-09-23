@@ -4,6 +4,12 @@ description: Simple scroll-triggered reveal animations using AOS (Animate On Scr
 ---
 
 # Scroll Reveal Libraries
+> **Current stable**: **AOS 2.3.4**.
+> `aos@next` (the `next` dist-tag) is **experimental / not for
+> production**. Install with `npm i aos@2.3.4`.
+>
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -47,12 +53,15 @@ This skill covers AOS (Animate On Scroll), a lightweight CSS-driven library for 
 </body>
 ```
 
-**NPM/Yarn (Recommended)**:
+**NPM/Yarn (Recommended — pin the stable version)**:
 ```bash
-npm install aos@next
+npm install aos@2.3.4
 # or
-yarn add aos@next
+yarn add aos@2.3.4
 ```
+
+> **Note**: `aos@next` is the **experimental / development** dist-tag.
+> Pin the stable `aos@2.3.4` for production builds.
 
 ```javascript
 import AOS from 'aos';
@@ -67,7 +76,7 @@ Apply animations using the `data-aos` attribute:
 
 ```html
 <!-- Fade in -->
-<div data-aos="fade-in">Content</div>
+<div data-aos="fade">Content</div>
 
 <!-- Fade up -->
 <div data-aos="fade-up">Content</div>
@@ -421,7 +430,7 @@ function DynamicList() {
       <button onClick={addItem}>Add Item</button>
       <ul>
         {items.map((item) => (
-          <li key={item.id} data-aos="fade-in">
+          <li key={item.id} data-aos="fade">
             {item.text}
           </li>
         ))}
@@ -572,7 +581,7 @@ AOS.init({
 
 ```html
 <!-- Simpler animations perform better -->
-<div data-aos="fade-in">Simple fade</div>
+<div data-aos="fade">Simple fade</div>
 
 <!-- Complex animations may cause jank -->
 <div data-aos="flip-left">Complex flip</div>
@@ -689,7 +698,7 @@ body[data-aos-duration='4000'] [data-aos],
 ```
 
 ```html
-<div data-aos="fade-in" data-aos-duration="4000">
+<div data-aos="fade" data-aos-duration="4000">
   Long animation
 </div>
 ```
@@ -811,6 +820,47 @@ Create custom animations with CSS:
 ### Starter Assets
 - `assets/starter_aos/` - Complete AOS starter template
 - `assets/examples/` - Production-ready patterns
+
+
+## Notes on current AOS patterns
+
+### Pin the stable version
+
+The `aos@next` tag points to the unstable development release. For
+production, pin **`aos@2.3.4`** explicitly:
+
+```bash
+npm install aos@2.3.4
+```
+
+### Animation catalog
+
+The `data-aos` attribute accepts the **stable** animation names.
+Commonly used values include:
+
+- `fade`, `fade-up`, `fade-down`, `fade-left`, `fade-right`,
+  `fade-up-right`, `fade-up-left`, `fade-down-right`, `fade-down-left`
+- `flip-up`, `flip-down`, `flip-left`, `flip-right`
+- `slide-up`, `slide-down`, `slide-left`, `slide-right`
+- `zoom-in`, `zoom-in-up`, `zoom-in-down`, `zoom-out`, `zoom-out-up`, `zoom-out-down`
+
+> **Note**: `data-aos="fade"` is **not** a valid animation in
+> AOS 2.3.4. Use `data-aos="fade"` or a directional variant.
+
+### Animation count
+
+Earlier skill text claimed AOS offers "50+" animations. The stable
+AOS 2.3.4 catalog has **27** animation presets (`fade` × 8,
+`flip` × 4, `slide` × 4, `zoom` × 6, plus `none`). The `next`
+release exposes additional experimental variants.
+
+### Duration / delay ranges
+
+- `data-aos-duration`: **50–3000 ms**, in **50 ms** increments
+  (`50, 100, 150, ... 3000`).
+- `data-aos-delay`: **0–3000 ms**, in **50 ms** increments.
+- `data-aos-easing`: any CSS easing keyword string; AOS passes it
+  through to `transition-timing-function`.
 
 ## Related Skills
 

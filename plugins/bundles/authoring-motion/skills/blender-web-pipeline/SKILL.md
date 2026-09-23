@@ -4,6 +4,13 @@ description: Blender to web export workflows for 3D models and animations. Use t
 ---
 
 # Blender Web Pipeline
+> **Current version**: Blender **5.2 LTS** (the current LTS line).
+> **Blender 5.3 is in alpha** — do not target it for production
+> pipelines yet. Examples in this skill assume Blender 5.2 LTS and
+> the glTF 2.0 exporter shipped with it.
+>
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -604,6 +611,61 @@ This skill includes:
 ### assets/
 - `export_template.blend` - Pre-configured export template
 - `shader_library/` - Web-optimized PBR shaders
+
+## Notes on current Blender patterns
+
+### `export_colors` → `export_vertex_color`
+
+In Blender 4.x the `bpy.ops.export_scene.gltf()` parameter
+`export_colors` was **renamed `export_vertex_color`** to match the
+final glTF spec terminology. The old name still works (with a
+deprecation warning) but new code should use:
+
+```python
+bpy.ops.export_scene.gltf(
+    filepath='/tmp/scene.glb',
+    export_vertex_color=True,  # not export_colors
+)
+```
+
+### gltfpack / KTX2 / BasisU / EXT_meshopt alongside Draco
+
+The standard glTF export now commonly pairs with **gltfpack**
+([meshopt compression](https://github.com/zeux/meshoptimizer)):
+
+```bash
+# After Blender's gltf export:
+gltfpack -i scene.gltf -o scene.meshopt.gltf \
+         -cc   # compress colors
+         -vp8  # KTX2 with BasisU for textures (requires toktx)
+```
+
+To export KTX2 textures directly from Blender, install **Khronos
+`toktx`** on `$PATH` and enable the `KTX2` exporter options.
+`EXT_meshopt_compression` and `KHR_texture_basisu` are widely
+supported in modern runtimes; legacy `KHR_draco_mesh_compression`
+remains available for older targets.
+
+### Actions / NLA export
+
+The glTF exporter in 5.2 LTS exposes three animation modes:
+
+- `export_animations='ACTIVE'` — only the currently active action.
+- `export_animations='NLA_TRACKS'` (default) — every NLA track on
+  the active object.
+- `export_animations='SCENE_COLLECTION'` — all actions across the
+  scene collection.
+
+`export_animation_pointer` and `export_animation_mode='RAW'`
+lighting are **experimental** in 5.2 LTS and should not be relied
+on for production. Stick with NLA_TRACKS + Anim sampling.
+
+### Python comments
+
+Blender's Python environment uses `#` for comments. `//` comments
+in example snippets should be **converted to `#`** for Blender's
+`bpy` scripting context; some snippet examples in earlier versions
+of this skill used `//` by mistake.
 
 ## Related Skills
 

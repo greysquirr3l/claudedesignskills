@@ -4,6 +4,19 @@ description: Meta-skill for combining Three.js, GSAP ScrollTrigger, React Three 
 ---
 
 # Web 3D Integration Patterns
+> **Dependency matrix** (audit date 2026-09-23):
+>
+> | Library | Pinned version | Notes |
+> |---|---|---|
+> | `three` | **0.186.0** | Required peer for R3F, Babylon, lightweight-3d-effects |
+> | `@react-three/fiber` | **9.8.0** | Requires React 19 (v9) or React 18 (v8) |
+> | `@react-three/drei` | latest 9.x | Pin to a known-compatible R3F version |
+> | `motion` / `motion/react` | **13.4.1** | Replaces `framer-motion` for new work |
+> | `gsap` | **3.15.0** | Includes ScrollTrigger |
+> | `lenis` (via Locomotive Scroll v5) | latest | Required by GSAP integration on Locomotive v5 |
+>
+> React peer: **18 or 19** depending on the R3F version used.
+
 
 ## Overview
 
@@ -265,7 +278,8 @@ function App() {
 import { useRef, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { OrbitControls, Environment } from '@react-three/drei'
-import { motion } from 'framer-motion-3d'
+// Use R3F's native <mesh> + useFrame for animation, or @react-spring/three
+// for spring-driven motion. `framer-motion-3d` is no longer maintained.
 
 export function Scene() {
   return (
@@ -502,10 +516,11 @@ export function App() {
 
 ### 2. Gesture-Driven 3D Manipulation
 
-**R3F + Motion (Framer Motion 3D):**
+**R3F + `@react-spring/three`** (replacement for the deprecated
+`framer-motion-3d` API):
 
 ```jsx
-import { motion } from 'framer-motion-3d'
+import { useSpring, animated } from '@react-spring/three'
 
 function DraggableObject() {
   return (
@@ -823,6 +838,97 @@ This skill includes bundled resources for multi-library integration:
 - `examples/` - Real-world integration examples
 
 ---
+
+## Notes on current integration patterns
+
+### `framer-motion-3d` is deprecated
+
+`framer-motion-3d` is no longer maintained. For React + Three.js
+use **`@react-three/fiber` + `motion`** — keep 3D motion in the
+R3F render tree and UI motion in the DOM with `motion/react`. For
+cross-cutting springy 3D motion use **`@react-spring/three`**.
+
+### Named Zustand import
+
+Use the **named** import from Zustand (already mentioned in the
+R3F skill):
+
+```javascript
+import { create } from 'zustand'
+```
+
+### 3D drag — verified pointer + spring + GSAP code
+
+R3F's `useGesture` / `react-spring/three` cover most drag cases,
+but plain pointer events are still useful. The verified pattern
+for 3D pointer-drag with `motion` is:
+
+```jsx
+import { motion } from 'motion/react'
+import { useRef } from 'react'
+
+function DraggableMesh() {
+  const ref = useRef(null)
+  return (
+    <motion.mesh
+      ref={ref}
+      drag
+      dragConstraints={{ left: -2, right: 2, top: 2, bottom: -2 }}
+      onDragEnd={() => {
+        // spring-back to origin on release
+        ref.current.position.x = 0
+        ref.current.position.y = 0
+      }}
+    >
+      <boxGeometry />
+      <meshStandardMaterial color="hotpink" />
+    </motion.mesh>
+  )
+}
+```
+
+This pattern only works for DOM-space dragging. For screen-space
+drag-to-camera-rotate use `OrbitControls` from `@react-three/drei`.
+
+### Three.js cleanup function — real disposal
+
+A correct React effect cleanup for a Three.js component owns
+**all** resources it created and disposes them on unmount:
+
+```javascript
+useEffect(() => {
+  const renderer = new THREE.WebGLRenderer()
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(75, w / h, 0.1, 1000)
+  let raf
+
+  const animate = () => {
+    raf = requestAnimationFrame(animate)
+    renderer.render(scene, camera)
+  }
+  animate()
+
+  return () => {
+    cancelAnimationFrame(raf)
+    scene.traverse(o => {
+      if (o.geometry) o.geometry.dispose()
+      if (o.material) {
+        const mats = Array.isArray(o.material) ? o.material : [o.material]
+        mats.forEach(m => {
+          Object.values(m).filter(v => v?.isTexture).forEach(t => t.dispose())
+          m.dispose()
+        })
+      }
+    })
+    renderer.dispose()
+    renderer.forceContextLoss?.()
+  }
+}, [])
+```
+
+Cancel the `requestAnimationFrame`, dispose **every** geometry,
+material, and texture, then call `renderer.dispose()` and
+`forceContextLoss` to release the GL context.
 
 ## Related Skills
 

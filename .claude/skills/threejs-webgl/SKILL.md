@@ -4,6 +4,20 @@ description: Comprehensive skill for Three.js 3D web development. Use this skill
 ---
 
 # Three.js WebGL/WebGPU Development
+> **Current version**: Three.js **0.186.0 / r186** (2025-Q3 era).
+> Maintained against the latest stable on npm. The examples in this
+> skill use `renderer.setAnimationLoop()`, `texture.colorSpace =
+> THREE.SRGBColorSpace`, `renderer.outputColorSpace`, `WebGPURenderer`,
+> and modern TSL/WebGPU APIs. **Audit date**: 2026-09-23.
+
+> **Maintenance note**: r150 deprecated `renderer.outputColorSpace` and
+> `texture.colorSpace` in favour of `outputColorSpace` and `colorSpace`
+> (both defaulted to `SRGBColorSpace` in r152). r155 removed the
+> legacy `RGBFormat` texture format. r165 moved several post-processing
+> addons (`EffectComposer`, `RenderPass`, `UnrealBloomPass`, etc.)
+> into the `three/addons` import path; `three/examples/jsm/postprocessing`
+> is still re-exported but **new code should import from `three/addons`**.
+
 
 ## Overview
 
@@ -564,6 +578,111 @@ const material = new THREE.MeshBasicMaterial({
 
 ### GPU Computation (GPGPU)
 Use `GPUComputationRenderer` for particle simulations, cloth physics, etc.
+
+## Maintenance Notes (r150 → r186)
+
+This skill is maintained against **Three.js 0.186.0 / r186**. The
+section below documents behavioural changes across recent r-releases
+that affect production code. Code in the main examples already follows
+these conventions.
+
+### Async WebGPURenderer initialisation
+
+`WebGPURenderer` is **async** — `await renderer.init()` is required
+before the first `render()` call:
+
+```javascript
+import * as THREE from 'three/webgpu'
+
+const renderer = new THREE.WebGPURenderer({ antialias: true })
+await renderer.init() // required — throws if omitted
+renderer.setAnimationLoop(animate)
+```
+
+### WebGL2 fallback
+
+If WebGPU is unavailable (older Safari, browsers without the flag,
+GPU blocked by driver), fall back to WebGLRenderer (which itself
+requires WebGL2 for many addons):
+
+```javascript
+import * as THREE from 'three'
+
+let renderer
+try {
+  const webgpu = new THREE.WebGPURenderer({ antialias: true })
+  await webgpu.init()
+  renderer = webgpu
+} catch (err) {
+  console.warn('WebGPU unavailable, falling back to WebGLRenderer:', err)
+  renderer = new THREE.WebGLRenderer({ antialias: true })
+}
+
+renderer.setPixelRatio(window.devicePixelRatio)
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+```
+
+### Post-processing / GPGPU / GLSL addons
+
+WebGL-style post-processing (`EffectComposer`, `RenderPass`,
+`UnrealBloomPass`, `ShaderPass`, `OutputPass`) lives under
+`three/addons/postprocessing/`. GPGPU (`GPUComputationRenderer`) is in
+`three/addons/misc/GPUComputationRenderer.js`. Raw GLSL ShaderMaterial
+remains in core `three`.
+
+WebGPU post-processing and GPGPU should use **TSL** (Three Shading
+Language) and `three/webgpu` — these are **not interchangeable** with
+the WebGL addons. See the `web3d-integration-patterns` skill for an
+overview of when to mix WebGL and WebGPU in a single app.
+
+### PCFShadowMap for WebGPU
+
+WebGPURenderer in r186 supports shadows, but the shadow type defaults
+to `PCFShadowMap` (no PCFSoft filtering). Set explicitly:
+
+```javascript
+renderer.shadowMap.enabled = true
+renderer.shadowMap.type = THREE.PCFSoftShadowMap // or PCFShadowMap
+```
+
+For very large shadow maps, consider `VSMShadowMap` (Variance Shadow
+Maps) and a custom blur pass.
+
+### Color space and tone mapping
+
+Three.js r152+ ships with `SRGBColorSpace` as the default for
+`renderer.outputColorSpace` and for texture `colorSpace` on color maps.
+The legacy `sRGBEncoding` / `outputEncoding` properties are removed.
+
+```javascript
+texture.colorSpace = THREE.SRGBColorSpace         // color / map textures
+texture.colorSpace = THREE.NoColorSpace           // data / normal maps
+renderer.outputColorSpace = THREE.SRGBColorSpace  // default since r152
+```
+
+### Dispose textures and render targets
+
+`renderer.dispose()` only releases the GL context. Manually dispose:
+
+```javascript
+geometry.dispose()
+material.dispose()
+texture.dispose()           // Texture, CubeTexture, DataTexture
+renderTarget.dispose()      // WebGLRenderTarget / WebGPUTextureRenderTarget
+postPass.dispose?.()        // each post-processing pass
+
+// And finally:
+renderer.dispose()
+```
+
+### `setAnimationLoop` vs `requestAnimationFrame`
+
+Always use `renderer.setAnimationLoop(animate)` (or the WebGPU
+equivalent) instead of `window.requestAnimationFrame(animate)`. This
+ensures correct behaviour when the document is hidden (browsers pause
+RAF when the tab is hidden, but `setAnimationLoop` handles
+WebGL/WebGPU context lost events and XR session pauses correctly).
 
 ## When to Use This Skill
 

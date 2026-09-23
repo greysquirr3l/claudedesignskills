@@ -4,6 +4,17 @@ description: Pre-built animated React component collections combining Magic UI (
 ---
 
 # Animated Component Libraries
+> **Current packages**:
+> - **`motion`** **13.4.1** (rebranded from `framer-motion`).
+>   Imports from `motion/react` for components, `motion` for the
+>   imperative `animate()` helper.
+> - **Magic UI** — community collection (no fixed version; copy
+>   components from the registry site).
+> - **React Bits** — community collection (150+ components per the
+>   current site wording).
+>
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -815,6 +826,65 @@ module.exports = {
 ### Starter Assets
 - `assets/component_showcase/` - Interactive demo of all components
 - `assets/examples/` - Landing page sections, dashboard widgets, micro-interactions
+
+
+## Notes on current component library patterns
+
+### Use `motion` (not `framer-motion`) in component imports
+
+Magic UI and many React Bits components import `framer-motion`.
+`framer-motion` still works in v13 as a re-export alias, but the
+preferred path is the **`motion` / `motion/react`** package:
+
+```javascript
+import { motion, AnimatePresence } from 'motion/react'
+import { animate } from 'motion'
+```
+
+If a component you copy from Magic UI / React Bits imports from
+`framer-motion`, leave it as-is — it will continue to work — but
+new code should use `motion/react`.
+
+### React Bits component count
+
+The React Bits site documents **150+** components (the figure in
+earlier versions of this skill said "90+"; the current site wording
+is 150+). Treat the count as a moving target — verify on the
+project's site before quoting it externally.
+
+### Magic UI `BlurText` props
+
+Magic UI's `BlurText` accepts (current documented props):
+
+- `text` — string to animate
+- `animateBy` — `"words"` or `"letters"` (default: `"words"`)
+- `delay` — ms between elements
+- `className` — wrapper styling
+- `onAnimationComplete` — callback
+
+Earlier code passed `by="word"`; the current prop is `animateBy`
+with values `"words"` / `"letters"`.
+
+### Magic UI `CountUp` props
+
+Magic UI's `CountUp` accepts (current documented API):
+
+- `to` — target number
+- `from` — start number (default 0)
+- `direction` — `"up"` or `"down"`
+- `startWhen` — boolean or ref predicate to defer start
+- `separator` — thousands separator string (default none)
+- `onStart`, `onEnd` — lifecycle callbacks
+
+Earlier props (`start`, `end`, `duration`) have been replaced by
+the current API.
+
+### Dependencies are component-specific
+
+Do **not** install `ogl` or `framer-motion` globally. Each Magic UI
+or React Bits component declares its own dependencies; install only
+the ones you copy. Magic UI generally depends on `motion`, React
+Bits components vary.
 
 ## Related Skills
 

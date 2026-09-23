@@ -4,6 +4,12 @@ description: State machine-based vector animation with runtime interactivity and
 ---
 
 # Rive Interactive - State Machine-Based Vector Animation
+> **Current web runtime**: `@rive-app/webgl2` **2.43.0**
+> (renderer-specific packages: `@rive-app/webgl2`, `@rive-app/canvas`,
+> `@rive-app/react-webgl2`). `rive-react` is a generic wrapper; prefer
+> the renderer-specific packages for production.
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -559,6 +565,78 @@ const { rive } = useRive({
 - **Tutorials**: https://rive.app/learn
 - **Examples**: https://rive.app/community/files
 - **State Machine Guide**: https://rive.app/docs/state-machine
+
+
+## Notes on current Rive patterns
+
+### Prefer renderer-specific packages
+
+`rive-react` is a thin wrapper that ships both WebGL2 and Canvas
+renderers and decides at runtime. Production projects should import
+the renderer they want directly:
+
+```javascript
+// WebGL2 (default for interactive scenes)
+import { useRive } from '@rive-app/react-webgl2'
+
+// Canvas2D (for static / SSR / no-GPU environments)
+import { useRive } from '@rive-app/react-canvas'
+```
+
+The generic `rive-react` import is fine for prototypes but the
+bundle is ~30% larger than the renderer-specific one.
+
+### Singular `stateMachine` (not `stateMachines`)
+
+State machines are **singular** in the runtime API. Multiple state
+machines per Rive file require separate `useStateMachine` hooks (or
+multiple `useRive` instances):
+
+```javascript
+const { rive, RiveComponent } = useRive({
+  src: 'hero.riv',
+  stateMachines: 'WalkCycle', // ← singular string (legacy)
+  autoplay: true,
+})
+
+// ✅ Current — pass one state machine per hook:
+const walkSm = useStateMachine(rive, 'WalkCycle')
+const jumpSm = useStateMachine(rive, 'Jump')
+```
+
+### `autoBind` and `onRiveReady`
+
+`useRive` auto-binds the loaded `Rive` instance to its `onLoad`
+callback by default. To opt out and handle binding manually (for
+example to share one `Rive` instance across multiple `<canvas>`s),
+pass `autoBind: false` and bind in `onRiveReady(rive)`:
+
+```javascript
+const { rive, RiveComponent, setCanvasRef } = useRive({
+  src: 'hero.riv',
+  autoplay: false,
+  autoBind: false,
+  onRiveReady: (riveInstance) => {
+    // bind to canvas, configure inputs, etc.
+  }
+})
+```
+
+### Rive Events — deprecated subscription
+
+The plural `rive.on('event', cb)` subscription API is **deprecated**.
+Subscribe to events via the `useRiveEventListener` hook:
+
+```javascript
+import { useRiveEventListener } from '@rive-app/react-webgl2'
+
+useRiveEventListener('hover', (event) => {
+  console.log(event.data)
+})
+```
+
+This hook is the supported path because it ties the subscription to
+the Rive instance lifecycle and avoids leaks on remount.
 
 ## Related Skills
 

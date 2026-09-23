@@ -4,6 +4,16 @@ description: After Effects animation rendering for web and React applications. U
 ---
 
 # Lottie Animations
+> **Current package versions** (2026-era):
+> - `lottie-web` **5.13.0** (browser, vanilla)
+> - `dotlottie-web` **0.80.0** (`.lottie` container format)
+> - `dotlottie-react` **0.19.16** (React wrapper for dotLottie)
+> - `lottie-react` **3.1.2** (React wrapper for lottie-web)
+>
+> `lottie-react` 3.x targets `lottie-web` 5.x. For the **dotLottie**
+> container format use `dotlottie-react` separately.
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -682,6 +692,62 @@ This skill includes:
 ### assets/
 - `starter_lottie/` - Complete React + Vite starter template with Lottie examples
 - `examples/` - Real-world Lottie animation patterns and use cases
+
+
+## Notes on current Lottie patterns
+
+### Pick the right runtime
+
+There are two distinct runtimes with overlapping APIs:
+
+| Package | Format | Notes |
+|---|---|---|
+| `lottie-web` 5.13.0 | Lottie JSON | Vanilla browser runtime. Most documentation in this skill targets this runtime. |
+| `dotlottie-web` 0.80.0 | `.lottie` (dotLottie) | Compressed container format with multiple animations + themes + manifest. |
+
+Use **lottie-web** for plain Lottie JSON files. Use **dotlottie-web**
+when the source is a `.lottie` archive.
+
+### `lottie-react` interactivity
+
+`lottie-react` 3.x exposes `useLottie`, `LottiePlayer`, and the
+`<Lottie>` component with `interactivity` props (mouse-tracking,
+scroll-triggered frames, click-to-toggle). The interactivity props
+require a `LottieInteractivity` component that wraps the player.
+Refer to the lottie-react 3.x docs for the current prop names — the
+2.x `onMouseMove` / `onClick` API has been reorganised.
+
+### Worker / OffscreenCanvas — optional and version-sensitive
+
+`lottie-web` 5.13.0 supports loading and decoding in a Web Worker
+with `lottie.loadAnimation({ renderer: 'svg', rendererSettings: { progressiveLoad: true }, ... })`
+**plus** a small wrapper that offloads to OffscreenCanvas. This is
+**optional** and tied to specific browser support:
+
+- Worker decoding works everywhere `lottie-web` runs.
+- OffscreenCanvas requires Chrome/Edge 69+/Firefox 105+/Safari 16.4+.
+
+For projects that need it, prefer `lottie-web`'s built-in worker
+loader (`loadAnimation` accepts a `path` to a `worker.js` shipped
+from the package's `worker/` directory).
+
+### Compression claim
+
+The earlier "90% smaller than GIF" claim in some Lottie docs is
+**not** representative. Actual compression ratios depend on the
+animation content — typical figures are 2–10× smaller than an
+equivalent GIF or video. Benchmark your own assets.
+
+### Manifest / theme APIs
+
+`dotlottie-web` exposes a **manifest** API for reading the
+`.lottie` archive contents (animation list, theme list, custom
+data). Use `dotlottie.loadManifest(url)` to fetch and inspect the
+archive without rendering it.
+
+Theme APIs (`dotlottie.setTheme(...)`) require a `.lottie` file
+that includes a `theme.json`. Plain Lottie JSON has no theme
+support — themes are a dotLottie-only feature.
 
 ## Related Skills
 

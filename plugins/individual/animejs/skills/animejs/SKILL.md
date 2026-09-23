@@ -4,6 +4,15 @@ description: Versatile JavaScript animation engine for DOM, CSS, SVG, and JavaSc
 ---
 
 # Anime.js
+> **Current version**: Anime.js **v4.5.0** (ESM-first, named exports).
+> Examples in this file use the **v4** API: `animate(targets, params)`,
+> `createTimeline(opts)`, `stagger()`, `svg.createMotionPath()`,
+> `utils.getDash`, and `createSpring()`. Legacy v3 patterns
+> (`animate({...})`, `createTimeline()`, `stagger()`,
+> `svg.createMotionPath()`, `utils.getDash`, v3 spring easing) are
+> documented in [Migration from v3](#migration-from-v3) at the bottom
+> of this skill. **Audit date**: 2026-09-23.
+
 
 Lightweight JavaScript animation library with powerful timeline and stagger capabilities for web animations.
 
@@ -31,17 +40,17 @@ Anime.js (pronounced "Anime JS") is a versatile animation engine that works with
 
 ### Basic Animation
 
-The `anime()` function creates animations:
+The `animate()` function creates animations:
 
 ```javascript
-import anime from 'animejs'
+import { animate } from 'animejs'
 
-anime({
+animate({
   targets: '.element',
-  translateX: 250,
+  x: 250,
   rotate: '1turn',
   duration: 800,
-  easing: 'easeInOutQuad'
+  ease: 'inOutQuad'
 })
 ```
 
@@ -51,26 +60,26 @@ Multiple ways to specify animation targets:
 
 ```javascript
 // CSS selector
-anime({ targets: '.box' })
+animate({ targets: '.box' })
 
 // DOM elements
-anime({ targets: document.querySelectorAll('.box') })
+animate({ targets: document.querySelectorAll('.box') })
 
 // Array of elements
-anime({ targets: [el1, el2, el3] })
+animate({ targets: [el1, el2, el3] })
 
 // JavaScript object
 const obj = { x: 0 }
-anime({ targets: obj, x: 100 })
+animate({ targets: obj, x: 100 })
 ```
 
 ### Animatable Properties
 
 **CSS Properties:**
 ```javascript
-anime({
+animate({
   targets: '.element',
-  translateX: 250,
+  x: 250,
   scale: 2,
   opacity: 0.5,
   backgroundColor: '#FFF'
@@ -79,9 +88,9 @@ anime({
 
 **CSS Transforms (Individual):**
 ```javascript
-anime({
+animate({
   targets: '.element',
-  translateX: 250,   // Individual transform
+  x: 250,   // Individual transform
   rotate: '1turn',   // Not 'transform: rotate()'
   scale: 2
 })
@@ -89,22 +98,22 @@ anime({
 
 **SVG Attributes:**
 ```javascript
-anime({
+animate({
   targets: 'path',
   d: 'M10 80 Q 77.5 10, 145 80', // Path morphing
   fill: '#FF0000',
-  strokeDashoffset: [anime.setDashoffset, 0] // Line drawing
+  strokeDashoffset: [utils.getDash, 0] // Line drawing
 })
 ```
 
 **JavaScript Objects:**
 ```javascript
 const obj = { value: 0 }
-anime({
+animate({
   targets: obj,
   value: 100,
   round: 1,
-  update: () => console.log(obj.value)
+  onUpdate: () => console.log(obj.value)
 })
 ```
 
@@ -113,23 +122,23 @@ anime({
 Create complex sequences with precise control:
 
 ```javascript
-const timeline = anime.timeline({
+const timeline = createTimeline({
   duration: 750,
-  easing: 'easeOutExpo'
+  ease: 'outExpo'
 })
 
 timeline
   .add({
     targets: '.box1',
-    translateX: 250
+    x: 250
   })
   .add({
     targets: '.box2',
-    translateX: 250
+    x: 250
   }, '-=500') // Start 500ms before previous animation ends
   .add({
     targets: '.box3',
-    translateX: 250
+    x: 250
   }, '+=200') // Start 200ms after previous animation ends
 ```
 
@@ -138,12 +147,12 @@ timeline
 ### 1. Stagger Animation (Sequential Reveal)
 
 ```javascript
-anime({
+animate({
   targets: '.stagger-element',
-  translateY: [100, 0],
+  y: [100, 0],
   opacity: [0, 1],
-  delay: anime.stagger(100), // Increase delay by 100ms
-  easing: 'easeOutQuad',
+  delay: stagger(100), // Increase delay by 100ms
+  ease: 'outQuad',
   duration: 600
 })
 ```
@@ -151,25 +160,25 @@ anime({
 ### 2. Stagger from Center
 
 ```javascript
-anime({
+animate({
   targets: '.grid-item',
   scale: [0, 1],
-  delay: anime.stagger(50, {
+  delay: stagger(50, {
     grid: [14, 5],
     from: 'center', // Also: 'first', 'last', index, [x, y]
     axis: 'x'       // Also: 'y', null
   }),
-  easing: 'easeOutQuad'
+  ease: 'outQuad'
 })
 ```
 
 ### 3. SVG Line Drawing
 
 ```javascript
-anime({
+animate({
   targets: 'path',
-  strokeDashoffset: [anime.setDashoffset, 0],
-  easing: 'easeInOutQuad',
+  strokeDashoffset: [utils.getDash, 0],
+  ease: 'inOutQuad',
   duration: 2000,
   delay: (el, i) => i * 250
 })
@@ -178,14 +187,14 @@ anime({
 ### 4. SVG Morphing
 
 ```javascript
-anime({
+animate({
   targets: '#morphing-path',
   d: [
     { value: 'M10 80 Q 77.5 10, 145 80' }, // Start shape
     { value: 'M10 80 Q 77.5 150, 145 80' }  // End shape
   ],
   duration: 2000,
-  easing: 'easeInOutQuad',
+  ease: 'inOutQuad',
   loop: true,
   direction: 'alternate'
 })
@@ -194,19 +203,19 @@ anime({
 ### 5. Timeline Sequence
 
 ```javascript
-const tl = anime.timeline({
-  easing: 'easeOutExpo',
+const tl = createTimeline({
+  ease: 'outExpo',
   duration: 750
 })
 
 tl.add({
   targets: '.title',
-  translateY: [-50, 0],
+  y: [-50, 0],
   opacity: [0, 1]
 })
 .add({
   targets: '.subtitle',
-  translateY: [-30, 0],
+  y: [-30, 0],
   opacity: [0, 1]
 }, '-=500')
 .add({
@@ -219,16 +228,16 @@ tl.add({
 ### 6. Keyframe Animation
 
 ```javascript
-anime({
+animate({
   targets: '.element',
   keyframes: [
-    { translateX: 100 },
-    { translateY: 100 },
-    { translateX: 0 },
-    { translateY: 0 }
+    { x: 100 },
+    { y: 100 },
+    { x: 0 },
+    { y: 0 }
   ],
   duration: 4000,
-  easing: 'easeInOutQuad',
+  ease: 'inOutQuad',
   loop: true
 })
 ```
@@ -236,11 +245,11 @@ anime({
 ### 7. Scroll-Triggered Animation
 
 ```javascript
-const animation = anime({
+const animation = animate({
   targets: '.scroll-element',
-  translateY: [100, 0],
+  y: [100, 0],
   opacity: [0, 1],
-  easing: 'easeOutQuad',
+  ease: 'outQuad',
   autoplay: false
 })
 
@@ -256,17 +265,17 @@ window.addEventListener('scroll', () => {
 
 ```javascript
 import { useEffect, useRef } from 'react'
-import anime from 'animejs'
+import { animate } from 'animejs'
 
 function AnimatedComponent() {
   const ref = useRef(null)
 
   useEffect(() => {
-    const animation = anime({
+    const animation = animate({
       targets: ref.current,
-      translateX: 250,
+      x: 250,
       duration: 800,
-      easing: 'easeInOutQuad'
+      ease: 'inOutQuad'
     })
 
     return () => animation.pause()
@@ -281,9 +290,9 @@ function AnimatedComponent() {
 ```javascript
 export default {
   mounted() {
-    anime({
+    animate({
       targets: this.$el,
-      translateX: 250,
+      x: 250,
       duration: 800
     })
   }
@@ -293,14 +302,14 @@ export default {
 ### Path Following Animation
 
 ```javascript
-const path = anime.path('#motion-path')
+const path = svg.createMotionPath('#motion-path')
 
-anime({
+animate({
   targets: '.element',
-  translateX: path('x'),
-  translateY: path('y'),
+  x: path('x'),
+  y: path('y'),
   rotate: path('angle'),
-  easing: 'linear',
+  ease: 'linear',
   duration: 2000,
   loop: true
 })
@@ -311,10 +320,10 @@ anime({
 ### Spring Easing
 
 ```javascript
-anime({
+animate({
   targets: '.element',
-  translateX: 250,
-  easing: 'spring(1, 80, 10, 0)', // mass, stiffness, damping, velocity
+  x: 250,
+  ease: createSpring({ mass: 1, stiffness: 80, damping: 10, velocity: 0 }), // mass, stiffness, damping, velocity
   duration: 2000
 })
 ```
@@ -322,9 +331,9 @@ anime({
 ### Steps Easing
 
 ```javascript
-anime({
+animate({
   targets: '.element',
-  translateX: 250,
+  x: 250,
   easing: 'steps(5)',
   duration: 1000
 })
@@ -333,9 +342,9 @@ anime({
 ### Custom Bezier
 
 ```javascript
-anime({
+animate({
   targets: '.element',
-  translateX: 250,
+  x: 250,
   easing: 'cubicBezier(.5, .05, .1, .3)',
   duration: 1000
 })
@@ -344,21 +353,21 @@ anime({
 ### Direction and Loop
 
 ```javascript
-anime({
+animate({
   targets: '.element',
-  translateX: 250,
+  x: 250,
   direction: 'alternate', // 'normal', 'reverse', 'alternate'
   loop: true,             // or number of iterations
-  easing: 'easeInOutQuad'
+  ease: 'inOutQuad'
 })
 ```
 
 ### Playback Control
 
 ```javascript
-const animation = anime({
+const animation = animate({
   targets: '.element',
-  translateX: 250,
+  x: 250,
   autoplay: false
 })
 
@@ -375,14 +384,14 @@ animation.seek(500) // Seek to 500ms
 
 ```javascript
 // ✅ Good: GPU-accelerated
-anime({
+animate({
   targets: '.element',
-  translateX: 250,
+  x: 250,
   opacity: 0.5
 })
 
 // ❌ Avoid: Triggers layout
-anime({
+animate({
   targets: '.element',
   left: '250px',
   width: '500px'
@@ -393,14 +402,14 @@ anime({
 
 ```javascript
 // ✅ Single animation for multiple targets
-anime({
+animate({
   targets: '.multiple-elements',
-  translateX: 250
+  x: 250
 })
 
 // ❌ Avoid: Multiple separate animations
 elements.forEach(el => {
-  anime({ targets: el, translateX: 250 })
+  animate({ targets: el, x: 250 })
 })
 ```
 
@@ -415,9 +424,9 @@ elements.forEach(el => {
 ### Disable autoplay for Scroll Animations
 
 ```javascript
-const animation = anime({
+const animation = animate({
   targets: '.element',
-  translateX: 250,
+  x: 250,
   autoplay: false // Control manually
 })
 ```
@@ -428,20 +437,20 @@ const animation = anime({
 
 ```javascript
 // ❌ Wrong: No unit
-anime({ targets: '.element', width: 200 })
+animate({ targets: '.element', width: 200 })
 
 // ✅ Correct: Include unit
-anime({ targets: '.element', width: '200px' })
+animate({ targets: '.element', width: '200px' })
 ```
 
 ### 2. Using CSS transform Property Directly
 
 ```javascript
 // ❌ Wrong: Can't animate transform string
-anime({ targets: '.element', transform: 'translateX(250px)' })
+animate({ targets: '.element', transform: 'translateX(250px)' })
 
 // ✅ Correct: Individual transform properties
-anime({ targets: '.element', translateX: 250 })
+animate({ targets: '.element', x: 250 })
 ```
 
 ### 3. Not Handling Animation Cleanup
@@ -449,12 +458,12 @@ anime({ targets: '.element', translateX: 250 })
 ```javascript
 // ❌ Wrong: Animation continues after unmount
 useEffect(() => {
-  anime({ targets: ref.current, translateX: 250 })
+  animate({ targets: ref.current, x: 250 })
 }, [])
 
 // ✅ Correct: Pause on cleanup
 useEffect(() => {
-  const anim = anime({ targets: ref.current, translateX: 250 })
+  const anim = animate({ targets: ref.current, x: 250 })
   return () => anim.pause()
 }, [])
 ```
@@ -463,7 +472,7 @@ useEffect(() => {
 
 ```javascript
 // ❌ Avoid: Animating 1000+ elements
-anime({ targets: '.many-items', translateX: 250 }) // 1000+ elements
+animate({ targets: '.many-items', x: 250 }) // 1000+ elements
 
 // ✅ Better: Use CSS animations for large sets
 // Or reduce element count with virtualization
@@ -484,7 +493,7 @@ anime({ targets: '.many-items', translateX: 250 }) // 1000+ elements
 
 ```javascript
 // ❌ Avoid: Infinite loops drain battery
-anime({
+animate({
   targets: '.element',
   rotate: '1turn',
   loop: true,
@@ -497,6 +506,166 @@ anime({
   to { transform: rotate(360deg); }
 }
 ```
+
+## Migration from v3
+
+Patterns below are kept verbatim for users upgrading existing codebases.
+**Prefer the v4 APIs** demonstrated in the main examples above.
+
+### v3 → v4 API mapping
+
+| v3 (legacy) | v4 (current) |
+|---|---|
+| `import anime from 'animejs'` | `import { animate, createTimeline, stagger, utils, svg } from 'animejs'` |
+| `anime({ targets, ... })` | `animate(targets, { ... })` |
+| `anime.timeline(opts)` | `createTimeline(opts)` |
+| `anime.stagger(100, opts)` | `stagger(100, opts)` (named export) |
+| `anime.setDashoffset` | `utils.getDash` helper |
+| `anime.path('#m')` | `svg.createMotionPath('#m')` |
+| `easing: 'spring(1, 80, 10, 0)'` | `ease: createSpring({ mass: 1, stiffness: 80, damping: 10, velocity: 0 })` |
+| `complete: fn` callback | `onComplete: fn` (all callbacks use `on*` prefix) |
+| `begin: fn` callback | `onBegin: fn` |
+| `update: fn` callback | `onUpdate: fn` |
+| `direction: 'reverse'` | `reversed: true` |
+| `direction: 'alternate'` | `alternate: true` (use with `loop`) |
+| `loop: true` | `loop: true` (still supported; use `Infinity` for infinite) |
+| `translateX: n` | `x: n` |
+| `translateY: n` | `y: n` |
+
+### v3 default import (legacy)
+
+```javascript
+import anime from 'animejs'
+
+anime({
+  targets: '.element',
+  translateX: 250,
+  duration: 800,
+  easing: 'easeInOutQuad',
+  complete: () => console.log('done')
+})
+```
+
+### v4 equivalent (current)
+
+```javascript
+import { animate } from 'animejs'
+
+animate('.element', {
+  x: 250,
+  duration: 800,
+  ease: 'inOutQuad',
+  onComplete: () => console.log('done')
+})
+```
+
+### v3 timeline (legacy)
+
+```javascript
+const timeline = anime.timeline({ easing: 'easeOutExpo', duration: 750 })
+timeline.add({ targets: '.a', translateX: 250 })
+            .add({ targets: '.b', translateX: 250 }, '-=500')
+```
+
+### v4 equivalent (current)
+
+```javascript
+import { createTimeline } from 'animejs'
+
+const tl = createTimeline({ defaults: { ease: 'outExpo', duration: 750 } })
+tl.add('.a', { x: 250 })
+  .add('.b', { x: 250 }, '-=500')
+```
+
+### v3 stagger (legacy)
+
+```javascript
+anime({
+  targets: '.grid-item',
+  scale: [0, 1],
+  delay: anime.stagger(50, { grid: [14, 5], from: 'center', axis: 'x' })
+})
+```
+
+### v4 equivalent (current)
+
+```javascript
+import { animate, stagger } from 'animejs'
+
+animate('.grid-item', {
+  scale: [0, 1],
+  delay: stagger(50, { grid: [14, 5], from: 'center', axis: 'x' })
+})
+```
+
+### v3 motion path (legacy)
+
+```javascript
+const path = anime.path('#motion-path')
+anime({ targets: '.el', translateX: path('x'), translateY: path('y'), rotate: path('angle') })
+```
+
+### v4 equivalent (current)
+
+```javascript
+import { animate, svg } from 'animejs'
+
+const motionPath = svg.createMotionPath('#motion-path')
+animate('.el', {
+  x: motionPath('x'),
+  y: motionPath('y'),
+  rotate: motionPath('angle')
+})
+```
+
+### v3 line drawing helper (legacy)
+
+```javascript
+anime({
+  targets: 'path',
+  strokeDashoffset: [anime.setDashoffset, 0]
+})
+```
+
+### v4 equivalent (current)
+
+```javascript
+import { animate, utils } from 'animejs'
+
+animate('path', {
+  strokeDashoffset: [utils.getDash, 0]
+})
+```
+
+### v3 spring easing (legacy)
+
+```javascript
+anime({
+  targets: '.element',
+  translateX: 250,
+  easing: 'spring(1, 80, 10, 0)' // mass, stiffness, damping, velocity
+})
+```
+
+### v4 equivalent (current)
+
+```javascript
+import { animate, createSpring } from 'animejs'
+
+animate('.element', {
+  x: 250,
+  ease: createSpring({ mass: 1, stiffness: 80, damping: 10, velocity: 0 })
+})
+```
+
+### Bundle size note
+
+Anime.js v4 ships as ESM with tree-shakable named exports. Importing only
+the helpers used (`animate`, `stagger`, `createTimeline`) yields a smaller
+bundle than the legacy default-import v3 build. The earlier "~9 KB
+gzipped" figure targeted v3; v4 with a single `animate` import is
+generally smaller, while the full v4 build (including SVG/timer
+utilities) is larger. Measure with your bundler.
 
 ## Resources
 

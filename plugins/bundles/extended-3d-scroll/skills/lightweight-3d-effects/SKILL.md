@@ -4,6 +4,18 @@ description: Lightweight 3D effects for decorative elements and micro-interactio
 ---
 
 # Lightweight 3D Effects Skill
+> **Current versions** (observed on npm):
+> - **Zdog 1.1.1** (still tagged `beta` — **experimental**)
+> - **Vanta 0.5.24**
+> - **Vanilla-Tilt 1.8.1**
+> - **Three.js 0.186.0** (peer for Vanta's WebGL modes)
+>
+> Vanta's README still references a legacy Three.js r134 build —
+> treat that as a **legacy compatibility** path and prefer the
+> current r186 install for new projects.
+>
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -1082,6 +1094,56 @@ color: 0x23153c
 **Vanilla-Tilt.js:**
 - [Vanilla-Tilt GitHub](https://github.com/micku7zu/vanilla-tilt.js)
 - [NPM Package](https://www.npmjs.com/package/vanilla-tilt)
+
+## Notes on current Lightweight 3D Effects patterns
+
+### React + Vanta effect import pattern
+
+Vanta ships **multiple effect modules**; each one has its own React
+import. Use the effect-specific entry point, not the generic
+`vanta/dist/vanta.min.js`:
+
+```javascript
+import { useEffect, useRef } from 'react'
+import * as THREE from 'three'
+import CLOUDS from 'vanta/dist/vanta.clouds.min'
+
+export default function CloudsBackground() {
+  const ref = useRef(null)
+  useEffect(() => {
+    const effect = CLOUDS({
+      el: ref.current,
+      THREE,
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      minHeight: 200,
+      minWidth: 200
+    })
+    return () => effect.destroy()
+  }, [])
+  return <div ref={ref} style={{ width: '100%', height: '100vh' }} />
+}
+```
+
+Each Vanta effect (`vanta.clouds`, `vanta.waves`, `vanta.net`,
+`vanta.cells`, …) has its own React import. Mixing the effect with
+the wrong Three.js peer version is the most common install error.
+
+### Zdog v1 is still in beta
+
+Zdog 1.1.1 is tagged `beta` on npm. The library is stable enough
+for production illustrations but the API may change before 2.0.
+The previous Zdog 1.0.x docs are still accurate for the major API
+(`Illustration`, `Shape`, `Ellipse`, `RoundedRect`, `Group`).
+
+### Performance guarantees
+
+Zdog, Vanta, and Vanilla-Tilt are **micro-effect libraries** —
+their performance budgets assume a small number of low-poly
+elements. Zdog illustrations break past ~200 shapes; Vanta
+WebGL effects use a single fullscreen canvas and have a flat
+~3–6 ms / frame budget regardless of scene complexity.
 
 ## Related Skills
 

@@ -4,6 +4,13 @@ description: Comprehensive skill for GSAP (GreenSock Animation Platform) and Scr
 ---
 
 # GSAP & ScrollTrigger Development
+> **Current version**: GSAP **3.15.0**.
+> Examples in this skill target the **3.x** API (`gsap.to`,
+> `ScrollTrigger.create`, `gsap.matchMedia`).
+> Legacy `ScrollTrigger.matchMedia(...)` patterns are documented in
+> [Migration](#migration-notes) at the bottom of this skill.
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -109,8 +116,8 @@ Format: `"[trigger position] [viewport position]"`
 ```javascript
 // Common patterns
 start: "top top"      // Trigger top hits viewport top
-start: "top center"   // Trigger top hits viewport center (default)
-start: "top bottom"   // Trigger top hits viewport bottom
+start: "top bottom"   // Trigger top hits viewport bottom (the actual GSAP default)
+start: "top center"   // Trigger top hits viewport center (commonly used, NOT the default)
 start: "center center" // Trigger center hits viewport center
 
 // With offsets
@@ -517,9 +524,14 @@ gsap.to(".container", {
 ### Conditional Animations (Media Queries)
 
 ```javascript
-ScrollTrigger.matchMedia({
+const mm = gsap.matchMedia();
+
+mm.add({
   // Desktop
-  "(min-width: 800px)": function() {
+  isDesktop: "(min-width: 800px)",
+}, (context) => {
+  const { isDesktop } = context.conditions;
+  if (isDesktop) {
     gsap.to(".box", {
       x: 500,
       scrollTrigger: {
@@ -529,20 +541,33 @@ ScrollTrigger.matchMedia({
         scrub: true
       }
     });
-  },
-
-  // Mobile
-  "(max-width: 799px)": function() {
-    gsap.to(".box", {
-      y: 200,
-      scrollTrigger: {
-        trigger: ".box",
-        start: "top 80%",
-        scrub: 1
-      }
-    });
   }
+}, (context) => {
+  // cleanup on media-query change
+  return () => {
+    // ScrollTrigger instances created inside `add` are reverted
+    // automatically when the media query stops matching.
+  };
 });
+
+mm.add("(max-width: 799px)", () => {
+  // Mobile
+  gsap.to(".box", {
+    y: 200,
+    scrollTrigger: {
+      trigger: ".box",
+      start: "top 80%",
+      scrub: 1
+    }
+  });
+});
+```
+
+> **Note**: `ScrollTrigger.matchMedia({...})` (the legacy helper) was
+> promoted to `gsap.matchMedia()`. Both still work in 3.15.x but
+> `gsap.matchMedia()` integrates with `gsap.context()` for
+> framework-component lifecycles (React `useGSAP`, Vue
+> `onUnmounted`, etc.).
 ```
 
 ## Performance Best Practices
@@ -763,3 +788,87 @@ Use this skill when:
 
 For Three.js-specific animations, also reference the **threejs-webgl** skill.
 For React components with built-in animations, reference the **motion-framer** skill.
+
+
+## Migration notes
+
+### `ScrollTrigger.matchMedia` → `gsap.matchMedia`
+
+The old `ScrollTrigger.matchMedia({...})` helper was promoted to the
+GSAP core namespace. The new function takes an extra callback and
+returns a `context` object for clean-up:
+
+**Legacy:**
+
+```javascript
+const mm = ScrollTrigger.matchMedia()
+mm.add('(min-width: 800px)', () => {
+  /* ScrollTrigger code */
+  return () => { /* cleanup */ }
+})
+```
+
+**Current:**
+
+```javascript
+const mm = gsap.matchMedia()
+mm.add('(min-width: 800px)', () => {
+  /* ScrollTrigger code; use gsap.contextSafe() inside deferred handlers */
+  return () => { /* cleanup — called when media query no longer matches */ }
+})
+```
+
+`gsap.matchMedia()` is preferred because it integrates with
+`gsap.context()` for React/framework component lifecycles.
+
+### `gsap.context()` and `useGSAP()` for React
+
+In React, prefer `useGSAP(() => {...}, scopeRef)` from
+`@gsap/react` for automatic cleanup:
+
+```javascript
+import { useRef } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(useGSAP, ScrollTrigger)
+
+function Page() {
+  const root = useRef(null)
+  useGSAP(() => {
+    gsap.from('.card', { y: 40, opacity: 0, stagger: 0.1 })
+  }, { scope: root })
+  return <div ref={root}>...</div>
+}
+```
+
+`contextSafe()` lets you wrap event handlers so they participate in
+the same `gsap.context()` cleanup:
+
+```javascript
+const { contextSafe } = useGSAP({ scope: root })
+const onClick = contextSafe(() => {
+  gsap.to(target, { x: 100 })
+})
+```
+
+### `start` defaults — not `'top center'`
+
+`ScrollTrigger`'s `start` default is `"top bottom"` (i.e. the top of
+the trigger meets the bottom of the viewport), not `"top center"`.
+Always set `start` and `end` explicitly when the default isn't what
+you want.
+
+### Locomotive Scroll integration
+
+The community `locomotive-scroll` + ScrollTrigger glue is
+**third-party / version-sensitive** and has historically broken on
+Locomotive major upgrades. For Locomotive v5 / Lenis, use the
+official `ScrollTrigger` ↔ Lenis integration
+(`.ticker.add((t) => scroll.lenis.raf(t * 1000))`).
+
+If you don't need Locomotive's specific feature set, prefer GSAP's
+own `ScrollSmoother` (the supported GSAP-native alternative).
+
+## Related Skills

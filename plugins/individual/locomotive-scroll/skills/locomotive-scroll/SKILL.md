@@ -4,6 +4,16 @@ description: Comprehensive skill for Locomotive Scroll smooth scrolling library 
 ---
 
 # Locomotive Scroll
+> **Current version**: Locomotive Scroll **v5.0.1** (Lenis-based).
+> The v5 API is a thin wrapper around [Lenis](https://lenis.darkroom.engineering/)
+> and no longer requires `data-scroll-container` or `data-scroll-section`
+> markup, the v4 `el:` constructor option, or `update()`. Use the v5
+> `lenisOptions:` constructor option, `scroll.resize()`, native
+> `CustomEvent` listeners, `scrollCallback`, and the progress CSS
+> variable / event. Legacy v4 patterns are documented in
+> [Migration from v4](#migration-from-v4) at the bottom of this skill.
+> **Audit date**: 2026-09-23.
+
 
 Comprehensive guide for implementing smooth scrolling, parallax effects, and scroll-driven animations using Locomotive Scroll.
 
@@ -33,17 +43,18 @@ Locomotive Scroll is a JavaScript library that provides:
 ## Installation
 
 ```bash
-npm install locomotive-scroll
+npm install locomotive-scroll@5
 ```
 
 ```javascript
-// ES6
+// ES6 (Locomotive Scroll v5, Lenis-based)
 import LocomotiveScroll from 'locomotive-scroll';
-import 'locomotive-scroll/dist/locomotive-scroll.css';
+// CSS for the smooth scrollbar is provided by Lenis itself.
+// The v4 `locomotive-scroll.css` file no longer ships with v5 —
+// see https://lenis.darkroom.engineering/ for custom scrollbar styles.
 
-// Or via CDN
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/locomotive-scroll/dist/locomotive-scroll.min.css">
-<script src="https://cdn.jsdelivr.net/npm/locomotive-scroll/dist/locomotive-scroll.min.js"></script>
+// Or via CDN (pin a specific version for reproducibility)
+// <script src="https://cdn.jsdelivr.net/npm/locomotive-scroll@5.0.1/dist/locomotive-scroll.min.js"></script>
 ```
 
 ## Core Concepts
@@ -472,6 +483,298 @@ useEffect(() => {
 - **scroll-reveal-libraries**: Simpler alternative for basic fade-in effects
 - **react-three-fiber**: Scroll-driven 3D scenes (sync with Locomotive events)
 - **motion-framer**: Alternative scroll animations in React
+
+## Migration from v4
+
+Locomotive Scroll v5 is a complete rewrite built on top of
+[Lenis](https://lenis.darkroom.engineering/). The data-attribute-driven
+v4 markup (`data-scroll-container`, `data-scroll-section`, `data-scroll`)
+is **no longer required or supported** — Lenis works on `window` and
+uses native `CustomEvent` dispatch plus CSS variables for progress.
+
+### v4 → v5 API mapping
+
+| v4 (legacy) | v5 (current, Lenis-based) |
+|---|---|
+| `data-scroll-container`, `data-scroll-section` markup | Not required — v5 listens to `window` scroll by default |
+| `new LocomotiveScroll({ el: document.querySelector('[data-scroll-container]'), smooth: true })` | `new LocomotiveScroll({ lenisOptions: { smoothWheel: true, smoothTouch: false } })` |
+| `scroll.init()` | Constructor handles init; call again only on resize via `scroll.resize()` |
+| `scroll.update()` | `scroll.resize()` |
+| `scroll.start()` / `scroll.stop()` | Lenis: `scroll.lenis.start()` / `scroll.lenis.stop()` |
+| `scroll.on('scroll', fn)` | `window.addEventListener('scroll', fn)` (Lenis dispatches a native scroll event) or use `scrollCallback` option |
+| `scroll.on('call', fn)` | `window.addEventListener('locomotive:call', e => fn(e.detail.value, e.detail.way, e.detail.obj))` |
+| `scroll.instance.scroll.y` (internal) | `scroll.lenis.scroll` (or `scroll.lenis.actualScroll` for the unsmoothed value) |
+| `data-scroll data-scroll-speed="0.5"` (parallax) | Use CSS `transform: translate3d(0, calc(var(--lenis-progress) * ...), 0)` driven by the Lenis scroll progress event |
+| `data-scroll data-scroll-call="x"` | `window.addEventListener('locomotive:call', ...)` with `<div data-call="x">` (or custom markers — see Locomotive docs) |
+| `data-scroll data-scroll-id="hero"` + `args.currentElements['hero'].progress` | `scroll.lenis.scroll` + per-element progress computed manually from element bounding rect |
+| GSAP `ScrollTrigger.scrollerProxy('[data-scroll-container]', ...)` | Use the [official `ScrollTrigger` ↔ Lenis integration](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) (no scrollerProxy needed) |
+| `smartphone: { smooth: false, breakpoint: 768 }` | `lenisOptions: { smoothTouch: false }` and resize-based media queries |
+| Tablet / smartphone nested config | Use `lenisOptions` + `matchMedia` for breakpoint-specific behaviour |
+
+### v4 basic usage (legacy)
+
+```html
+<div data-scroll-container>
+  <div data-scroll-section>
+    <h1>Smooth scrolling enabled</h1>
+  </div>
+</div>
+```
+
+```javascript
+import LocomotiveScroll from 'locomotive-scroll'
+
+const scroll = new LocomotiveScroll({
+  el: document.querySelector('[data-scroll-container]'),
+  smooth: true
+})
+```
+
+### v5 equivalent (current)
+
+```javascript
+import LocomotiveScroll from 'locomotive-scroll'
+
+const scroll = new LocomotiveScroll({
+  lenisOptions: {
+    smoothWheel: true,        // smooth mouse-wheel scrolling
+    smoothTouch: false,       // leave native touch alone (recommended)
+    // duration, easing, lerp, wheelMultiplier and other Lenis options pass through
+  }
+})
+```
+
+There is no required container markup — `<h1>Smooth scrolling enabled</h1>`
+inside `<body>` is enough.
+
+### v4 update pattern (legacy)
+
+```javascript
+scroll.update() // refresh after DOM changes
+```
+
+### v5 equivalent (current)
+
+```javascript
+scroll.resize() // refresh after DOM changes (delegates to Lenis)
+```
+
+### v4 scroll listener (legacy)
+
+```javascript
+scroll.on('scroll', (args) => {
+  console.log(args.scroll.y, args.speed, args.direction)
+  if (args.currentElements['hero']) {
+    console.log('hero progress', args.currentElements['hero'].progress)
+  }
+})
+```
+
+### v5 equivalent (current)
+
+```javascript
+// Option A — listen directly to Lenis under the hood:
+scroll.lenis.on('scroll', ({ scroll, limit, progress, velocity, direction }) => {
+  console.log(scroll, progress, velocity, direction)
+})
+
+// Option B — listen to the native scroll event that v5 dispatches:
+window.addEventListener('scroll', () => {
+  console.log('window scroll', window.scrollY)
+})
+
+// Per-element progress is computed from bounding rects against the Lenis
+// scroll position; the v4 `currentElements` map no longer ships.
+function elementProgress(el) {
+  const rect = el.getBoundingClientRect()
+  const total = window.innerHeight + rect.height
+  return 1 - Math.max(0, Math.min(1, (rect.top + rect.height) / total))
+}
+window.addEventListener('scroll', () => {
+  const hero = document.querySelector('#hero')
+  console.log('hero progress', elementProgress(hero))
+})
+```
+
+### v4 GSAP integration (legacy)
+
+```javascript
+const locoScroll = new LocomotiveScroll({
+  el: document.querySelector('[data-scroll-container]'),
+  smooth: true
+})
+
+locoScroll.on('scroll', ScrollTrigger.update)
+
+ScrollTrigger.scrollerProxy('[data-scroll-container]', {
+  scrollTop(value) {
+    return arguments.length
+      ? locoScroll.scrollTo(value, { duration: 0, disableLerp: true })
+      : locoScroll.scroll.instance.scroll.y
+  },
+  getBoundingClientRect() {
+    return { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight }
+  },
+  pinType: document.querySelector('[data-scroll-container]').style.transform
+    ? 'transform'
+    : 'fixed'
+})
+
+ScrollTrigger.addEventListener('refresh', () => locoScroll.update())
+ScrollTrigger.refresh()
+```
+
+### v5 GSAP integration (current)
+
+v5 does **not** use a scroller proxy. Instead, install the official
+GSAP ScrollTrigger ↔ Lenis integration. See
+[GSAP ScrollTrigger docs](https://gsap.com/docs/v3/Plugins/ScrollTrigger/#__GSAP__6).
+
+```javascript
+import LocomotiveScroll from 'locomotive-scroll'
+import { gsap } from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
+
+const scroll = new LocomotiveScroll({
+  lenisOptions: { smoothWheel: true }
+})
+
+// Connect Lenis to ScrollTrigger — official pattern:
+scroll.lenis.on('scroll', ScrollTrigger.update)
+gsap.ticker.add((time) => scroll.lenis.raf(time * 1000))
+gsap.ticker.lagSmoothing(0)
+
+// GSAP animations work with `scroller: window` (the default):
+gsap.to('.fade-in', {
+  scrollTrigger: {
+    trigger: '.fade-in',
+    start: 'top bottom',
+    end: 'top center',
+    scrub: true
+  },
+  opacity: 1,
+  y: 0
+})
+```
+
+### v4 scrollTo (legacy)
+
+```javascript
+scroll.scrollTo('#target-section', {
+  offset: -100,
+  duration: 1000,
+  easing: [0.25, 0.0, 0.35, 1.0],
+  disableLerp: true
+})
+```
+
+### v5 equivalent (current)
+
+```javascript
+scroll.lenis.scrollTo('#target-section', {
+  offset: -100,
+  duration: 1.2,
+  easing: (t) => 1 - Math.pow(1 - t, 3) // cubic easeOut; pass any Lenis easing fn
+})
+```
+
+`scrollTo(target, options)` is also exposed as a convenience on the v5
+instance itself.
+
+### v4 horizontal scrolling (legacy)
+
+```html
+<div data-scroll-container>
+  <div data-scroll-section style="display: flex; width: 300vw;">...</div>
+</div>
+```
+
+```javascript
+new LocomotiveScroll({
+  el: document.querySelector('[data-scroll-container]'),
+  smooth: true,
+  direction: 'horizontal'
+})
+```
+
+### v5 equivalent (current)
+
+```javascript
+new LocomotiveScroll({
+  lenisOptions: { orientation: 'horizontal' }
+})
+```
+
+v5 (via Lenis) handles horizontal scroll natively; no special markup is
+required.
+
+### v4 mobile breakpoints (legacy)
+
+```javascript
+new LocomotiveScroll({
+  el: document.querySelector('[data-scroll-container]'),
+  smooth: true,
+  tablet:    { smooth: true,  breakpoint: 1024 },
+  smartphone:{ smooth: false, breakpoint: 768 }
+})
+```
+
+### v5 equivalent (current)
+
+```javascript
+const isMobile = window.matchMedia('(max-width: 768px)').matches
+
+new LocomotiveScroll({
+  lenisOptions: {
+    smoothWheel: true,
+    smoothTouch: !isMobile // disable on phones for native feel
+  }
+})
+```
+
+For finer breakpoint behaviour, use `window.matchMedia` listeners and
+toggle `scroll.lenis.options.smoothTouch` on resize.
+
+### v4 lazy loading hook (legacy)
+
+```javascript
+scroll.on('call', (func) => {
+  if (func === 'lazyLoad') { /* ... */ }
+})
+```
+
+### v5 equivalent (current)
+
+```javascript
+window.addEventListener('locomotive:call', (e) => {
+  if (e.detail.value === 'lazyLoad') { /* ... */ }
+})
+```
+
+### v4 cleanup (legacy)
+
+```javascript
+scroll.destroy()
+```
+
+### v5 equivalent (current)
+
+```javascript
+scroll.destroy() // still supported — destroys the underlying Lenis instance
+```
+
+### Touch / parallax notes for v5
+
+- Touch behaviour is opt-in via `lenisOptions.smoothTouch`. On phones
+  most projects leave this `false` to preserve native momentum scrolling.
+- Parallax is now done in CSS using `--lenis-progress` (or
+  `--scroll-progress` exposed by v5). The v4 `data-scroll-speed`
+  attribute no longer exists — animate via CSS transforms tied to the
+  scroll progress variable, or via rAF.
+- The v5 instance exposes `scroll.lenis` for advanced use (e.g. pausing,
+  custom easing functions, programmatic scrolling).
 
 ## Resources
 

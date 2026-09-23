@@ -4,6 +4,13 @@ description: Declarative web framework for building browser-based 3D, VR, and AR
 ---
 
 # A-Frame WebXR Skill
+> **Current version**: A-Frame **1.8.0**. Add-on:
+> [`aframe-extras`](https://github.com/n5ro/aframe-extras) **7.7.0**
+> (community-maintained). Examples in this skill target the core
+> 1.8.x API; community add-ons are labelled as such.
+>
+> **Audit date**: 2026-09-23.
+
 
 ## When to Use This Skill
 - Build VR/AR experiences with minimal JavaScript
@@ -1067,6 +1074,70 @@ img.addEventListener('error', () => {
 - [A-Frame Community Components](https://github.com/c-frame)
 - [WebXR Device API](https://www.w3.org/TR/webxr/)
 - [Three.js Documentation](https://threejs.org/docs/) (A-Frame built on Three.js)
+
+
+## Notes on current A-Frame patterns
+
+### `aframe-extras` is a community add-on
+
+The 1.7.1-era CDN example for `aframe-extras` still works but the
+package is now community-maintained at **7.7.0** and is no longer
+shipped by the core team. Use it for THIRD-PARTY helpers
+(`text-geometry`, `animation-mixer`, `loaders`, etc.) only — expect
+slower release cadence and minimal API guarantees.
+
+### `event-set` must be loaded explicitly
+
+The legacy snippet `<a-scene event-set>` worked because `event-set`
+was bundled. As of 1.5+ it lives in a separate component file:
+
+```html
+<head>
+  <script src="https://aframe.io/releases/1.8.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-extras@7.7.0/dist/aframe-extras.min.js"></script>
+</head>
+```
+
+Or, in many cases, prefer a **registered custom component** for
+interactivity:
+
+```javascript
+AFRAME.registerComponent('hover-scale', {
+  schema: { factor: { default: 1.2 } },
+  init() {
+    this.el.addEventListener('mouseenter', () => this.el.object3D.scale.setScalar(this.data.factor))
+    this.el.addEventListener('mouseleave', () => this.el.object3D.scale.setScalar(1))
+  }
+})
+```
+
+### WebXR capability checks
+
+`navigator.xr` feature support varies across devices and browsers.
+Always **runtime-check** before enabling WebXR-only behaviour:
+
+```javascript
+async function supportsFeature(feature) {
+  if (!navigator.xr) return false
+  const session = await navigator.xr.requestSession('immersive-vr').catch(() => null)
+  if (!session) return false
+  const supported = await session.supportedFeatures?.[feature] === true
+  await session.end()
+  return supported
+}
+
+if (await supportsFeature('hit-test')) {
+  // enable AR hit-testing UI
+}
+
+if (await navigator.xr?.isSessionSupported('immersive-ar')) {
+  // enable AR button
+}
+```
+
+For DOM-overlay (`requiredFeatures: ['dom-overlay']`), the page must
+be served over HTTPS and the user's browser must support the
+DOM-overlay feature on the requested session mode.
 
 ## Related Skills
 

@@ -42,7 +42,7 @@ Production-ready code examples for AOS (Animate On Scroll) integration across di
 ### NPM Setup (ES6)
 
 ```bash
-npm install aos@next
+npm install aos@2.3.4
 ```
 
 ```javascript
@@ -232,7 +232,7 @@ function DynamicList() {
         {items.map((item, index) => (
           <div
             key={item.id}
-            data-aos="fade-in"
+            data-aos="fade"
             data-aos-delay={index * 50}
           >
             {item.text}
@@ -411,7 +411,7 @@ onMounted(() => {
     <div
       v-for="(item, index) in items"
       :key="item.id"
-      data-aos="fade-in"
+      data-aos="fade"
       :data-aos-delay="index * 50"
       class="list-item"
     >

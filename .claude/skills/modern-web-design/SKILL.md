@@ -4,6 +4,11 @@ description: Modern web design trends, principles, and implementation patterns f
 ---
 
 # Modern Web Design
+> **Audit date**: 2026-09-23.
+> This is a **meta-skill** with no single package version. The notes
+> below capture version-specific guidance for the libraries it
+> cross-references.
+
 
 ## Overview
 
@@ -17,11 +22,15 @@ This meta-skill synthesizes knowledge from all animation, interaction, and 3D sk
 
 **Philosophy**: Design decisions should prioritize Core Web Vitals and user experience on all devices.
 
-**Key Metrics**:
+**Key Metrics** (Core Web Vitals, March 2024+):
 - Largest Contentful Paint (LCP): < 2.5s
-- First Input Delay (FID): < 100ms
 - Cumulative Layout Shift (CLS): < 0.1
 - Interaction to Next Paint (INP): < 200ms
+
+> **Note**: **FID** (First Input Delay, < 100 ms) was replaced by
+> **INP** (Interaction to Next Paint) as a Core Web Vital in
+> March 2024. Treat INP as the responsiveness metric; FID is no
+> longer tracked in CrUX.
 
 **Implementation Guidelines**:
 - Defer non-critical animations until after page load
@@ -988,3 +997,57 @@ The `scripts/` directory includes tools for implementing design patterns:
 ### Assets
 
 The `assets/` directory contains design system templates and starter files. See `assets/README.md` for details.
+
+
+## Notes on current web-design patterns
+
+### Web Vitals: INP replaces FID
+
+As of **March 2024** Google replaced **FID** (First Input Delay)
+with **INP** (Interaction to Next Paint) as a Core Web Vital. The
+recommended thresholds are:
+
+- **LCP** (Largest Contentful Paint): ≤ 2.5 s
+- **INP** (Interaction to Next Paint): ≤ 200 ms
+- **CLS** (Cumulative Layout Shift): ≤ 0.1
+
+Always measure at the **75th percentile** of real-user field data
+(not lab / Lighthouse) before drawing conclusions.
+
+### View Transitions API
+
+The browser [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API)
+covers **two distinct cases**:
+
+- **Same-document transitions** (`document.startViewTransition(update)`)
+  for SPA route changes — supported in Chrome / Edge 111+.
+- **Cross-document transitions** (`@view-transition { navigation: auto }`)
+  for MPA / full page reloads — still **experimental** at the time
+  of writing.
+
+Feature-detect both before use:
+
+```javascript
+if ('startViewTransition' in document) {
+  document.startViewTransition(() => updateDOM())
+}
+```
+
+### Motion / GSAP terminology
+
+Use **`motion`** / **`motion/react`** (rebranded from
+`framer-motion`) for new React work. GSAP stays at **v3.15+**;
+pin to that version for reproducibility.
+
+### WCAG contrast and touch targets
+
+Do **not** assert WCAG AAA compliance by default. WCAG AA is the
+minimum (4.5:1 for normal text, 3:1 for large text). AAA (7:1)
+applies to specific contexts (incidental text, large text) and
+should be measured against actual content.
+
+Touch target minimums are **44×44 CSS pixels** in WCAG 2.5.5 (Level
+AAA) and **24×24** in WCAG 2.2 (Level AA, with spacing
+requirements). Apple HIG asks for **44pt**, Material for **48dp**.
+Match the target standard to the platform your users actually
+use.

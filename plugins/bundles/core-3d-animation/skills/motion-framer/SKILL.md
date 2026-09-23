@@ -4,6 +4,15 @@ description: Modern animation library for React and JavaScript. Create smooth, p
 ---
 
 # Motion & Framer Motion
+> **Current version**: **Motion 13.4.1** (`motion` package,
+> `motion/react` entry point). Requires **React ≥ 18.2**. The
+> `AnimateView` component requires **React 19.3+ / DOM 19.3+**.
+>
+> The legacy `framer-motion` package is now a re-export of `motion`
+> for backwards compatibility; prefer the `motion` / `motion/react`
+> imports.
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -930,3 +939,68 @@ This skill includes:
 - [Framer Motion Examples](https://www.framer.com/motion/examples/) - Interactive examples
 - [Motion Recipes](https://motion.dev/docs/recipes) - Common patterns
 - [CodeSandbox Templates](https://codesandbox.io/s/framer-motion-examples) - Live demos
+
+
+## Notes on current Motion patterns
+
+### Package and import paths
+
+The package was renamed from `framer-motion` to **`motion`**. Import
+from `motion/react` for components and hooks, and from `motion` for
+the imperative `animate()` helper.
+
+```javascript
+// ✅ current
+import { motion, AnimatePresence, useAnimate, useMotionValue } from 'motion/react'
+import { animate } from 'motion'
+
+// 🟡 legacy — still works in 13.x but emits a deprecation notice
+import { motion, AnimatePresence } from 'framer-motion'
+```
+
+### Spring / tween defaults
+
+`useSpring` defaults to a **gentle spring** (mass 1, stiffness 100,
+damping 10). For a snappier spring pass explicit config:
+`useSpring(source, { stiffness: 300, damping: 20 })`.
+
+`useAnimate()` returns `[scope, animate]`. The `animate` function is
+the **same** one as the imperative `animate()` from `motion` — so
+all `animate(target, keyframes, options)` signatures work identically:
+
+```javascript
+const [scope, animate] = useAnimate()
+return (
+  <div
+    ref={scope}
+    onClick={() => animate(scope.current, { scale: 1.2 }, { type: 'spring' })}
+  />
+)
+```
+
+### `AnimatePresence mode="wait"`
+
+`AnimatePresence mode="wait"` waits for the exit animation to
+**fully complete** before mounting the next child. In v13, it now
+also respects `mode="popLayout"` for layout-shifting lists. Both are
+supported; pick `popLayout` for grids and `wait` for single-element
+transitions.
+
+### Migration from `framer-motion`
+
+```javascript
+// Rename the package and update imports:
+- import { motion, AnimatePresence } from 'framer-motion'
++ import { motion, AnimatePresence } from 'motion/react'
+
+// `animate` is now a top-level export of the `motion` package:
++ import { animate } from 'motion'
+
+// Hook API is unchanged: useAnimate, useMotionValue, useTransform,
+// useScroll, useSpring, useInView, useReducedMotion.
+```
+
+For projects that can't move immediately, the `framer-motion` package
+remains a working alias through the v13 cycle.
+
+## Related Skills

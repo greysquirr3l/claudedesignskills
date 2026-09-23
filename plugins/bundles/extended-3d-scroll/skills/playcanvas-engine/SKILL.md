@@ -4,6 +4,16 @@ description: Lightweight WebGL/WebGPU game engine with entity-component architec
 ---
 
 # PlayCanvas Engine Skill
+> **Current version**: PlayCanvas **2.22.4** (engine code 2.x; engine
+> bundle on npm is `playcanvas`). The examples in this skill show the
+> **current** APIs: `render` component + `entity.render` (replaces
+> deprecated `model` component), `anim` component + state graphs
+> (replaces deprecated `animation` component), ESM `Script` subclasses
+> (preferred over `pc.createScript`), and the modern Ammo
+> `WasmModule.setConfig` / `WasmModule.getInstance` initialisation.
+> Legacy patterns are documented in [Migration](#migration) at the
+> bottom of this skill. **Audit date**: 2026-09-23.
+
 
 Lightweight WebGL/WebGPU game engine with entity-component architecture, visual editor integration, and performance-focused design.
 
@@ -1060,3 +1070,145 @@ app.assets.load(asset);
 ---
 
 **Related Skills**: For lower-level WebGL control, reference threejs-webgl. For React integration patterns, see react-three-fiber. For physics-heavy simulations, reference babylonjs-engine.
+
+
+## Migration
+
+PlayCanvas 2.x deprecated several APIs that were still widely used in
+1.x codebases. The mappings below apply to projects upgrading from
+1.x to 2.x. Existing 1.x code keeps working but logs deprecation
+warnings and is removed in a future major release.
+
+### `model` component → `render` component + `entity.render`
+
+The `model` component was split into `render` (mesh + material) and
+removed; the rendering API is now accessed directly on `entity.render`.
+
+**Legacy (1.x, deprecated):**
+
+```javascript
+entity.addComponent('model', { type: 'box' })
+entity.model.material = mat
+```
+
+**Current (2.x):**
+
+```javascript
+import { Entity } from 'playcanvas'
+
+const entity = new Entity('cube')
+entity.addComponent('render', { type: 'box' }) // creates entity.render
+entity.render.material = mat
+```
+
+For glTF assets use `entity.addComponent('render', { asset: gltfAsset })`
+and access sub-meshes via `entity.render.meshInstances`.
+
+### `animation` component → `anim` component + state graphs
+
+The legacy `animation` component (single linear playback) was replaced
+by the **`anim`** component driven by an Anim state graph (`.glb` /
+`.anim.json` from the editor).
+
+**Legacy (1.x, deprecated):**
+
+```javascript
+entity.addComponent('animation', {
+  assets: [clipAsset]
+})
+entity.animation.play('walk')
+entity.animation.currentTime = 1.5
+```
+
+**Current (2.x):**
+
+```javascript
+entity.addComponent('anim', {
+  graph: animGraphAsset // produced by the PlayCanvas editor
+})
+entity.anim.setBoolean('moving', true)
+entity.anim.baseLayer.update(0.016)
+```
+
+State graphs expose named boolean / number / trigger inputs and are
+authored in the editor; runtime code only sets inputs.
+
+### `pc.createScript` → ESM `Script` subclasses
+
+The classic `pc.createScript('name')` factory still works but ESM
+`Script` subclasses are the recommended pattern — they support
+TypeScript, tree-shaking, and hot reload better.
+
+**Legacy:**
+
+```javascript
+const RotateScript = pc.createScript('rotate')
+RotateScript.attributes.add('speed', { type: 'number', default: 10 })
+RotateScript.prototype.update = function (dt) {
+  this.entity.rotate(0, this.speed * dt, 0)
+}
+```
+
+**Current:**
+
+```javascript
+import { Script } from 'playcanvas'
+
+export class RotateScript extends Script {
+  speed = 10 // attribute (exposed in editor)
+
+  update(dt) {
+    this.entity.rotate(0, this.speed * dt, 0)
+  }
+}
+```
+
+`Script` subclasses are registered with `app.scripts.add(RotateScript)`
+and instantiated via `entity.addComponent({ script: RotateScript })`.
+
+### Ammo.js setup → `WasmModule.setConfig` + `WasmModule.getInstance`
+
+The legacy `<script src="ammo.js">` + global `Ammo()` pattern is gone.
+Use the Wasm module API.
+
+**Legacy:**
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/ammo.js@0.0.10/ammo.js"></script>
+<script>
+  Ammo().then((AmmoLib) => { window.Ammo = AmmoLib; /* ... */ })
+</script>
+```
+
+**Current (2.x):**
+
+```javascript
+import { Ammo, WasmModule } from 'playcanvas'
+
+WasmModule.setConfig('Ammo', {
+  glueUrl: 'https://cdn.jsdelivr.net/npm/playcanvas@2.22.4/build/ammo/ammo.wasm.wasm',
+  wasmUrl: 'https://cdn.jsdelivr.net/npm/playcanvas@2.22.4/build/ammo/ammo.wasm.wasm'
+})
+
+const AmmoLib = await WasmModule.getInstance('Ammo')
+
+const app = new pc.Application(canvas, {})
+await Ammo.init(AmmoLib) // initialise physics
+app.start()
+```
+
+The official PlayCanvas build also ships a bundled `ammo.wasm.wasm`
+file under `playcanvas/build/ammo/`. Pin the version to match the
+engine version to avoid ABI mismatches.
+
+### Marking things as deprecated / legacy
+
+When you see these names in old code, they refer to deprecated APIs:
+
+- `model` component → use `render` + `entity.render`
+- `animation` component → use `anim` + state graphs
+- `pc.createScript(...)` → ESM `Script` subclass
+- `Ammo()` global promise → `WasmModule.getInstance('Ammo')`
+- `pc.AssetListLoader` → `app.assets.load(...)`
+
+These all continue to function in 2.x but emit deprecation warnings.

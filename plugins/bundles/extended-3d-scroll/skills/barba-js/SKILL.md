@@ -4,6 +4,12 @@ description: Page transitions library for creating fluid, smooth transitions bet
 ---
 
 # Barba.js
+> **Current version**: `@barba/core` **2.10.3**.
+> Examples in this skill target the v2.x API (`barba.use(...)`,
+> `barba.init()`); v1.x `Barba.Pjax.start()` patterns are documented
+> in [Migration from v1](#migration-from-v1) at the bottom of this
+> skill. **Audit date**: 2026-09-23.
+
 
 Modern page transition library for creating fluid, smooth transitions between website pages. Barba.js makes multi-page websites feel like Single Page Applications (SPAs) by hijacking navigation and managing transitions without full page reloads.
 
@@ -862,6 +868,87 @@ Detailed documentation:
 ### assets/
 Templates and starter projects:
 - `starter_barba/` - Complete Barba.js + GSAP starter template
+- `examples/` - Real-world transition implementations
+
+
+## Migration from v1
+
+v2.x dropped the global `Barba` namespace and moved to a plugin-style
+API (`barba.use(...)`, `barba.init()`). The mappings below apply to
+projects upgrading from v1.
+
+### v1 → v2 API mapping
+
+| v1 (legacy) | v2 (current) |
+|---|---|
+| `Barba.Pjax.start()` | `barba.init()` |
+| `barba.use(Barba.CssPlugin)` | `barba.use(barbaCss)` from `@barba/css` |
+| `barba.use(Barba.Prefetch)` | `barba.use(barbaPrefetch, { root, timeout, limit })` |
+| `barba.use(Barba.Router)` (custom) | `barba.use(barbaRouter, { routes: [...] })` from `@barba/router` |
+| `data-barba="namespace"` etc. | Same `data-barba` attributes; semantics unchanged |
+| `transitionLeave` / `transitionEnter` hooks | `leave` / `enter` hooks (signature unchanged) |
+
+### Prefetch setup (current)
+
+v1 documented prefetch via `init({ prefetch: true })`. **That option
+does not exist in v2.** Use the dedicated plugin:
+
+```javascript
+import barba from '@barba/core'
+import barbaPrefetch from '@barba/prefetch'
+
+barba.use(barbaPrefetch, {
+  root: 'data-barba-prefetch', // attribute used to mark prefetch links
+  timeout: 2000,                // hover delay in ms before prefetch
+  limit: 10                     // max concurrent prefetches
+})
+
+barba.init()
+```
+
+> **Note**: Prefetch **does not fire on hover by default**. The
+> `timeout` is the debounce window after the first intersection /
+> pointer enter event. To opt links into prefetch, set
+> `data-barba-prefetch="eager"` (immediate) or `data-barba-prefetch="hover"`
+> (default — fires after the configured hover timeout).
+
+### Router setup (current)
+
+```javascript
+import barba from '@barba/core'
+import barbaRouter from '@barba/router'
+
+barba.use(barbaRouter, {
+  routes: [
+    { name: 'home',    path: '/' },
+    { name: 'about',   path: '/about' },
+    { name: 'product', path: '/products/:slug' }
+  ]
+})
+
+barba.init()
+```
+
+### `@barba/head` status
+
+`@barba/head` is **coming-soon / experimental** as of v2.10.x — the
+shipped `barba.use(...)` flow does not include it yet. For now, copy
+`<head>` mutations in `beforeEnter` hooks or use `@barba/css`'s
+`keepScripts: true` option to preserve head-level scripts.
+
+### Sync transition timing
+
+Transitions are async by default; each leave/enter resolves only when
+its returned `Promise` resolves. To run them concurrently (legacy
+v1 behaviour), return synchronously from both hooks:
+
+```javascript
+barba.hooks.leave(() => /* sync return */)
+barba.hooks.enter(() => /* sync return */)
+```
+
+In practice the async model is what you want — it lets GSAP/Lottie
+await completion before the new page is shown.
 
 ## Related Skills
 

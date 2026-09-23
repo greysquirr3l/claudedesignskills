@@ -4,6 +4,69 @@ description: Comprehensive skill for Babylon.js 3D web rendering engine. Use thi
 ---
 
 # Babylon.js Engine Skill
+> **Current version**: Babylon.js **9.27.1**.
+> Install with `npm i @babylonjs/core@9.27.1` (and `@babylonjs/loaders`,
+> `@babylonjs/materials`, `@babylonjs/gui`, `@babylonjs/havok` as
+> needed). Examples in this skill target the **9.x** API.
+>
+> **Audit date**: 2026-09-23.
+
+
+
+## Notes on current Babylon.js patterns
+
+### `ComputeShader` is WebGPU-first
+
+`ComputeShader` lives in `@babylonjs/core/Engines/Processors` and
+**requires WebGPU** (or WebGL2 with explicit `engine.getCaps()`
+checks). On WebGL2 it is implemented via `GPUComputationRenderer`
+under the hood and is significantly slower than the WebGPU path.
+For broad compatibility prefer `Effect`/`ShaderMaterial` with
+manual ping-pong render targets.
+
+### GUI import style
+
+There are two GUI packages — pick deliberately:
+
+- `@babylonjs/gui` — full 2D UI (AdvancedDynamicTexture, controls,
+  layouts). Imported as `import { AdvancedDynamicTexture, Button } from '@babylonjs/gui'`.
+- `@babylonjs/inspector` — dev-only debug UI; do **not** import in
+  production bundles.
+
+Import only what you need; the GUI package is large and tree-shakes
+poorly if you import from the root barrel.
+
+### KTX2 / Basis texture loaders
+
+Compressed textures require a side-effect import to register the
+loader:
+
+```javascript
+import '@babylonjs/core/Materials/Textures/Loaders/ktx2TextureLoader'
+import '@babylonjs/core/Materials/Textures/Loaders/basisTextureLoader'
+import { Texture } from '@babylonjs/core'
+
+const tex = new Texture('diffuse.ktx2', scene) // decoded via Basis
+```
+
+The `KTX2TextureLoader` expects a `basis_transcoder.wasm` file
+hosted alongside your assets; configure the loader's `basisTextureLoaderConfiguration.transcoderUrl`.
+
+### Havok physics
+
+Havok is the recommended physics engine in 9.x:
+
+```javascript
+import HavokPhysics from '@babylonjs/havok'
+
+const havok = await HavokPhysics()
+const physicsPlugin = new HavokPlugin(true, scene, havok)
+scene.enablePhysics(new Vector3(0, -9.81, 0), physicsPlugin)
+```
+
+The WASM module must be served from the same origin (or via
+appropriate CORS headers). The async `await HavokPhysics()` call is
+**required** before `enablePhysics`.
 
 ## Related Skills
 - threejs-webgl: Alternative 3D engine

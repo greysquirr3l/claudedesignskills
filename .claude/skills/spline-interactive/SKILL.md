@@ -4,6 +4,15 @@ description: Browser-based 3D design tool with visual editor, animation, and web
 ---
 
 # Spline Interactive - Browser-Based 3D Design and Animation
+> **Current runtime packages**:
+> - `@splinetool/runtime` **2.0.56** (browser runtime)
+> - `@splinetool/react-spline` **4.1.0** (React wrapper)
+>
+> Pin both to the versions above for reproducible builds. Spline
+> also publishes a `@splinetool/viewer` package for iframe embedding.
+>
+> **Audit date**: 2026-09-23.
+
 
 ## Overview
 
@@ -727,6 +736,67 @@ const Spline = dynamic(
 - USDZ (for Apple AR)
 - STL (for 3D printing)
 - Video/GIF (for marketing)
+
+
+## Notes on current Spline patterns
+
+### Installation
+
+```bash
+npm install @splinetool/runtime@2.0.56
+npm install @splinetool/react-spline@4.1.0
+```
+
+### Current runtime API
+
+The `Application` class exposes:
+
+- `load(url)` — async; resolves with the loaded `Scene`
+- `setVariable(name, value)` / `getVariable(name)`
+- `setStateVariable(name, value)` / `getStateVariable(name)`
+- `play()`, `pause()`, `stop()` — animation playback
+- `setSize(width, height)` — sizing
+- `setBackground(color)` — scene background
+- `getAllObjects()` / `findObjectByName(name)` — scene enumeration
+- `addObject(obj)` / `cloneObject(obj)` / `removeObject(obj)` —
+  scene graph mutation
+
+### React wrapper API
+
+`@splinetool/react-spline` exposes:
+
+- `<Spline scene="https://prod.spline.design/.../scene.splinecode" />`
+- `useSpline(event)` — returns the active `SplineEvent` payload
+  (`onLoad`, `onScroll`, `onMouseDown`, `onMouseHover`, `onMouseLeave`)
+- `useSplineState` (zustand-backed) — current scene + camera state
+
+```jsx
+import Spline, { useSplineEvent } from '@splinetool/react-spline'
+
+function Scene() {
+  useSplineEvent('onScroll', (e) => console.log('scroll', e))
+  return <Spline scene="https://prod.spline.design/.../scene.splinecode" />
+}
+```
+
+### WebGPU preference with WebGL fallback
+
+The Spline runtime defaults to WebGL. To opt into WebGPU (and fall
+back to WebGL automatically):
+
+```javascript
+import { Application } from '@splinetool/runtime'
+
+const canvas = document.querySelector('#c')
+const app = new Application(canvas, { gpu: 'prefer' }) // 'prefer' | 'force' | 'never'
+await app.load(sceneUrl)
+```
+
+### Session-only runtime objects
+
+`addObject`, `cloneObject`, and `removeObject` operate on
+**session-only** scene state — the `.splinecode` source file is not
+modified. Reloading the scene replaces the live objects.
 
 ## Related Skills
 

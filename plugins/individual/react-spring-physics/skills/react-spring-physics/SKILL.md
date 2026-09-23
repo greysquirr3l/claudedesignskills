@@ -4,6 +4,12 @@ description: Physics-based animation library combining React Spring (spring dyna
 ---
 
 # React Spring Physics
+> **Current stable**: **react-spring 10.1.2**.
+> A `11.0.0-beta.0` prerelease is published; this skill targets the
+> stable 10.x API. The optional Popmotion 11.0.5 helper is kept for
+> low-level animation; treat it as legacy for new work.
+> **Audit date**: 2026-09-23.
+
 
 Physics-based animation for React applications combining React Spring's declarative spring animations with Popmotion's low-level physics utilities.
 
@@ -453,6 +459,77 @@ const springs = useSpring({ x: 100, rotation: 45 })
 ### Assets
 - `starter_spring/` - React + Vite template with React Spring examples
 - `examples/` - Real-world patterns (gestures, scroll, 3D integration)
+
+
+## Notes on current react-spring patterns
+
+### String interpolation
+
+Pass `string` interpolation targets as plain strings; do **not**
+wrap them in `useSpring({ color: 'red' })` and expect animated
+interpolation. The hook accepts strings and interpolates between
+them when both ends parse as the same colour/numeric format:
+
+```javascript
+const { color } = useSpring({ color: 'rgb(255, 0, 0)' })
+<a.color>{(c) => c}</a.color>
+```
+
+For hex ↔ rgb ↔ hsl switching use a `to()` function with explicit
+parsing — react-spring will not auto-convert units.
+
+### `SpringValue.set` vs `api.start`
+
+- `spring.set(value)` is **synchronous** and jumps the spring to the
+  target value **without animating**. Use for hard transitions
+  (snapshots, undo/redo, instant theme switching).
+- `api.start({ to: value })` **animates** to the target with the
+  spring's current config (mass / stiffness / damping). Use for
+  every smooth transition.
+
+```javascript
+const [styles, api] = useSpring(() => ({ x: 0 }))
+
+// jump (no animation)
+styles.x.set(100)
+
+// animate
+api.start({ x: 100 })
+```
+
+### Function form / dependency arrays
+
+`useSpring(fn)` runs `fn` on first render; the returned object is
+treated as the initial values. Use `useSpring(() => ({ x: 0 }), [])`
+or `useSpring({ x: 0 })` for the equivalent behaviour. Re-running
+the function on every render does **not** re-create the spring;
+passing a dependency array is also a no-op — use `api.start` to
+update animated values.
+
+### `useScroll` and `useInView` exports
+
+Both are exported from `@react-spring/web` (not `@react-spring/core`)
+in v10. If you import from `@react-spring/core` directly the symbols
+will not be present.
+
+```javascript
+// ✅ correct
+import { useScroll, useInView } from '@react-spring/web'
+
+// ❌ missing exports
+import { useScroll } from '@react-spring/core'
+```
+
+`useScroll` exposes `.scrollY`, `.scrollYProgress`, and (with the
+optional `events` helper) scroll-event-driven motion values.
+
+### Popmotion (optional legacy)
+
+`popmotion` 11.0.5 is still published but maintained as an
+**optional legacy** helper. New code should use `motion` (the
+Motion package) or react-spring itself. If you rely on Popmotion
+actions like `tween`, `spring`, or `decay`, pin Popmotion to 11.x
+and import from the `popmotion` package directly.
 
 ## Related Skills
 

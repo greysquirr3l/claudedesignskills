@@ -22,7 +22,7 @@ Fade animations gradually change opacity. These are the simplest and most perfor
 Simple fade in from transparent to opaque.
 
 ```html
-<div data-aos="fade-in">Fades in</div>
+<div data-aos="fade">Fades in</div>
 ```
 
 **Use cases**: Simple reveals, subtle content appearance

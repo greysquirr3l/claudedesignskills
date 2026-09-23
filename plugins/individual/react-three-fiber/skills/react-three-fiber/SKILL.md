@@ -4,6 +4,25 @@ description: Build declarative 3D scenes with React Three Fiber (R3F) - a React 
 ---
 
 # React Three Fiber
+> **Current version**: `@react-three/fiber` **9.8.0** (v9 requires
+> **React 19**). v8 pairs with **React 18**. Examples in this skill
+> target v9 + React 19; v8 users should consult the `web3d-integration-patterns`
+> skill for migration notes.
+>
+> **Compatibility matrix**:
+>
+> | R3F | React | Three.js peer |
+> |---|---|---|
+> | 9.x (current) | 19 | `three` ≥ 0.166 |
+> | 8.x (maintenance) | 18 | `three` ≥ 0.137 |
+>
+> **Audit date**: 2026-09-23.
+
+> **WebGPU status**: `Canvas` with WebGPU support is **experimental /
+> work-in-progress** in v9 (the `reconciler` is WebGL-first). Use the
+> WebGL backend for production; pin the WebGPU flag for prototypes
+> only and watch the release notes for stability.
+
 
 ## Overview
 
@@ -670,21 +689,42 @@ function AnimatedBox() {
 }
 ```
 
-### With Framer Motion
+### With `motion/react` + R3F
 
 ```jsx
-import { motion } from 'framer-motion-3d'
+import { useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
 
+// `framer-motion-3d` is no longer maintained. Use R3F's native <mesh>
+// + useFrame (or @react-spring/three for springy motion) instead.
 function AnimatedSphere() {
+  const ref = useRef(null)
+  useFrame((state, dt) => {
+    if (!ref.current) return
+    const t = state.clock.elapsedTime
+    ref.current.scale.setScalar(1 + Math.sin(t) * 0.1)
+  })
   return (
-    <motion.mesh
-      initial={{ scale: 0 }}
-      animate={{ scale: 1 }}
-      transition={{ duration: 1 }}
-    >
+    <mesh ref={ref}>
       <sphereGeometry />
       <meshStandardMaterial color="hotpink" />
-    </motion.mesh>
+    </mesh>
+  )
+}
+```
+
+For spring-driven 3D motion, use `@react-spring/three` instead:
+
+```jsx
+import { useSpring, animated } from '@react-spring/three'
+
+function SpringSphere() {
+  const { scale } = useSpring({ from: { scale: 0 }, to: { scale: 1 }, config: { tension: 200 } })
+  return (
+    <animated.mesh scale={scale}>
+      <sphereGeometry />
+      <meshStandardMaterial color="hotpink" />
+    </animated.mesh>
   )
 }
 ```
@@ -692,7 +732,7 @@ function AnimatedSphere() {
 ### With Zustand (State Management)
 
 ```jsx
-import create from 'zustand'
+import { create } from 'zustand'
 
 const useStore = create((set) => ({
   color: 'orange',
@@ -1077,3 +1117,71 @@ Monitor re-renders and optimize components causing performance issues.
 - [Three.js Docs](https://threejs.org/docs/)
 - [R3F Discord](https://discord.gg/ZZjjNvJ)
 - [Poimandres (pmnd.rs)](https://pmnd.rs/) - Ecosystem overview
+
+
+## Maintenance Notes (v8 → v9)
+
+### Canvas color-management props
+
+The three color-related `Canvas` props have **inverted meanings** in
+recent versions and are frequently confused:
+
+| Prop | Default | Effect |
+|---|---|---|
+| `flat={true}` | `false` | **Disable tone mapping**. Output is written straight to the framebuffer without tone mapping, regardless of `gl.toneMapping`. Useful for pixel-art / UI overlays. |
+| `legacy={true}` | `false` | **Enable legacy color management** (`NoColorSpace` output). In v9, color management is on by default — set `legacy` to `true` to restore the v7 / pre-r152 behaviour of Three.js. |
+| `linear={true}` | `false` | **Switch the renderer to linear output** (no sRGB gamma encoding). Almost never what you want for shipping; usually set together with `legacy` when migrating from old code. |
+
+Most projects should leave all three unset. `flat={true}` is the most
+common one-off toggle. `legacy` is for migrations only. `linear`
+without `legacy` typically produces washed-out colours.
+
+### `useLoader` caching and disposal
+
+`useLoader` automatically caches by `(loader, input)` pair. Concrete
+rules:
+
+- **Caching is per `useLoader` call site** within a render tree.
+  Re-using the same loader/input combination across components reuses
+  the underlying Three.js resource.
+- **`useLoader.preload(loader, input)`** schedules a load before mount
+  to avoid first-render flashes. The result is registered in the same
+  cache.
+- **Disposal is your responsibility**. `useLoader` does **not** attach
+  the returned resource to React's effect cleanup. In `useEffect`
+  cleanup, call `texture.dispose()` / `gltf.scene.traverse(o => o.dispose())`
+  for objects you created locally. Assets kept in the cache are
+  reused by other components and should not be disposed by one of them.
+- For component-scoped textures, prefer a local `useMemo` + `useEffect`
+  cleanup pattern instead of `useLoader` to keep disposal clear.
+
+### Named Zustand import
+
+Use the **named** import from Zustand:
+
+```javascript
+// ✅ current (v4+ of zustand)
+import { create } from 'zustand'
+
+// ❌ legacy default import — still works but emits a warning in some
+// bundlers and is not tree-shaken the same way.
+import create from 'zustand'
+```
+
+R3F's `create(<slice>, ...)` helper used in custom stores must be the
+Zustand `create`, not R3F's. Keep the names explicit by importing as
+`{ create as createStore }` if you use both.
+
+### WebGPU async status
+
+WebGPU `Canvas` support is **experimental / work-in-progress** in v9:
+
+- The renderer is initialised asynchronously — use the `Canvas`
+  `onCreated` callback **and** await any `renderer.init()` call before
+  rendering the first frame.
+- Several features (post-processing addons, `useFBO` with WebGPU
+  targets, glTF materials authored against WebGL) are not yet
+  available or require polyfills.
+- For production projects, **stay on WebGL**. Track the
+  `@react-three/fiber` release notes for the experimental → stable
+  transition.
