@@ -2,7 +2,7 @@
 
 **Professional design agency skillstack for 3D/WebGL, animation, and modern web development**
 
-Claude Code plugin marketplace providing comprehensive coverage of modern web technologies including Three.js, GSAP, React Three Fiber, Framer Motion, Babylon.js, and more.
+Claude Code plugin marketplace providing comprehensive coverage of modern web technologies including Three.js, GSAP, React Three Fiber, Motion, Babylon.js, and more.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Plugins: 27](https://img.shields.io/badge/Plugins-27-blue.svg)](#available-plugins)
@@ -90,6 +90,37 @@ All plugins include slash commands and specialized agents. [Full details →](MA
 
 ### Meta-Skills (2)
 **web3d-integration-patterns** • **modern-web-design**
+
+## Documented Library Versions
+
+Each skill is maintained against the version listed below (audit date
+**2026-09-23**). v3 patterns are retained in migration sections where
+they exist; the **current** API is what the main examples use.
+
+| Skill | Library | Version |
+|---|---|---|
+| `threejs-webgl` | three | 0.186.0 / r186 |
+| `gsap-scrolltrigger` | gsap | 3.15.0 |
+| `react-three-fiber` | @react-three/fiber | 9.8.0 (React 19) |
+| `motion-framer` | motion / motion/react | 13.4.1 |
+| `babylonjs-engine` | @babylonjs/core | 9.27.1 |
+| `aframe-webxr` | a-frame / aframe-extras | 1.8.0 / 7.7.0 |
+| `lightweight-3d-effects` | zdog / vanta / vanilla-tilt | 1.1.1 / 0.5.24 / 1.8.1 |
+| `playcanvas-engine` | playcanvas | 2.22.4 |
+| `locomotive-scroll` | locomotive-scroll (Lenis) | 5.0.1 |
+| `barba-js` | @barba/core | 2.10.3 |
+| `react-spring-physics` | react-spring | 10.1.2 |
+| `animated-component-libraries` | motion + Magic UI + React Bits | 13.4.1 |
+| `scroll-reveal-libraries` | aos | 2.3.4 |
+| `animejs` | animejs | 4.5.0 |
+| `lottie-animations` | lottie-web / dotlottie-web | 5.13.0 / 0.80.0 |
+| `blender-web-pipeline` | Blender | 5.2 LTS |
+| `spline-interactive` | @splinetool/runtime / react-spline | 2.0.56 / 4.1.0 |
+| `rive-interactive` | @rive-app/webgl2 | 2.43.0 |
+| `web3d-integration-patterns` | meta-skill (matrix of all the above) | — |
+| `modern-web-design` | meta-skill | — |
+
+The full audit plan lives in [`FRAMEWORK_SKILL_UPDATE_PLAN.txt`](FRAMEWORK_SKILL_UPDATE_PLAN.txt).
 
 ## Installation
 
@@ -258,6 +289,38 @@ MIT License - see [LICENSE](LICENSE) file
 🚀 **Upload Ready** - All skills meet claude.ai packaging requirements
 
 ### Recent Updates
+
+**2026-09-23**: Framework Skill Refresh (Priority 1–3)
+- ✅ Audited all 21 framework skills against current package versions and
+  official documentation; pixijs-2d already current, substance-3d-texturing
+  unchanged
+- ✅ **Priority 1 — major API migrations** (5 skills): animejs v4.5.0
+  (`animate`, `createTimeline`, `stagger`, `createSpring`); locomotive-scroll
+  v5.0.1/Lenis (`lenisOptions`, `resize`, official ScrollTrigger integration);
+  threejs-webgl 0.186.0 (async WebGPURenderer, WebGL2 fallback, PCFShadowMap);
+  playcanvas-engine 2.22.4 (`render` + `entity.render`, `anim` + state graphs,
+  ESM `Script` subclasses, Ammo `WasmModule`); react-three-fiber 9.8.0 on
+  React 19 (Canvas color-management props, named Zustand, experimental WebGPU)
+- ✅ **Priority 2 — current API corrections** (11 skills): A-Frame 1.8.0 +
+  aframe-extras 7.7.0, Babylon 9.27.1, Barba 2.10.3, GSAP 3.15.0
+  (`gsap.matchMedia` replaces deprecated `ScrollTrigger.matchMedia`),
+  Motion 13.4.1, react-spring 10.1.2, Rive 2.43.0, AOS 2.3.4 (replaces invalid
+  `data-aos="fade-in"`), Spline runtime 2.0.56 / react 4.1.0, lottie-web 5.13.0
+  + dotLottie split, animated-component-libraries (BlurText/CountUp fixes)
+- ✅ **Priority 3 — meta and tooling** (4 skills): Blender 5.2 LTS, lightweight
+  3D effects (Zdog 1.1.1 beta, Vanta 0.5.24, Vanilla-Tilt 1.8.1, Three 0.186.0),
+  modern-web-design (FID → INP, March 2024 Core Web Vital), web3d-integration
+  patterns (dated dependency matrix, framer-motion-3d quarantined with
+  @react-spring/three replacement, real Three.js cleanup function)
+- ✅ Quarantined deprecated APIs: `framer-motion-3d`, `data-aos="fade-in"`,
+  `@next` install tags, `ScrollTrigger.matchMedia` as the primary example,
+  `model`/`animation` PlayCanvas components, `anime({...})` /
+  `anime.timeline()` / `anime.stagger()` defaults, v4 `data-scroll-container`
+  markup as the default example, `FID` as an active metric
+- ✅ All 22 skills pass `quick_validate.py`; all skill scripts pass
+  `python3 -m py_compile`; `scripts/marketplace/validate_marketplace.py`
+  passes; individual skill copies and bundle copies synchronised
+- ✅ Detailed plan in `FRAMEWORK_SKILL_UPDATE_PLAN.txt`; commit `77ad005`
 
 **2025-11-13**: Launched Plugin Marketplace
 - ✅ Created 27 plugins (22 individual + 5 category bundles)
