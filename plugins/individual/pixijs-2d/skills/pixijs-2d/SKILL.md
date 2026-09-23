@@ -1,935 +1,217 @@
 ---
 name: pixijs-2d
-description: Fast, lightweight 2D rendering engine for creating interactive graphics, particle effects, and canvas-based applications using WebGL/WebGPU. Use this skill when building 2D games, particle systems, interactive canvases, sprite animations, or UI overlays on 3D scenes. Triggers on tasks involving PixiJS, 2D rendering, sprite sheets, particle effects, filters, or high-performance canvas graphics. Alternative to Canvas2D with WebGL acceleration for rendering thousands of sprites at 60 FPS.
+description: "PixiJS v8 development for high-performance 2D web graphics, games, interactive canvases, data visualizations, and UI overlays. Use for PixiJS, pixi.js, Application.init, WebGL/WebGPU rendering, Assets, sprites, containers, Graphics, text, meshes, particles, events, filters, shaders, accessibility, performance, project setup, or v7-to-v8 migrations."
 ---
 
-# PixiJS 2D Rendering Skill
+# PixiJS v8
 
-Fast, lightweight 2D rendering engine for creating interactive graphics, particle effects, and canvas-based applications using WebGL/WebGPU.
+Use this skill for current PixiJS work. Prefer the single `pixi.js` package and v8 APIs. PixiJS is a 2D scene-graph renderer with WebGL and WebGPU backends; it is not a DOM layout system or a 3D engine.
 
----
+## Operating rules
 
-## When to Use This Skill
+1. Inspect the project’s installed `pixi.js` version before writing code. If the version is not v8, decide explicitly whether to preserve the project’s API or migrate it.
+2. Consult the [official guides](https://pixijs.com/8.x/guides) and the [release API reference](https://pixijs.download/release/docs/) for APIs not covered here. PixiJS evolves quickly; do not invent option names from memory.
+3. Use TypeScript types when available. Keep renderer, asset, scene, input, and application-lifecycle concerns separate.
+4. Treat canvas dimensions, CSS dimensions, device-pixel resolution, and world coordinates as different concepts. Decide how resizing and high-DPI rendering work before positioning content.
+5. Destroy views, textures, render textures, and applications when their owning screen or route is removed. Do not use `Assets.unload` while live sprites still reference the asset.
 
-Trigger this skill when you encounter:
-- "Create 2D particle effects" or "animated particles"
-- "2D sprite animation" or "sprite sheet handling"
-- "Interactive canvas graphics" or "2D game"
-- "UI overlays on 3D scenes" or "HUD layer"
-- "Draw shapes programmatically" or "vector graphics API"
-- "Optimize rendering performance" or "thousands of sprites"
-- "Apply visual filters" or "blur/displacement effects"
-- "Lightweight 2D engine" or "alternative to Canvas2D"
+## Start with a minimal v8 application
 
-**Use PixiJS for**: High-performance 2D rendering (up to 100,000+ sprites), particle systems, interactive UI, 2D games, data visualization with WebGL acceleration.
+PixiJS v8 constructs synchronously but initializes asynchronously. Put all renderer-dependent work after `await app.init()`.
 
-**Don't use for**: 3D graphics (use Three.js/R3F), simple animations (use Motion/GSAP), basic DOM manipulation.
-
----
-
-## Core Concepts
-
-### 1. Application & Renderer
-
-The entry point for PixiJS applications:
-
-```javascript
-import { Application } from 'pixi.js';
-
-const app = new Application();
-
-await app.init({
-  width: 800,
-  height: 600,
-  backgroundColor: 0x1099bb,
-  antialias: true,  // Smooth edges
-  resolution: window.devicePixelRatio || 1
-});
-
-document.body.appendChild(app.canvas);
-```
-
-**Key Properties**:
-- `app.stage`: Root container for all display objects
-- `app.renderer`: WebGL/WebGPU renderer instance
-- `app.ticker`: Update loop for animations
-- `app.screen`: Canvas dimensions
-
----
-
-### 2. Sprites & Textures
-
-Core visual elements loaded from images:
-
-```javascript
-import { Assets, Sprite } from 'pixi.js';
-
-// Load texture
-const texture = await Assets.load('path/to/image.png');
-
-// Create sprite
-const sprite = new Sprite(texture);
-sprite.anchor.set(0.5);  // Center pivot
-sprite.position.set(400, 300);
-sprite.scale.set(2);  // 2x scale
-sprite.rotation = Math.PI / 4;  // 45 degrees
-sprite.alpha = 0.8;  // 80% opacity
-sprite.tint = 0xff0000;  // Red tint
-
-app.stage.addChild(sprite);
-```
-
-**Quick Creation**:
-```javascript
-const sprite = Sprite.from('path/to/image.png');
-```
-
----
-
-### 3. Graphics API
-
-Draw vector shapes programmatically:
-
-```javascript
-import { Graphics } from 'pixi.js';
-
-const graphics = new Graphics();
-
-// Rectangle
-graphics.rect(50, 50, 100, 100).fill('blue');
-
-// Circle with stroke
-graphics.circle(200, 100, 50).fill('red').stroke({ width: 2, color: 'white' });
-
-// Complex path
-graphics
-  .moveTo(300, 100)
-  .lineTo(350, 150)
-  .lineTo(250, 150)
-  .closePath()
-  .fill({ color: 0x00ff00, alpha: 0.5 });
-
-app.stage.addChild(graphics);
-```
-
-**SVG Support**:
-```javascript
-graphics.svg('<svg><path d="M 100 350 q 150 -300 300 0" /></svg>');
-```
-
----
-
-### 4. ParticleContainer
-
-Optimized container for rendering thousands of sprites:
-
-```javascript
-import { ParticleContainer, Particle, Texture } from 'pixi.js';
-
-const texture = Texture.from('particle.png');
-
-const container = new ParticleContainer({
-  dynamicProperties: {
-    position: true,   // Allow position updates
-    scale: false,     // Static scale
-    rotation: false,  // Static rotation
-    color: false      // Static color
-  }
-});
-
-// Add 10,000 particles
-for (let i = 0; i < 10000; i++) {
-  const particle = new Particle({
-    texture,
-    x: Math.random() * 800,
-    y: Math.random() * 600
-  });
-
-  container.addParticle(particle);
-}
-
-app.stage.addChild(container);
-```
-
-**Performance**: Up to 10x faster than regular Container for static properties.
-
----
-
-### 5. Filters
-
-Apply per-pixel effects using WebGL shaders:
-
-```javascript
-import { BlurFilter, DisplacementFilter, ColorMatrixFilter } from 'pixi.js';
-
-// Blur
-const blurFilter = new BlurFilter({ strength: 8, quality: 4 });
-sprite.filters = [blurFilter];
-
-// Multiple filters
-sprite.filters = [
-  new BlurFilter({ strength: 4 }),
-  new ColorMatrixFilter()  // Color transforms
-];
-
-// Custom filter area for performance
-sprite.filterArea = new Rectangle(0, 0, 200, 100);
-```
-
-**Available Filters**:
-- `BlurFilter`: Gaussian blur
-- `ColorMatrixFilter`: Color transformations (sepia, grayscale, etc.)
-- `DisplacementFilter`: Warp/distort pixels
-- `AlphaFilter`: Flatten alpha across children
-- `NoiseFilter`: Random grain effect
-- `FXAAFilter`: Anti-aliasing
-
----
-
-### 6. Text Rendering
-
-Display text with styling:
-
-```javascript
-import { Text, BitmapText, TextStyle } from 'pixi.js';
-
-// Standard Text
-const style = new TextStyle({
-  fontFamily: 'Arial',
-  fontSize: 36,
-  fill: '#ffffff',
-  stroke: { color: '#000000', width: 4 },
-  filters: [new BlurFilter()]  // Bake filter into texture
-});
-
-const text = new Text({ text: 'Hello PixiJS!', style });
-text.position.set(100, 100);
-
-// BitmapText (faster for dynamic text)
-const bitmapText = new BitmapText({
-  text: 'Score: 0',
-  style: { fontFamily: 'MyBitmapFont', fontSize: 24 }
-});
-```
-
-**Performance Tip**: Use `BitmapText` for frequently changing text (scores, counters).
-
----
-
-## Common Patterns
-
-### Pattern 1: Basic Interactive Sprite
-
-```javascript
+```ts
 import { Application, Assets, Sprite } from 'pixi.js';
 
 const app = new Application();
-await app.init({ width: 800, height: 600 });
-document.body.appendChild(app.canvas);
-
-const texture = await Assets.load('bunny.png');
-const bunny = new Sprite(texture);
-
-bunny.anchor.set(0.5);
-bunny.position.set(400, 300);
-bunny.eventMode = 'static';  // Enable interactivity
-bunny.cursor = 'pointer';
-
-// Events
-bunny.on('pointerdown', () => {
-  bunny.scale.set(1.2);
-});
-
-bunny.on('pointerup', () => {
-  bunny.scale.set(1.0);
-});
-
-bunny.on('pointerover', () => {
-  bunny.tint = 0xff0000;  // Red on hover
-});
-
-bunny.on('pointerout', () => {
-  bunny.tint = 0xffffff;  // Reset
-});
-
-app.stage.addChild(bunny);
-
-// Animation loop
-app.ticker.add((ticker) => {
-  bunny.rotation += 0.01 * ticker.deltaTime;
-});
-```
-
----
-
-### Pattern 2: Drawing with Graphics
-
-```javascript
-import { Graphics, Application } from 'pixi.js';
-
-const app = new Application();
-await app.init({ width: 800, height: 600 });
-document.body.appendChild(app.canvas);
-
-const graphics = new Graphics();
-
-// Rectangle with gradient
-graphics.rect(50, 50, 200, 100).fill({
-  color: 0x3399ff,
-  alpha: 0.8
-});
-
-// Circle with stroke
-graphics.circle(400, 300, 80)
-  .fill('yellow')
-  .stroke({ width: 4, color: 'orange' });
-
-// Star shape
-graphics.star(600, 300, 5, 50, 0).fill({ color: 0xffdf00, alpha: 0.9 });
-
-// Custom path
-graphics
-  .moveTo(100, 400)
-  .bezierCurveTo(150, 300, 250, 300, 300, 400)
-  .stroke({ width: 3, color: 'white' });
-
-// Holes
-graphics
-  .rect(450, 400, 150, 100).fill('red')
-  .beginHole()
-  .circle(525, 450, 30)
-  .endHole();
-
-app.stage.addChild(graphics);
-
-// Dynamic drawing (animation)
-app.ticker.add(() => {
-  graphics.clear();
-
-  const time = Date.now() * 0.001;
-  const x = 400 + Math.cos(time) * 100;
-  const y = 300 + Math.sin(time) * 100;
-
-  graphics.circle(x, y, 20).fill('cyan');
-});
-```
-
----
-
-### Pattern 3: Particle System with ParticleContainer
-
-```javascript
-import { Application, ParticleContainer, Particle, Texture } from 'pixi.js';
-
-const app = new Application();
-await app.init({ width: 800, height: 600, backgroundColor: 0x000000 });
-document.body.appendChild(app.canvas);
-
-const texture = Texture.from('spark.png');
-
-const particles = new ParticleContainer({
-  dynamicProperties: {
-    position: true,  // Update positions every frame
-    scale: true,     // Fade out by scaling
-    rotation: true,  // Rotate particles
-    color: false     // Static color
-  }
-});
-
-const particleData = [];
-
-// Create particles
-for (let i = 0; i < 5000; i++) {
-  const particle = new Particle({
-    texture,
-    x: 400,
-    y: 300,
-    scaleX: 0.5,
-    scaleY: 0.5
-  });
-
-  particles.addParticle(particle);
-
-  particleData.push({
-    particle,
-    vx: (Math.random() - 0.5) * 5,
-    vy: (Math.random() - 0.5) * 5 - 2,  // Slight upward bias
-    life: 1.0
-  });
-}
-
-app.stage.addChild(particles);
-
-// Update loop
-app.ticker.add((ticker) => {
-  particleData.forEach(data => {
-    // Physics
-    data.particle.x += data.vx * ticker.deltaTime;
-    data.particle.y += data.vy * ticker.deltaTime;
-    data.vy += 0.1 * ticker.deltaTime;  // Gravity
-
-    // Fade out
-    data.life -= 0.01 * ticker.deltaTime;
-    data.particle.scaleX = data.life * 0.5;
-    data.particle.scaleY = data.life * 0.5;
-
-    // Reset particle
-    if (data.life <= 0) {
-      data.particle.x = 400;
-      data.particle.y = 300;
-      data.vx = (Math.random() - 0.5) * 5;
-      data.vy = (Math.random() - 0.5) * 5 - 2;
-      data.life = 1.0;
-    }
-  });
-});
-```
-
----
-
-### Pattern 4: Applying Filters
-
-```javascript
-import { Application, Sprite, Assets, BlurFilter, DisplacementFilter } from 'pixi.js';
-
-const app = new Application();
-await app.init({ width: 800, height: 600 });
-document.body.appendChild(app.canvas);
-
-const texture = await Assets.load('photo.jpg');
-const photo = new Sprite(texture);
-photo.position.set(100, 100);
-
-// Blur filter
-const blurFilter = new BlurFilter({ strength: 5, quality: 4 });
-
-// Displacement filter (wavy effect)
-const displacementTexture = await Assets.load('displacement.jpg');
-const displacementSprite = Sprite.from(displacementTexture);
-const displacementFilter = new DisplacementFilter({
-  sprite: displacementSprite,
-  scale: 50
-});
-
-// Apply multiple filters
-photo.filters = [blurFilter, displacementFilter];
-
-// Optimize with filterArea
-photo.filterArea = new Rectangle(0, 0, photo.width, photo.height);
-
-app.stage.addChild(photo);
-
-// Animate displacement
-app.ticker.add((ticker) => {
-  displacementSprite.x += 1 * ticker.deltaTime;
-  displacementSprite.y += 0.5 * ticker.deltaTime;
-});
-```
-
----
-
-### Pattern 5: Custom Filter with Shaders
-
-```javascript
-import { Filter, GlProgram } from 'pixi.js';
-
-const vertex = `
-  in vec2 aPosition;
-  out vec2 vTextureCoord;
-
-  uniform vec4 uInputSize;
-  uniform vec4 uOutputFrame;
-  uniform vec4 uOutputTexture;
-
-  vec4 filterVertexPosition() {
-    vec2 position = aPosition * uOutputFrame.zw + uOutputFrame.xy;
-    position.x = position.x * (2.0 / uOutputTexture.x) - 1.0;
-    position.y = position.y * (2.0*uOutputTexture.z / uOutputTexture.y) - uOutputTexture.z;
-    return vec4(position, 0.0, 1.0);
-  }
-
-  vec2 filterTextureCoord() {
-    return aPosition * (uOutputFrame.zw * uInputSize.zw);
-  }
-
-  void main() {
-    gl_Position = filterVertexPosition();
-    vTextureCoord = filterTextureCoord();
-  }
-`;
-
-const fragment = `
-  in vec2 vTextureCoord;
-  uniform sampler2D uTexture;
-  uniform float uTime;
-
-  void main() {
-    vec2 uv = vTextureCoord;
-
-    // Wave distortion
-    float wave = sin(uv.y * 10.0 + uTime) * 0.05;
-    vec4 color = texture(uTexture, vec2(uv.x + wave, uv.y));
-
-    gl_FragColor = color;
-  }
-`;
-
-const customFilter = new Filter({
-  glProgram: new GlProgram({ fragment, vertex }),
-  resources: {
-    timeUniforms: {
-      uTime: { value: 0.0, type: 'f32' }
-    }
-  }
-});
-
-sprite.filters = [customFilter];
-
-// Update uniform
-app.ticker.add((ticker) => {
-  customFilter.resources.timeUniforms.uniforms.uTime += 0.04 * ticker.deltaTime;
-});
-```
-
----
-
-### Pattern 6: Sprite Sheet Animation
-
-```javascript
-import { Application, Assets, AnimatedSprite } from 'pixi.js';
-
-const app = new Application();
-await app.init({ width: 800, height: 600 });
-document.body.appendChild(app.canvas);
-
-// Load sprite sheet
-await Assets.load('spritesheet.json');
-
-// Create animation from frames
-const frames = [];
-for (let i = 0; i < 10; i++) {
-  frames.push(Texture.from(`frame_${i}.png`));
-}
-
-const animation = new AnimatedSprite(frames);
-animation.anchor.set(0.5);
-animation.position.set(400, 300);
-animation.animationSpeed = 0.16;  // ~10 FPS
-animation.play();
-
-app.stage.addChild(animation);
-
-// Control playback
-animation.stop();
-animation.gotoAndPlay(0);
-animation.onComplete = () => {
-  console.log('Animation completed!');
-};
-```
-
----
-
-### Pattern 7: Object Pooling for Performance
-
-```javascript
-class SpritePool {
-  constructor(texture, initialSize = 100) {
-    this.texture = texture;
-    this.available = [];
-    this.active = [];
-
-    // Pre-create sprites
-    for (let i = 0; i < initialSize; i++) {
-      this.createSprite();
-    }
-  }
-
-  createSprite() {
-    const sprite = new Sprite(this.texture);
-    sprite.visible = false;
-    this.available.push(sprite);
-    return sprite;
-  }
-
-  spawn(x, y) {
-    let sprite = this.available.pop();
-
-    if (!sprite) {
-      sprite = this.createSprite();
-    }
-
-    sprite.position.set(x, y);
-    sprite.visible = true;
-    this.active.push(sprite);
-
-    return sprite;
-  }
-
-  despawn(sprite) {
-    sprite.visible = false;
-    const index = this.active.indexOf(sprite);
-
-    if (index > -1) {
-      this.active.splice(index, 1);
-      this.available.push(sprite);
-    }
-  }
-
-  reset() {
-    this.active.forEach(sprite => {
-      sprite.visible = false;
-      this.available.push(sprite);
-    });
-    this.active = [];
-  }
-}
-
-// Usage
-const bulletTexture = Texture.from('bullet.png');
-const bulletPool = new SpritePool(bulletTexture, 50);
-
-// Spawn bullet
-const bullet = bulletPool.spawn(100, 200);
-app.stage.addChild(bullet);
-
-// Despawn after 2 seconds
-setTimeout(() => {
-  bulletPool.despawn(bullet);
-}, 2000);
-```
-
----
-
-## Integration Patterns
-
-### React Integration
-
-```jsx
-import { useEffect, useRef } from 'react';
-import { Application } from 'pixi.js';
-
-function PixiCanvas() {
-  const canvasRef = useRef(null);
-  const appRef = useRef(null);
-
-  useEffect(() => {
-    const init = async () => {
-      const app = new Application();
-
-      await app.init({
-        width: 800,
-        height: 600,
-        backgroundColor: 0x1099bb
-      });
-
-      canvasRef.current.appendChild(app.canvas);
-      appRef.current = app;
-
-      // Setup scene
-      // ... add sprites, graphics, etc.
-    };
-
-    init();
-
-    return () => {
-      if (appRef.current) {
-        appRef.current.destroy(true, { children: true });
-      }
-    };
-  }, []);
-
-  return <div ref={canvasRef} />;
-}
-```
-
----
-
-### Three.js Overlay (2D UI on 3D)
-
-```javascript
-import * as THREE from 'three';
-import { Application, Sprite, Text } from 'pixi.js';
-
-// Three.js scene
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight);
-const renderer = new THREE.WebGLRenderer();
-document.body.appendChild(renderer.domElement);
-
-// PixiJS overlay
-const pixiApp = new Application();
-await pixiApp.init({
-  width: window.innerWidth,
-  height: window.innerHeight,
-  backgroundAlpha: 0  // Transparent background
-});
-
-pixiApp.canvas.style.position = 'absolute';
-pixiApp.canvas.style.top = '0';
-pixiApp.canvas.style.left = '0';
-pixiApp.canvas.style.pointerEvents = 'none';  // Click through
-document.body.appendChild(pixiApp.canvas);
-
-// Add UI elements
-const scoreText = new Text({ text: 'Score: 0', style: { fontSize: 24, fill: 'white' } });
-scoreText.position.set(20, 20);
-pixiApp.stage.addChild(scoreText);
-
-// Render loop
-function animate() {
-  requestAnimationFrame(animate);
-
-  renderer.render(scene, camera);  // 3D scene
-  pixiApp.renderer.render(pixiApp.stage);  // 2D overlay
-}
-
-animate();
-```
-
----
-
-## Performance Best Practices
-
-### 1. Use ParticleContainer for Large Sprite Counts
-
-```javascript
-// DON'T: Regular Container (slow for 1000+ sprites)
-const container = new Container();
-for (let i = 0; i < 10000; i++) {
-  container.addChild(new Sprite(texture));
-}
-
-// DO: ParticleContainer (10x faster)
-const particles = new ParticleContainer({
-  dynamicProperties: { position: true }
-});
-for (let i = 0; i < 10000; i++) {
-  particles.addParticle(new Particle({ texture }));
-}
-```
-
----
-
-### 2. Optimize Filter Usage
-
-```javascript
-// Set filterArea to avoid runtime measurement
-sprite.filterArea = new Rectangle(0, 0, 200, 100);
-
-// Release filters when not needed
-sprite.filters = null;
-
-// Bake filters into Text at creation
-const style = new TextStyle({
-  filters: [new BlurFilter()]  // Applied once at texture creation
-});
-```
-
----
-
-### 3. Manage Texture Memory
-
-```javascript
-// Destroy textures when done
-texture.destroy();
-
-// Batch destruction with delays to prevent frame drops
-textures.forEach((tex, i) => {
-  setTimeout(() => tex.destroy(), Math.random() * 100);
-});
-```
-
----
-
-### 4. Enable Culling for Off-Screen Objects
-
-```javascript
-sprite.cullable = true;  // Skip rendering if outside viewport
-
-// Use CullerPlugin
-import { CullerPlugin } from 'pixi.js';
-```
-
----
-
-### 5. Cache Static Graphics as Bitmaps
-
-```javascript
-// Convert complex graphics to texture for faster rendering
-const complexShape = new Graphics();
-// ... draw many shapes
-
-complexShape.cacheAsBitmap = true;  // Renders to texture once
-```
-
----
-
-### 6. Optimize Renderer Settings
-
-```javascript
-const app = new Application();
 await app.init({
-  antialias: false,  // Disable on mobile for performance
-  resolution: 1,     // Lower resolution on low-end devices
-  autoDensity: true
+  resizeTo: window,
+  background: '#10151f',
+  antialias: true,
+  resolution: Math.min(window.devicePixelRatio, 2),
+  autoDensity: true,
+});
+document.body.appendChild(app.canvas);
+
+const texture = await Assets.load('/assets/hero.png');
+const hero = new Sprite(texture);
+hero.anchor.set(0.5);
+hero.position.set(app.screen.width / 2, app.screen.height / 2);
+app.stage.addChild(hero);
+
+app.ticker.add((ticker) => {
+  hero.rotation += 0.01 * ticker.deltaTime;
 });
 ```
 
----
+For a fixed-size canvas, pass `width` and `height`; for a responsive canvas, use `resizeTo` and lay out from `app.screen`. Prefer `background` in new code; `backgroundColor` remains a supported alias in the v8 guide. Choose `preference: 'webgpu'` only when the project has tested its browser and shader requirements; WebGL is the safer default.
 
-### 7. Use BitmapText for Dynamic Text
+### Project setup
 
-```javascript
-// DON'T: Standard Text (expensive updates)
-const text = new Text({ text: `Score: ${score}` });
-app.ticker.add(() => {
-  text.text = `Score: ${++score}`;  // Re-renders texture each frame
-});
+- Use the project’s existing bundler and install `pixi.js` once. Do not mix v7 `@pixi/*` packages with v8 unless a documented compatibility constraint requires it.
+- Use the official [create-pixi](https://pixijs.com/8.x/guides/getting-started/quick-start) scaffolder for a new project when the repository has no established app structure.
+- In React, Vue, or Svelte, create and initialize PixiJS in the framework lifecycle, append `app.canvas` once, and destroy the app on unmount. Keep application state in the framework and rendering state in PixiJS.
+- In SSR, do not initialize a renderer during server rendering. Dynamically import or initialize on the client, and use the documented `DOMAdapter`/environment route for workers or non-browser hosts.
 
-// DO: BitmapText (much faster)
-const bitmapText = new BitmapText({ text: `Score: ${score}` });
-app.ticker.add(() => {
-  bitmapText.text = `Score: ${++score}`;
-});
-```
+## Assets and textures
 
----
+Use the Promise-based, cache-aware `Assets` API. Load before creating sprites that need the texture.
 
-## Common Pitfalls
+```ts
+import { Assets, Sprite, Texture } from 'pixi.js';
 
-### Pitfall 1: Not Destroying Objects
-
-**Problem**: Memory leaks from unreleased GPU resources.
-
-**Solution**:
-```javascript
-// Always destroy sprites and textures
-sprite.destroy({ children: true, texture: true, baseTexture: true });
-
-// Destroy filters
-sprite.filters = null;
-
-// Destroy graphics
-graphics.destroy();
-```
-
----
-
-### Pitfall 2: Updating Static ParticleContainer Properties
-
-**Problem**: Changing `scale` when `dynamicProperties.scale = false` has no effect.
-
-**Solution**:
-```javascript
-const container = new ParticleContainer({
-  dynamicProperties: {
-    position: true,
-    scale: true,  // Enable if you need to update
-    rotation: true,
-    color: true
-  }
-});
-
-// If properties are static but you change them, call update:
-container.update();
-```
-
----
-
-### Pitfall 3: Excessive Filter Usage
-
-**Problem**: Filters are expensive; too many cause performance issues.
-
-**Solution**:
-```javascript
-// Limit filter usage
-sprite.filters = [blurFilter];  // 1-2 filters max
-
-// Use filterArea to constrain processing
-sprite.filterArea = new Rectangle(0, 0, sprite.width, sprite.height);
-
-// Bake filters into textures when possible
-const filteredTexture = renderer.filters.generateFilteredTexture({
-  texture,
-  filters: [blurFilter]
-});
-```
-
----
-
-### Pitfall 4: Frequent Text Updates
-
-**Problem**: Updating Text re-generates texture every time.
-
-**Solution**:
-```javascript
-// Use BitmapText for frequently changing text
-const bitmapText = new BitmapText({ text: 'Score: 0' });
-
-// Reduce resolution for less memory
-text.resolution = 1;  // Lower than device pixel ratio
-```
-
----
-
-### Pitfall 5: Graphics Clear() Without Redraw
-
-**Problem**: Calling `clear()` removes all geometry but doesn't automatically redraw.
-
-**Solution**:
-```javascript
-graphics.clear();  // Remove all shapes
-
-// Redraw new shapes
-graphics.rect(0, 0, 100, 100).fill('blue');
-```
-
----
-
-### Pitfall 6: Not Using Asset Loading
-
-**Problem**: Creating sprites from URLs causes async issues.
-
-**Solution**:
-```javascript
-// DON'T:
-const sprite = Sprite.from('image.png');  // May load asynchronously
-
-// DO:
-const texture = await Assets.load('image.png');
+await Assets.init({ basePath: '/assets' });
+const texture = await Assets.load<Texture>('hero.png');
 const sprite = new Sprite(texture);
 ```
 
----
+- Use aliases for stable application-level names: `Assets.load({ alias: 'hero', src: 'hero.png' })`, then `Assets.get('hero')`.
+- Use a manifest and named bundles for screens or routes. Load the next bundle in the background and unload a bundle only after its scene is destroyed.
+- Loading the same URL or alias is cached; do not add a second ad-hoc loader.
+- Use `Assets.unload` for lifecycle cleanup, not as a general texture reset. Destroy generated textures and render textures explicitly when they are no longer needed.
+- Use built-in loaders for images, SVG, video, spritesheets, bitmap fonts, web fonts, JSON, text, and supported compressed textures. Add a parser/resolver only for a required custom format.
+- Keep URLs and aliases stable across code and manifests. Add error handling around preload boundaries and show a recoverable loading state.
 
-## Resources
+## Scene graph and transforms
 
-- **Official Site**: https://pixijs.com
-- **API Documentation**: https://pixijs.download/release/docs/
-- **Examples**: https://pixijs.io/examples/
-- **GitHub**: https://github.com/pixijs/pixijs
-- **Filters Library**: @pixi/filter-* packages
-- **Community**: https://github.com/pixijs/pixijs/discussions
+`app.stage` is the root `Container`. Containers group children and provide transforms; `Sprite`, `Graphics`, `Text`, `Mesh`, and `Particle` are leaves or specialized render objects.
 
----
+- Build a shallow, meaningful hierarchy: world, camera/world transform, layers, UI, and debug overlays.
+- Use `position`, `scale`, `rotation`, `skew`, and `pivot` consistently. Prefer `pivot` for the point around which an object rotates and `anchor` for sprite/texture-relative placement.
+- Use `zIndex` with `sortableChildren = true` only where ordering is genuinely dynamic; otherwise add children in render order.
+- Use `toGlobal`/`toLocal` for coordinate conversion rather than manually undoing parent transforms.
+- Use `getBounds`/`getLocalBounds` for layout and hit testing only when needed; repeated bounds calculations can be expensive.
+- Remove a child before destroying it when a container should remain reusable. Destroy with documented options when a subtree owns its textures.
+- Use render groups or culling intentionally. They can improve large scenes but may add render passes or batching costs.
 
-## Related Skills
+## Sprites and animation
 
-- **threejs-webgl**: For 3D graphics; PixiJS can provide 2D UI overlays
-- **gsap-scrolltrigger**: For animating PixiJS properties with scroll
-- **motion-framer**: For React component animations alongside PixiJS canvas
-- **react-three-fiber**: Similar React integration patterns
+Use `Sprite` for a single texture, `AnimatedSprite` for frame animation, `TilingSprite` for repeating backgrounds, and `NineSliceSprite` for scalable panels. For frame animation, keep frame textures in an atlas and control `animationSpeed`, `loop`, `play`, `stop`, and `gotoAndStop` from one owner. Do not recreate sprites every tick.
 
----
+```ts
+const atlas = await Assets.load('run.json');
+const player = new AnimatedSprite(atlas.animations.run);
+player.anchor.set(0.5);
+player.animationSpeed = 0.15;
+player.play();
+```
 
-## Summary
+## Graphics and generated textures
 
-PixiJS excels at high-performance 2D rendering with WebGL acceleration. Key strengths:
+PixiJS v8’s Graphics API builds a shape first and then applies `fill`, `stroke`, or `cut`.
 
-1. **Performance**: Render 100,000+ sprites at 60 FPS
-2. **ParticleContainer**: 10x faster for static properties
-3. **Filters**: WebGL-powered visual effects
-4. **Graphics API**: Intuitive vector drawing
-5. **Asset Management**: Robust texture and sprite sheet handling
+```ts
+const card = new Graphics()
+  .roundRect(0, 0, 280, 120, 16)
+  .fill({ color: 0x182234, alpha: 0.96 })
+  .stroke({ width: 2, color: 0x6ea8fe });
+```
 
-Use for particle systems, 2D games, data visualizations, and interactive canvas applications where performance is critical.
+Use v8 names such as `rect`, `circle`, `ellipse`, `roundRect`, `poly`, and `star`. Replace v7 patterns such as `beginFill`, `endFill`, `drawRect`, `lineStyle`, and `beginHole` with `fill`, `stroke`, shape methods, and `cut`. Reuse a `GraphicsContext` when many objects share the same geometry. Generate a texture from stable graphics only when rasterization improves batching or reuse; do not regenerate it every frame.
+
+## Text, masks, filters, and blend modes
+
+- Use `Text` for flexible styled text, `BitmapText` for large amounts of frequently changing text, and `HTMLText` only when its browser and accessibility trade-offs are acceptable.
+- Load bitmap/web fonts before measuring or laying out text. Avoid changing expensive text styles every frame.
+- Use masks and filters on the smallest practical subtree. Set a tight `filterArea` when the bounds are known.
+- Prefer built-in filters for common effects. For custom GPU work, use the v8 shader/filter APIs and test both WebGL and WebGPU if both are supported.
+- Advanced blend modes and optional extensions may require an explicit `pixi.js/*` import. Register extensions before initialization when the documented API requires it.
+- Do not assume a filter, blend mode, or text extension is included in a custom build. Verify the import path against the release docs.
+
+## Interaction and accessibility
+
+PixiJS v8 uses federated events. Set the minimum event mode needed and define a `hitArea` when the visual bounds are not the intended target.
+
+```ts
+button.eventMode = 'static';
+button.cursor = 'pointer';
+button.hitArea = new Rectangle(0, 0, 220, 64);
+button.on('pointertap', onActivate);
+```
+
+- Use `eventMode: 'none'` for decorative subtrees, `'passive'` for transparent containers, `'static'` for interactive objects, and `'dynamic'` only when an object needs interaction while moving.
+- Prefer pointer events so mouse, pen, and touch share a path. Capture the active pointer for drag behavior and clean up listeners.
+- Do not rely on a canvas-only control for critical actions. Pair important interactions with accessible DOM controls or use PixiJS accessibility support with labels, roles, `tabIndex`, and keyboard handlers.
+- Keep focus, hover, pressed, and disabled states visible without color alone. Respect reduced-motion and keyboard navigation requirements.
+
+## Ticker and game loops
+
+Use `ticker.deltaTime` or `ticker.deltaMS` so motion is frame-rate independent. Keep simulation time separate from render time when determinism matters.
+
+```ts
+app.ticker.add((ticker) => {
+  const seconds = ticker.deltaMS / 1000;
+  player.x += velocity.x * seconds;
+});
+```
+
+Remove ticker callbacks when their scene is destroyed. Use a fixed-step accumulator for physics, cap large time steps after tab suspension, and avoid starting a second `requestAnimationFrame` loop that competes with the application ticker. Set `maxFPS` or `minFPS` only for a measured requirement.
+
+## Particle systems and meshes
+
+Use `ParticleContainer` with `Particle` for very large numbers of lightweight, similarly textured particles. It is not a drop-in replacement for `Container`: particles do not provide the full display-object feature set, events, filters, or arbitrary child hierarchy. Mark only animated fields in `dynamicProperties` and call `update()` after bulk changes to static fields.
+
+Use `MeshSimple`, `MeshPlane`, `MeshRope`, or a custom `Mesh` when geometry or UVs—not a sprite transform—is the core problem. Keep geometry buffers stable and update only changing attributes.
+
+## Rendering, shaders, and extensions
+
+- Start with the default renderer and measure. Use `preference`, renderer options, and custom builds only for a demonstrated need.
+- PixiJS v8 uses an extensions system. For custom application plugins, implement `init`/`destroy`, declare `ExtensionType.Application`, register with `extensions.add`, and augment `PixiMixins.ApplicationOptions` when adding typed options.
+- In custom builds, import required extensions explicitly and use the documented `skipExtensionImports` option. Be careful with text, events, filters, compressed textures, and `unsafe-eval` imports.
+- Use `Shader.from`, `GlProgram`/`GpuProgram`, and `Filter.from` only after checking the current API reference. Keep GLSL and WGSL source separate when portability is required; test uniform layout, coordinate origin, premultiplied alpha, and precision.
+- For render-to-texture, track render-texture size, resolution, color space, and lifecycle. Reuse temporary targets through the documented pool where appropriate.
+
+## Performance checklist
+
+1. Profile frame time, draw calls, texture memory, upload time, and CPU scripting time before optimizing.
+2. Use atlases and consistent texture sources to preserve batching. Avoid needless texture switches, filters, masks, and blend-mode changes.
+3. Reuse objects and arrays in hot loops. Prefer pooling for bullets, particles, and transient effects.
+4. Keep resolution bounded on high-DPI screens; a doubled resolution is roughly four times the pixel workload.
+5. Cull objects outside the camera and set explicit bounds where automatic bounds are costly.
+6. Use `BitmapText`, `ParticleContainer`, cached textures, render groups, or render bundles only when measurements show a benefit.
+7. Tune texture garbage collection and call destroy deliberately. GPU memory is not released merely because a JavaScript reference disappeared.
+8. Test WebGL and WebGPU separately. A feature working on one backend is not proof of portability.
+
+## v7-to-v8 migration checklist
+
+- Replace `@pixi/*` imports with `pixi.js` imports where moving to the v8 single-package layout.
+- Change `new Application(options)` to `const app = new Application(); await app.init(options);`.
+- Replace `app.view` with `app.canvas`.
+- Replace `Loader` patterns with `Assets`.
+- Replace `BaseTexture` usage with the v8 texture-source model; textures expect loaded resources.
+- Replace old Graphics begin/end APIs and long shape names with v8 shape, `fill`, `stroke`, and `cut` calls.
+- Recheck `ParticleContainer`, filters, events, text, mesh, and extension imports against v8 docs rather than applying mechanical renames.
+- Audit third-party Pixi libraries before upgrading; an un-migrated dependency can be a reason to defer the upgrade.
+
+## Troubleshooting
+
+- **Blank canvas:** verify `await app.init()`, append `app.canvas`, inspect renderer/context errors, and check that the asset promise resolved.
+- **Wrong scale or blurry output:** separate CSS size from renderer size, configure `resolution`/`autoDensity`, and avoid scaling the canvas twice.
+- **Clicks miss:** set `eventMode`, check ancestor event modes, define `hitArea`, and verify coordinate conversion.
+- **Unexpected draw cost:** inspect filters, masks, render textures, texture switches, resolution, and object count before changing the renderer.
+- **WebGPU-only failure:** retry with WebGL, check browser support, shader language, optional extensions, and adapter/device errors.
+- **Asset memory growth:** stop retaining scene objects, unload only after destruction, destroy generated targets, and verify aliases do not keep stale references.
+
+## Official references
+
+- [PixiJS getting started](https://pixijs.com/8.x/guides/getting-started/intro)
+- [Application](https://pixijs.com/8.x/guides/components/application)
+- [Assets](https://pixijs.com/8.x/guides/components/assets)
+- [v8 migration guide](https://pixijs.com/8.x/guides/migrations/v8)
+- [Official PixiJS skills](https://github.com/pixijs/pixijs-skills)
+- [Release API docs](https://pixijs.download/release/docs/)
+
+## Related skills
+
+- **threejs-webgl** or **react-three-fiber** for 3D scenes.
+- **gsap-scrolltrigger** or **motion-framer** for timeline and UI animation around a PixiJS canvas.
+- **barba-js** for route transitions; destroy and recreate PixiJS applications at route boundaries.
+- **web3d-integration-patterns** when combining canvas rendering with broader 3D experiences.
+
+## Bundled resources
+
+- `references/api_reference.md` - compact v8 API and migration checklist.
+- `references/filters_effects.md` - filter and shader patterns.
+- `references/performance_guide.md` - profiling and optimization notes.
+- `assets/starter_pixijs/` - minimal starter project.
+- `assets/examples/` - resource index; use the official examples site for live examples.
+- `scripts/particle_builder.py` and `scripts/sprite_generator.py` - generators that emit v8-compatible examples.

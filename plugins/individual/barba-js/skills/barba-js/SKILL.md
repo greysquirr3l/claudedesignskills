@@ -862,7 +862,6 @@ Detailed documentation:
 ### assets/
 Templates and starter projects:
 - `starter_barba/` - Complete Barba.js + GSAP starter template
-- `examples/` - Real-world transition implementations
 
 ## Related Skills
 

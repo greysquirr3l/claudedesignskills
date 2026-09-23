@@ -17,7 +17,7 @@ from typing import Dict, List
 class MarketplaceGenerator:
     def __init__(self, repo_root: Path):
         self.repo_root = repo_root
-        self.plugins_dir = repo_root / ".claude" / "plugins"
+        self.plugins_dir = repo_root / "plugins"
         self.marketplace_file = repo_root / ".claude-plugin" / "marketplace.json"
 
     def generate(self):
@@ -40,7 +40,6 @@ class MarketplaceGenerator:
             "metadata": {
                 "description": "Professional design agency skillstack for 3D/WebGL, animation, and modern web development. Comprehensive collection covering Three.js, GSAP, React Three Fiber, Framer Motion, Babylon.js, and more. Includes 22 individual plugins + 5 category bundles.",
                 "version": "1.0.0",
-                "pluginRoot": "./.claude/plugins",
                 "homepage": "https://github.com/freshtechbro/claudedesignskills",
                 "repository": "https://github.com/freshtechbro/claudedesignskills"
             },
@@ -81,7 +80,7 @@ class MarketplaceGenerator:
             # Create plugin entry for marketplace
             plugin_entry = {
                 "name": manifest["name"],
-                "source": f"./individual/{plugin_dir.name}",
+                "source": f"./plugins/individual/{plugin_dir.name}",
                 "version": manifest.get("version", "1.0.0"),
                 "description": manifest.get("description", ""),
                 "category": manifest.get("category", "general"),
@@ -118,7 +117,7 @@ class MarketplaceGenerator:
             # Create plugin entry for marketplace
             plugin_entry = {
                 "name": manifest["name"],
-                "source": f"./bundles/{bundle_dir.name}",
+                "source": f"./plugins/bundles/{bundle_dir.name}",
                 "version": manifest.get("version", "1.0.0"),
                 "description": manifest.get("description", ""),
                 "category": manifest.get("category", "bundle"),

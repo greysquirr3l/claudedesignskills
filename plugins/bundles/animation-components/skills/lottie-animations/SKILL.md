@@ -681,7 +681,6 @@ This skill includes:
 
 ### assets/
 - `starter_lottie/` - Complete React + Vite starter template with Lottie examples
-- `examples/` - Real-world Lottie animation patterns and use cases
 
 ## Related Skills
 
