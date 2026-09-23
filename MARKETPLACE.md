@@ -2,7 +2,7 @@
 
 **Professional design agency skillstack for 3D/WebGL, animation, and modern web development**
 
-This repository serves as both a development workspace for skills and a plugin marketplace for Claude Code, providing comprehensive coverage of modern web technologies including Three.js, GSAP, React Three Fiber, Framer Motion, Babylon.js, and more.
+This repository serves as both a development workspace for skills and a plugin marketplace for Claude Code, providing comprehensive coverage of modern web technologies including Three.js, GSAP, React Three Fiber, Motion, Babylon.js, and more.
 
 ---
 
@@ -73,9 +73,9 @@ All individual plugins include:
    - Agent: React Three Fiber Architect
    - Use for: React + Three.js integration, declarative 3D, component-based 3D
 
-4. **motion-framer** - Framer Motion
+4. **motion-framer** - Motion (formerly Framer Motion; package: `motion` / `motion/react` 13.4.1)
    - Commands: `/motion-framer-animation_generator`, `/motion-framer-variant_builder`
-   - Agent: Framer Motion Animation Choreographer
+   - Agent: Motion Animation Choreographer (skill slug `motion-framer-` preserved for stability)
    - Use for: React animations, gesture-driven UI, layout animations
 
 5. **babylonjs-engine** - Babylon.js Game Engine
@@ -346,3 +346,13 @@ For questions or issues:
 ---
 
 **Built with ❤️ for the design and development community**
+
+## 🗓️ Recent Maintenance
+
+**2026-09-23 — Framework Skill Refresh**
+All 20 framework skills updated per `FRAMEWORK_SKILL_UPDATE_PLAN.txt`
+(animejs → v4, threejs → r186, motion → 13.4.1 + `motion` package,
+locomotive-scroll → v5/Lenis, AOS → 2.3.4, etc.). Skill and plugin
+slugs are unchanged; only prose was updated and deprecated APIs
+moved into labelled migration sections. See the README "Documented
+Library Versions" table for the full version matrix.

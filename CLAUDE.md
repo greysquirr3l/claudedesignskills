@@ -740,7 +740,8 @@ Understanding skill relationships helps when creating integration patterns:
 
 **Integration Patterns**:
 - Three.js + GSAP: Scroll-driven 3D animations
-- React Three Fiber + Framer Motion: Interactive 3D UI components
+- React Three Fiber + Motion: Interactive 3D UI components
+- Locomotive Scroll v5 (Lenis) + GSAP ScrollTrigger: official integration pattern
 - Vanta.js (uses Three.js) + GSAP: Animated backgrounds with scroll triggers
 
 When creating a new skill, reference related skills in existing skill directories for integration examples.
@@ -874,6 +875,42 @@ Before marking a skill complete, ensure:
 - [ ] Integration patterns documented
 
 ### Historical Issues
+
+**2026-09-23 Framework Skill Refresh** (audit + update of 20 skills per
+`FRAMEWORK_SKILL_UPDATE_PLAN.txt`):
+- Priority 1 — major API migrations: animejs v4.5.0, locomotive-scroll
+  v5.0.1 (Lenis), threejs-webgl 0.186.0, playcanvas-engine 2.22.4,
+  react-three-fiber 9.8.0 (React 19).
+- Priority 2 — current API corrections: aframe-webxr 1.8.0 +
+  aframe-extras 7.7.0, babylonjs-engine 9.27.1, barba-js 2.10.3,
+  gsap-scrolltrigger 3.15.0 (with `gsap.matchMedia()` replacing the
+  deprecated `ScrollTrigger.matchMedia()` example), motion-framer
+  13.4.1 (rebrand `framer-motion` → `motion`), react-spring-physics
+  10.1.2, rive-interactive 2.43.0, scroll-reveal-libraries (AOS
+  2.3.4; replaced invalid `data-aos="fade-in"` with `data-aos="fade"`),
+  spline-interactive (runtime 2.0.56 / react-spline 4.1.0),
+  lottie-animations (lottie-web 5.13.0 + dotLottie split), and
+  animated-component-libraries (React Bits 150+, BlurText/CountUp API
+  corrections).
+- Priority 3 — meta and tooling: blender-web-pipeline 5.2 LTS,
+  lightweight-3d-effects (Zdog 1.1.1 beta, Vanta 0.5.24, Vanilla-Tilt
+  1.8.1, Three.js 0.186.0), modern-web-design (FID → INP, March 2024
+  Core Web Vital), web3d-integration-patterns (dated dependency matrix,
+  `framer-motion-3d` quarantined with `@react-spring/three`
+  replacement).
+- Quarantined deprecated APIs: `framer-motion-3d` imports, `data-aos=
+  "fade-in"`, `aos@next` install tags, `ScrollTrigger.matchMedia` as the
+  primary example, PlayCanvas `model`/`animation` components, `anime({...})
+  / anime.timeline() / anime.stagger()` defaults, v4
+  `data-scroll-container` markup as the default example, `FID` as an
+  active recommendation metric.
+- Skill directory and plugin slugs are unchanged (stable identifiers);
+  only the **prose** rebrand `framer-motion` → `motion` was applied
+  where appropriate. Agent and command file names retain the
+  `motion-framer-` prefix.
+- All 22 skills pass `quick_validate.py`; all skill scripts pass
+  `python3 -m py_compile`; `scripts/marketplace/validate_marketplace.py`
+  passes; individual skill copies and bundle copies synchronised.
 
 **2025 YAML Frontmatter Audit**:
 - 44% of skills (4 out of 9) were missing YAML frontmatter entirely
