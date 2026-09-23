@@ -78,7 +78,7 @@ chmod +x .claude/skills/my-skill/scripts/my_script.py
 
 ```bash
 # Add marketplace to Claude Code
-/plugin marketplace add freshtechbro/claudedesignskills
+/plugin marketplace add greysquirr3l/claudedesignskills
 
 # Install individual plugin
 /plugin install threejs-webgl

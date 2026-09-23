@@ -15,7 +15,7 @@ Claude Code plugin marketplace providing comprehensive coverage of modern web te
 
 ```bash
 # Add marketplace to Claude Code
-/plugin marketplace add freshtechbro/claudedesignskills
+/plugin marketplace add greysquirr3l/claudedesignskills
 
 # Install individual plugins
 /plugin install threejs-webgl
@@ -101,7 +101,7 @@ Install directly from the marketplace:
 
 ```bash
 # Add marketplace
-/plugin marketplace add freshtechbro/claudedesignskills
+/plugin marketplace add greysquirr3l/claudedesignskills
 
 # Browse and install plugins
 /plugin install threejs-webgl
@@ -134,7 +134,7 @@ Upload individual skills directly to [claude.ai](https://claude.ai):
 Clone for skill development or local customization:
 
 ```bash
-git clone https://github.com/freshtechbro/claudedesignskills.git
+git clone https://github.com/greysquirr3l/claudedesignskills.git
 cd claudedesignskills
 ```
 

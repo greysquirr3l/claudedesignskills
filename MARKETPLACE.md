@@ -13,7 +13,7 @@ This repository serves as both a development workspace for skills and a plugin m
 Add this marketplace to your Claude Code:
 
 ```bash
-/plugin marketplace add freshtechbro/claudedesignskills
+/plugin marketplace add greysquirr3l/claudedesignskills
 ```
 
 ### Installing Individual Plugins
@@ -330,8 +330,8 @@ Contributions are welcome! Please:
 
 ## 🔗 Links
 
-- **Repository**: https://github.com/freshtechbro/claudedesignskills
-- **Issues**: https://github.com/freshtechbro/claudedesignskills/issues
+- **Repository**: https://github.com/greysquirr3l/claudedesignskills
+- **Issues**: https://github.com/greysquirr3l/claudedesignskills/issues
 - **Claude Code Docs**: https://docs.claude.com/en/docs/claude-code/overview
 
 ---

@@ -35,13 +35,13 @@ class MarketplaceGenerator:
             "name": "claude-design-skillstack",
             "owner": {
                 "name": "Claude Design Skillstack",
-                "url": "https://github.com/freshtechbro/claudedesignskills"
+                "url": "https://github.com/greysquirr3l/claudedesignskills"
             },
             "metadata": {
                 "description": "Professional design agency skillstack for 3D/WebGL, animation, and modern web development. Comprehensive collection covering Three.js, GSAP, React Three Fiber, Framer Motion, Babylon.js, and more. Includes 22 individual plugins + 5 category bundles.",
                 "version": "1.0.0",
-                "homepage": "https://github.com/freshtechbro/claudedesignskills",
-                "repository": "https://github.com/freshtechbro/claudedesignskills"
+                "homepage": "https://github.com/greysquirr3l/claudedesignskills",
+                "repository": "https://github.com/greysquirr3l/claudedesignskills"
             },
             "plugins": all_plugins
         }

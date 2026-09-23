@@ -166,10 +166,10 @@ class PluginGenerator:
             "description": description,
             "author": "Claude Design Skillstack",
             "license": "Apache-2.0",
-            "homepage": "https://github.com/freshtechbro/claudedesignskills",
+            "homepage": "https://github.com/greysquirr3l/claudedesignskills",
             "repository": {
                 "type": "git",
-                "url": "https://github.com/freshtechbro/claudedesignskills.git"
+                "url": "https://github.com/greysquirr3l/claudedesignskills.git"
             },
             "keywords": metadata["tags"],
             "category": metadata["category"],
