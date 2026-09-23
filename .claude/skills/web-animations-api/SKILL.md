@@ -832,9 +832,12 @@ window.addEventListener('keydown', (e) => {
   motion enabled.
 - `assets/groundtruth/scroll_timeline_lab.html` — **ground-truth
   reference**: copy of the user's `2026_scroll_timeline_lab.html`
-  from `greysquirr3l/pattern_lab`. Twelve finished scroll-driven
-  CSS examples using the lab's dark navy / neon palette. Treat as
-  polished reference; adapt for new projects.
+  from `greysquirr3l/pattern_lab`. The same file is live at
+  <https://greysquirr3l.github.io/pattern_lab/2026_scroll_timeline_lab.html>
+  — open the live URL in any modern browser to see the demos run.
+  Twelve finished scroll-driven CSS examples using the lab's dark
+  navy / neon palette. Treat as polished reference; adapt for new
+  projects.
 
 ---
 

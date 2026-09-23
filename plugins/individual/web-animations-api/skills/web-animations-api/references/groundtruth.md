@@ -16,22 +16,38 @@ examples in their finished state.
 ## What the lab demonstrates
 
 The lab covers exactly the ground covered by this skill — but in a
-finished, designerly form:
+finished, designerly form. Twelve demos live at
+<https://greysquirr3l.github.io/pattern_lab/2026_scroll_timeline_lab.html>
+under the heading "CSS `scroll-timeline` Lab". The lab opens with a
+useful framing: "Before `animation-timeline`, every scroll-linked
+effect required JavaScript — a scroll event listener, throttling with
+`requestAnimationFrame`, manual progress calculation, and DOM
+updates on every tick."
 
-| # | Section title | Pattern | Maps to SKILL.md § |
-|---|---|---|---|
-| 1 | Reading progress bar | `scroll-timeline-name` on `html` | Common Patterns §3 |
-| 2 | Scroll-reveal entrance | `animation-timeline: view()` | Common Patterns §1 |
-| 3 | CSS parallax | named timeline + layer depth | Common Patterns §11 |
-| 4 | Horizontal scroll drives a gauge | `scroll-timeline-axis: inline` | (rare; reference-only) |
-| 5 | Vertical event timeline | `view() + alternating reveal` | Common Patterns §11 |
-| 6 | Conversation timeline | per-bubble `view()` entrance | (advanced; reference-only) |
-| 7 | Step progress | per-node `view()` activation | (advanced; reference-only) |
-| 8 | Palette rotation | `@property --hue + scroll()` | (advanced; reference-only) |
-| 9 | Scroll-peel stickers | `animation-range: contain → exit` | Common Patterns §1 |
-| 10 | Warp-speed starfield | scroll-driven streak length | (advanced; reference-only) |
-| 11 | Scroll typewriter | `max-width: 0ch → 100%` | (advanced; reference-only) |
-| 12 | Card deck deal | `rotateY + translateX + view()` | (advanced; reference-only) |
+| # | Section title (verbatim from lab) | Highlight technique |
+|---|---|---|
+| 1 | Reading progress bar | `scroll-timeline-name` on `html` |
+| 2 | Scroll-reveal entrance | `animation-timeline: view()` |
+| 3 | CSS parallax | named timeline + layer depth |
+| 4 | Horizontal scroll drives a gauge | `scroll-timeline-axis: inline` |
+| 5 | Vertical event timeline | `view()` + alternating reveal |
+| 6 | Conversation timeline | per-bubble `view()` entrance |
+| 7 | Step progress | per-node `view()` activation |
+| 8 | Palette rotation | `@property --hue + scroll()` |
+| 9 | Scroll-peel stickers | `animation-range: contain → exit` |
+| 10 | Warp-speed starfield | scroll-driven streak length |
+| 11 | Scroll typewriter | `max-width: 0ch → 100%` |
+| 12 | Card deck deal | `rotateY + translateX + view()` |
+
+The lab also includes a Core Insight callout: "Scroll-driven
+animations don't replace `@keyframes` — they replace the **clock**
+that drives them. Swap elapsed time for scroll position, and the
+same keyframe that fades in a modal now fades in a card as it
+enters the viewport. That single conceptual swap — combined with
+`@property` for animatable custom properties and `timeline-scope`
+for cross-DOM reach — unlocks palette rotation, warp-speed
+starfields, typewriters, 3D card decks, and peel effects. All pure
+CSS. All on the compositor thread."
 
 ## Why these examples matter
 
